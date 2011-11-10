@@ -410,6 +410,23 @@ Highlight last expanded string."
  '(howm-menu howm-list-all howm-list-recent
              howm-list-grep howm-create
              howm-keyword-to-kill-ring))
+;; メモは UTF-8
+(setq auto-coding-alist (cons '("\\.howm\\'" . utf-8-unix) auto-coding-alist))
+(setq howm-process-coding-system 'utf-8)
+(add-hook 'howm-create-file-hook
+          (lambda ()
+            (set-buffer-file-coding-system 'utf-8)))
+;; 「最近のメモ」一覧時にタイトル表示
+(setq howm-list-recent-title t)
+;; 全メモ一覧時にタイトル表示
+(setq howm-list-all-title t)
+;; メニューを 2 時間キャッシュ
+(setq howm-menu-expiry-hours 2)
+;; howm の時は auto-fill で
+;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
+;; RET でファイルを開く際, 一覧バッファを消す
+;; C-u RET なら残る
+(setq howm-view-summary-persistent nil)
 
 ;; 検索しないファイルの正規表現
 (setq
