@@ -75,15 +75,15 @@
 ;;; ----------------------------------------------------------------------
 ;;; iswitchb
 ;;; ----------------------------------------------------------------------
-(iswitchb-mode 1)
-(iswitchb-default-keybindings)
-(add-hook 'iswitchb-define-mode-map-hook
-          (lambda ()
-            (define-key iswitchb-mode-map [right] 'iswitchb-next-match)
-            (define-key iswitchb-mode-map [left] 'iswitchb-prev-match)
-            (define-key iswitchb-mode-map "\C-f" 'iswitchb-next-match)
-            (define-key iswitchb-mode-map " " 'iswitchb-next-match)
-            (define-key iswitchb-mode-map "\C-b" 'iswitchb-prev-match)))
+;; (iswitchb-mode 1)
+;; (iswitchb-default-keybindings)
+;; (add-hook 'iswitchb-define-mode-map-hook
+;;           (lambda ()
+;;             (define-key iswitchb-mode-map [right] 'iswitchb-next-match)
+;;             (define-key iswitchb-mode-map [left] 'iswitchb-prev-match)
+;;             (define-key iswitchb-mode-map "\C-f" 'iswitchb-next-match)
+;;             (define-key iswitchb-mode-map " " 'iswitchb-next-match)
+;;             (define-key iswitchb-mode-map "\C-b" 'iswitchb-prev-match)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -345,7 +345,7 @@ Highlight last expanded string."
 (when (require 'migemo nil t)
   (if (eq window-system 'w32)
       (progn (setq migemo-command "./cmigemo")
-             (setq migemo-dictionary "C:/emacs-23.1/etc/migemo/migemo-dict")
+             (setq migemo-dictionary "C:/emacs-23.3-20110402/etc/migemo/migemo-dict")
              (setq migemo-coding-system 'japanese-shift-jis-unix)))
   (setq migemo-options (list "-q" "--emacs"))
   (setq migemo-use-pattern-alist t)
@@ -1221,24 +1221,28 @@ and source-file directory for your debugger.")
 (setq anything-idle-delay 0.3)
 (setq anything-input-idle-delay 0.1)
 (setq anything-candidate-number-limit 100)
-(global-set-key (if window-system (kbd "C-;") "\C-x;") 'anything)
-(global-set-key (kbd "M-x") 'anything-M-x)
-
-;;; anything-sources
-(setq anything-sources
-      (list anything-c-source-buffers+
-            anything-c-source-elscreen
-            anything-c-source-files-in-current-dir+
-            anything-c-source-bm
-            anything-c-source-bookmarks
-            anything-c-source-gtags-select
-            anything-c-source-recentf
-            anything-c-source-file-cache))
 (when window-system
   (set-face-attribute 'anything-file-name nil
                       :foreground "white" :background nil)
   (set-face-attribute 'anything-dir-priv nil
                       :foreground "LightSkyBlue" :background nil))
+
+(defun my-anything ()
+  (interactive)
+  (anything-other-buffer
+   '(anything-c-source-buffers+
+     anything-c-source-elscreen
+     anything-c-source-files-in-current-dir+
+     anything-c-source-bm
+     anything-c-source-bookmarks
+     anything-c-source-gtags-select
+     anything-c-source-recentf
+     anything-c-source-file-cache)
+   " *my-anything*"))
+
+(global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
+(global-set-key (kbd "M-x") 'anything-M-x)
+(global-set-key (kbd "\C-xb") 'anything-buffers+)
 
 ;;; anything-gtags
 (add-hook 'gtags-mode-hook
