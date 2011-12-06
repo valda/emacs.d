@@ -323,14 +323,14 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;; browse-kill-ring
 ;;; ----------------------------------------------------------------------
-(require 'browse-kill-ring)
- (browse-kill-ring-default-keybindings)
- (setq browse-kill-ring-no-duplicates t)
- (setq browse-kill-ring-separator "--ヽ(´ー｀)ノ--------------------")
- (setq browse-kill-ring-separator-face 'browse-kill-ring-separator-face)
- (make-face 'browse-kill-ring-separator-face)
- (set-face-attribute 'browse-kill-ring-separator-face nil
- 		    :foreground "light steel blue" :bold t)
+;; (require 'browse-kill-ring)
+;;  (browse-kill-ring-default-keybindings)
+;;  (setq browse-kill-ring-no-duplicates t)
+;;  (setq browse-kill-ring-separator "--ヽ(´ー｀)ノ--------------------")
+;;  (setq browse-kill-ring-separator-face 'browse-kill-ring-separator-face)
+;;  (make-face 'browse-kill-ring-separator-face)
+;;  (set-face-attribute 'browse-kill-ring-separator-face nil
+;;  		    :foreground "light steel blue" :bold t)
 
 ;;; ----------------------------------------------------------------------
 ;;; redo
@@ -893,6 +893,12 @@ and source-file directory for your debugger.")
 	     (define-key cssm-mode-map "\C-m" 'newline-and-indent)))
 
 ;;; ----------------------------------------------------------------------
+;;; js2-mode (javascript)
+;;; ----------------------------------------------------------------------
+(autoload 'js2-mode "js2" nil t)
+(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'scss-mode "scss-mode")
@@ -900,10 +906,10 @@ and source-file directory for your debugger.")
 (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; js2-mode (javascript)
+;;; coffee-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'js2-mode "js2" nil t)
-(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+(autoload 'coffee-mode "coffee-mode" "CoffeeScript Editing Mode" t)
+(add-to-list 'auto-mode-alist '("\\.coffee$" . coffee-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; haskell-mode
@@ -1264,8 +1270,9 @@ and source-file directory for your debugger.")
    " *my-anything*"))
 
 (global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
-(global-set-key (kbd "M-x") 'anything-M-x)
-(global-set-key (kbd "\C-xb") 'anything-buffers+)
+(global-set-key "\M-x" 'anything-M-x)
+(global-set-key "\C-xb" 'anything-buffers+)
+(global-set-key "\M-y" 'anything-show-kill-ring)
 
 ;;; anything-gtags
 (add-hook 'gtags-mode-hook
@@ -1324,7 +1331,7 @@ and source-file directory for your debugger.")
   (setq anything-samewindow nil)
   (setq popwin:special-display-config
         (append '(("*Backtrace*" :height 20)
-                  ("*Kill Ring*" :height 20)
+                  ("*Kill Ring*" :height 20 :noselect t)
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
