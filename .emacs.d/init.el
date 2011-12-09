@@ -776,14 +776,15 @@ and source-file directory for your debugger.")
 ;;; rails-mode
 ;;; ----------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/elisp/emacs-rails")
-(when (require 'rails nil t)
-  (setq rails-indent-and-complete nil)
-  (define-keys rails-minor-mode-map
-    ("\C-c\C-p"            'rails-lib:run-primary-switch)
-    ("\C-c\C-n"            'rails-lib:run-secondary-switch)
-    ([?\C-.]               'redo))
-  (define-keys rails-view-minor-mode-map
-    ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection)))
+(require 'rails-lib)
+(require 'rails)
+(setq rails-indent-and-complete nil)
+(define-keys rails-minor-mode-map
+  ("\C-c\C-p"            'rails-lib:run-primary-switch)
+  ("\C-c\C-n"            'rails-lib:run-secondary-switch)
+  ([?\C-.]               'redo))
+(define-keys rails-view-minor-mode-map
+  ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode

@@ -41,14 +41,17 @@
        (add-to-list 'default-frame-alist '(font . "Ricty-12"))
        (add-to-list 'initial-frame-alist '(font . "Ricty-12")))
       ((eq window-system 'w32)
-       (create-fontset-from-ascii-font
-        "-outline-BDF UM+-normal-r-normal-normal-12-*-*-*-*-*-iso8859-1" nil "mplus")
-       (set-fontset-font "fontset-mplus" 'japanese-jisx0208 '("BDF UM+" . "jisx0208-sjis"))
-       (set-fontset-font "fontset-mplus" 'katakana-jisx0201 '("BDF UM+" . "jisx0201-katakana"))
-       (create-fontset-from-ascii-font
-        "-outline-Ricty-normal-r-normal-normal-14-*-*-*-*-*-iso8859-1" nil "ricty")
-       (set-fontset-font "fontset-ricty" 'japanese-jisx0208 '("Ricty" . "jisx0208-sjis"))
-       (set-fontset-font "fontset-ricty" 'katakana-jisx0201 '("Ricty" . "jisx0201-katakana"))
-       (add-to-list 'default-frame-alist '(font . "fontset-ricty"))
-       (add-to-list 'initial-frame-alist '(font . "fontset-ricty"))
+       ;;  (create-fontset-from-ascii-font
+       ;;   "-outline-BDF UM+-normal-r-normal-normal-12-*-*-*-*-*-iso8859-1" nil "mplus")
+       ;;  (set-fontset-font "fontset-mplus" 'japanese-jisx0208 '("BDF UM+" . "jisx0208-sjis"))
+       ;;  (set-fontset-font "fontset-mplus" 'katakana-jisx0201 '("BDF UM+" . "jisx0201-katakana"))
+       ;; (add-to-list 'default-frame-alist '(font . "fontset-mplus"))
+       ;; (add-to-list 'initial-frame-alist '(font . "fontset-mplus"))
+       ;; (create-fontset-from-ascii-font
+       ;;  "-outline-Ricty-normal-r-normal-normal-16-*-*-*-*-*-iso8859-1" nil "ricty")
+       ;; (set-fontset-font "fontset-ricty" 'japanese-jisx0208 '("Ricty" . "jisx0208-sjis"))
+       ;; (set-fontset-font "fontset-ricty" 'katakana-jisx0201 '("Ricty" . "jisx0201-katakana"))
+       ;; (add-to-list 'default-frame-alist '(font . "fontset-ricty"))
+       ;; (add-to-list 'initial-frame-alist '(font . "fontset-ricty"))
+       (set-default-font "Ricty-12")
        ))
