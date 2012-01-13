@@ -477,6 +477,44 @@ Highlight last expanded string."
          (exit-calendar)
          (insert day)))))
 
+
+;;; ----------------------------------------------------------------------
+;;; org-mode
+;;; ----------------------------------------------------------------------
+(require 'org-install)
+(setq org-startup-truncated nil)
+(setq org-startup-indented t)
+(setq org-return-follows-link t)
+(setq org-replace-disputed-keys t)
+(setq org-disputed-keys
+      '(([(shift up)]            . [(meta \[)])
+        ([(shift down)]          . [(meta \])])
+        ([(shift left)]          . [(meta -)])
+        ([(shift right)]         . [(meta =)])
+        ([(control shift right)] . [(meta +)])
+        ([(control shift left)]  . [(meta _)])
+        ([(control shift left)]  . [(meta _)])
+        ([(meta left)]           . [(meta ,)])
+        ([(meta right)]          . [(meta .)])
+        ([(meta shift left)]     . [(meta <)])
+        ([(meta shift right)]    . [(meta >)])
+        ))
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(org-remember-insinuate)
+(setq org-directory "~/Dropbox/Documents/org/")
+(setq org-default-notes-file (concat org-directory "agenda.org"))
+(setq org-remember-templates
+       '(("Todo" ?t "** TODO %?\n   %i\n   %a\n   %t" nil "Inbox")
+         ("Bug" ?b "** TODO %?   :bug:\n   %i\n   %a\n   %t" nil "Inbox")
+         ("Idea" ?i "** %?\n   %i\n   %a\n   %t" nil "New Ideas")
+         ))
+(global-set-key "\C-cr" 'org-remember)
+(add-hook 'org-mode-hook
+          '(lambda ()
+             (local-unset-key [home])
+             (local-unset-key [end])
+             ))
+
 ;;; ----------------------------------------------------------------------
 ;;; Visual Studio .NET 2003
 ;;; ----------------------------------------------------------------------
@@ -1240,6 +1278,12 @@ and source-file directory for your debugger.")
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
+;;; uniquify
+;;; ----------------------------------------------------------------------
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+;;; ----------------------------------------------------------------------
 ;;; anything.el
 ;;; ----------------------------------------------------------------------
 (require 'anything)
@@ -1333,6 +1377,8 @@ and source-file directory for your debugger.")
   (setq popwin:special-display-config
         (append '(("*Backtrace*" :height 20)
                   ("*Kill Ring*" :height 20 :noselect t)
+                  ("*Apropos*" :height 30)
+                  ("*Help*" :height 30)
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
