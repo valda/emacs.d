@@ -269,8 +269,9 @@ Highlight last expanded string."
          (require 'jaspace)
          (setq jaspace-alternate-eol-string "\xab\n")
          (setq jaspace-highlight-tabs t)
-         (add-to-list 'jaspace-modes 'python-mode)
-         (add-to-list 'jaspace-modes 'php-mode))))
+         (setq jaspace-modes
+               (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes)))))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
