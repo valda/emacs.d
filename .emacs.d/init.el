@@ -269,8 +269,9 @@ Highlight last expanded string."
          (require 'jaspace)
          (setq jaspace-alternate-eol-string "\xab\n")
          (setq jaspace-highlight-tabs t)
-         (add-to-list 'jaspace-modes 'python-mode)
-         (add-to-list 'jaspace-modes 'php-mode))))
+         (setq jaspace-modes
+               (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes)))))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
@@ -476,6 +477,44 @@ Highlight last expanded string."
                     (calendar-cursor-to-date t)))
          (exit-calendar)
          (insert day)))))
+
+
+;;; ----------------------------------------------------------------------
+;;; org-mode
+;;; ----------------------------------------------------------------------
+(require 'org-install)
+(setq org-startup-truncated nil)
+(setq org-startup-indented t)
+(setq org-return-follows-link t)
+(setq org-replace-disputed-keys t)
+(setq org-disputed-keys
+      '(([(shift up)]            . [(meta \[)])
+        ([(shift down)]          . [(meta \])])
+        ([(shift left)]          . [(meta -)])
+        ([(shift right)]         . [(meta =)])
+        ([(control shift right)] . [(meta +)])
+        ([(control shift left)]  . [(meta _)])
+        ([(control shift left)]  . [(meta _)])
+        ([(meta left)]           . [(meta ,)])
+        ([(meta right)]          . [(meta .)])
+        ([(meta shift left)]     . [(meta <)])
+        ([(meta shift right)]    . [(meta >)])
+        ))
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(org-remember-insinuate)
+(setq org-directory "~/Dropbox/Documents/org/")
+(setq org-default-notes-file (concat org-directory "agenda.org"))
+(setq org-remember-templates
+       '(("Todo" ?t "** TODO %?\n   %i\n   %a\n   %t" nil "Inbox")
+         ("Bug" ?b "** TODO %?   :bug:\n   %i\n   %a\n   %t" nil "Inbox")
+         ("Idea" ?i "** %?\n   %i\n   %a\n   %t" nil "New Ideas")
+         ))
+(global-set-key "\C-cr" 'org-remember)
+(add-hook 'org-mode-hook
+          '(lambda ()
+             (local-unset-key [home])
+             (local-unset-key [end])
+             ))
 
 ;;; ----------------------------------------------------------------------
 ;;; Visual Studio .NET 2003
@@ -776,14 +815,15 @@ and source-file directory for your debugger.")
 ;;; rails-mode
 ;;; ----------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/elisp/emacs-rails")
-(when (require 'rails nil t)
-  (setq rails-indent-and-complete nil)
-  (define-keys rails-minor-mode-map
-    ("\C-c\C-p"            'rails-lib:run-primary-switch)
-    ("\C-c\C-n"            'rails-lib:run-secondary-switch)
-    ([?\C-.]               'redo))
-  (define-keys rails-view-minor-mode-map
-    ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection)))
+(require 'rails-lib)
+(require 'rails)
+(setq rails-indent-and-complete nil)
+(define-keys rails-minor-mode-map
+  ("\C-c\C-p"            'rails-lib:run-primary-switch)
+  ("\C-c\C-n"            'rails-lib:run-secondary-switch)
+  ([?\C-.]               'redo))
+(define-keys rails-view-minor-mode-map
+  ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
@@ -1115,21 +1155,21 @@ and source-file directory for your debugger.")
 ;;; ----------------------------------------------------------------------
 (when (require 'elscreen nil t)
   (setq elscreen-display-tab nil)
-  (defun elscreen-frame-title-update ()
-    (when (elscreen-screen-modified-p 'elscreen-frame-title-update)
-      (let* ((screen-list (sort (elscreen-get-screen-list) '<))
-             (screen-to-name-alist (elscreen-get-screen-to-name-alist))
-             (title (mapconcat
-                     (lambda (screen)
-                       (format "%d%s %s"
-                               screen (elscreen-status-label screen)
-                               (get-alist screen screen-to-name-alist)))
-                     screen-list " ")))
-        (if (fboundp 'set-frame-name)
-            (set-frame-name title)
-          (setq frame-title-format title)))))
-  (eval-after-load "elscreen"
-    '(add-hook 'elscreen-screen-update-hook 'elscreen-frame-title-update))
+  ;; (defun elscreen-frame-title-update ()
+  ;;   (when (elscreen-screen-modified-p 'elscreen-frame-title-update)
+  ;;     (let* ((screen-list (sort (elscreen-get-screen-list) '<))
+  ;;            (screen-to-name-alist (elscreen-get-screen-to-name-alist))
+  ;;            (title (mapconcat
+  ;;                    (lambda (screen)
+  ;;                      (format "%d%s %s"
+  ;;                              screen (elscreen-status-label screen)
+  ;;                              (get-alist screen screen-to-name-alist)))
+  ;;                    screen-list " ")))
+  ;;       (if (fboundp 'set-frame-name)
+  ;;           (set-frame-name title)
+  ;;         (setq frame-title-format title)))))
+  ;; (eval-after-load "elscreen"
+  ;;   '(add-hook 'elscreen-screen-update-hook 'elscreen-frame-title-update))
   (cond (window-system
          (elscreen-set-prefix-key "\C-z")
          (define-key elscreen-map "z" 'iconify-frame))
@@ -1239,6 +1279,12 @@ and source-file directory for your debugger.")
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
+;;; uniquify
+;;; ----------------------------------------------------------------------
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+;;; ----------------------------------------------------------------------
 ;;; anything.el
 ;;; ----------------------------------------------------------------------
 (require 'anything)
@@ -1332,6 +1378,8 @@ and source-file directory for your debugger.")
   (setq popwin:special-display-config
         (append '(("*Backtrace*" :height 20)
                   ("*Kill Ring*" :height 20 :noselect t)
+                  ("*Apropos*" :height 30)
+                  ("*Help*" :height 30)
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
