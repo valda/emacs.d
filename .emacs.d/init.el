@@ -1109,8 +1109,11 @@ and source-file directory for your debugger.")
          "~/.emacs.d/elisp"
          "~/bin"
          "~/Dropbox"
-         "c:/Libraries/WTL80/include"
-         "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include"))
+         "~/Dropbox/chrome/SubScript"))
+(when (eq window-system 'w32)
+  (file-cache-add-directory-list
+   (list "c:/Libraries/WTL80/include"
+         "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include")))
 
 ;;; ----------------------------------------------------------------------
 ;;; recentf-ext
@@ -1435,6 +1438,29 @@ and source-file directory for your debugger.")
                  ?づ ?で ?ど ?ば ?び ?ぶ ?べ ?ぼ ?ぱ ?ぴ ?ぷ ?ぺ ?ぽ ?ぁ ?ぃ
                  ?ぅ ?ぇ ?ぉ ?っ ?ゃ ?ゅ ?ょ ?ゎ ?ヮ ?ヶ ?ヵ))
   (put-char-code-property c 'jisx0201 nil))
+
+;;; ----------------------------------------------------------------------
+;;; ファイルをウィンドウズの関連付けで開く
+;;; ----------------------------------------------------------------------
+(defun my-file-open-by-windows (file)
+  "ファイルをウィンドウズの関連付けで開く"
+  (interactive "fOpen File: ")
+  (message "Opening %s..." file)
+  (cond ((not window-system)
+          ; window-system⇒w32と表示される
+        )
+        ((eq system-type 'windows-nt)
+          ; XPではwindows-ntと表示される
+          ; infile:      標準入力
+          ; destination: プロセスの出力先
+          ; display:     ?
+          (call-process "cmd.exe" nil 0 nil "/c" "start" "" (convert-standard-filename file)))
+        ((eq system-type 'darwin)
+          (call-process "open" nil 0 nil file))
+        (t
+          (call-process "xdg-open" nil 0 nil file)))
+  (recentf-add-file file)
+  (message "Opening %s...done" file))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のグローバルキーバインドなど
