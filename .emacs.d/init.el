@@ -346,7 +346,7 @@ Highlight last expanded string."
 (when (require 'migemo nil t)
   (if (eq window-system 'w32)
       (progn (setq migemo-command "./cmigemo")
-             (setq migemo-dictionary "C:/emacs-23.3-20110402/etc/migemo/migemo-dict")
+             (setq migemo-dictionary "C:/emacs-23.4-20120205/etc/migemo/migemo-dict")
              (setq migemo-coding-system 'japanese-shift-jis-unix)))
   (setq migemo-options (list "-q" "--emacs"))
   (setq migemo-use-pattern-alist t)
