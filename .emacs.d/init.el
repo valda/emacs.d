@@ -57,8 +57,19 @@
        (load "init-meadow"))
       (t
        (load "init-emacs")))
+
 (when (eq window-system 'w32)
-  (setenv "CYGWIN" "nodosfilewarning"))
+  (setenv "CYGWIN" "nodosfilewarning")
+  (setq default-input-method "W32-IME")
+  (w32-ime-initialize)
+  (setq-default w32-ime-mode-line-state-indicator "[--]")
+  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+
+;; IME ON/OFF時のカーソルカラー
+(add-hook 'input-method-activate-hook
+          (lambda() (set-cursor-color "red")))
+(add-hook 'input-method-inactivate-hook
+          (lambda() (set-cursor-color "green")))
 
 ;;; ----------------------------------------------------------------------
 ;;; Anthy
