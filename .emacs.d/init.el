@@ -1112,6 +1112,14 @@ and source-file directory for your debugger.")
              (defun tex-font-lock-suscript () nil)))
 
 ;;; ----------------------------------------------------------------------
+;;; papyrus-mode
+;;; ----------------------------------------------------------------------
+(unless (fboundp 'prog-mode)
+  (defalias 'prog-mode 'fundamental-mode))
+(autoload 'papyrus-mode "papyrus-mode" "Papyrus mode" t)
+(add-to-list 'auto-mode-alist '("\\.psc\\'" . papyrus-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; 拡張子に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
