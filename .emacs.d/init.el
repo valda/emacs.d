@@ -1164,7 +1164,7 @@ and source-file directory for your debugger.")
          "~/.emacs.d/elisp"
          "~/bin"
          "~/Dropbox"
-         "~/Dropbox/chrome/SubScript"))
+         "~/chrome/SubScript"))
 (when (eq window-system 'w32)
   (file-cache-add-directory-list
    (list "c:/Libraries/WTL80/include"
