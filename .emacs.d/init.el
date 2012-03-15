@@ -1001,6 +1001,13 @@ and source-file directory for your debugger.")
 (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
 
 ;;; ----------------------------------------------------------------------
+;;; less-mode
+;;; ----------------------------------------------------------------------
+(autoload 'less-mode "less-mode")
+(setq less-compile-at-save nil) ;; 自動コンパイルをオフにする
+(add-to-list 'auto-mode-alist '("\\.less$" . less-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; coffee-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'coffee-mode "coffee-mode" "CoffeeScript Editing Mode" t)
