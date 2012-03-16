@@ -1189,7 +1189,7 @@ and source-file directory for your debugger.")
 ;;; recentf-ext
 ;;; ----------------------------------------------------------------------
 (require 'recentf-ext)
-(setq recentf-max-saved-items 1000)
+(setq recentf-max-saved-items 10000)
 
 ;;; ----------------------------------------------------------------------
 ;;; session
