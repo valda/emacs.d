@@ -1363,8 +1363,6 @@ and source-file directory for your debugger.")
 (require 'anything)
 (require 'anything-config)
 (require 'anything-match-plugin)
-(require 'anything-gtags)
-(require 'anything-c-moccur)
 
 (setq anything-idle-delay 0.3)
 (setq anything-input-idle-delay 0.1)
@@ -1394,11 +1392,13 @@ and source-file directory for your debugger.")
 (global-set-key "\M-y" 'anything-show-kill-ring)
 
 ;;; anything-gtags
+(require 'anything-gtags)
 (add-hook 'gtags-mode-hook
           '(lambda ()
                (local-set-key "\M-\C-t" 'anything-gtags-select)))
 
 ;;; anything-c-moccur
+(require 'anything-c-moccur)
 ;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
 (setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
       anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
@@ -1420,6 +1420,10 @@ and source-file directory for your debugger.")
                    'before
                    'anything-c-adaptive-select-action)
 (setq anything-c-adaptive-history-length 0)
+
+;;; anything-project
+(require 'anything-project)
+(global-set-key (kbd "C-c C-f") 'anything-project)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
