@@ -293,11 +293,11 @@ Highlight last expanded string."
                              ac-source-words-in-same-mode-buffers
                              ac-source-files-in-current-dir))
   (set-face-attribute 'ac-completion-face nil
-		      :foreground "yellow" :underline t)
+              :foreground "yellow" :underline t)
   (set-face-attribute 'ac-candidate-face nil
-		      :background "darkgray" :underline nil)
+              :background "darkgray" :underline nil)
   (set-face-attribute 'ac-selection-face nil
-		      :background "steelblue")
+              :background "steelblue")
   (define-key ac-mode-map (kbd "M-TAB") 'auto-complete))
 
 ;;; ----------------------------------------------------------------------
@@ -386,7 +386,7 @@ Highlight last expanded string."
 ;;  (setq browse-kill-ring-separator-face 'browse-kill-ring-separator-face)
 ;;  (make-face 'browse-kill-ring-separator-face)
 ;;  (set-face-attribute 'browse-kill-ring-separator-face nil
-;;  		    :foreground "light steel blue" :bold t)
+;;              :foreground "light steel blue" :bold t)
 
 ;;; ----------------------------------------------------------------------
 ;;; redo
@@ -575,7 +575,7 @@ Highlight last expanded string."
 ;;; Visual Studio .NET 2003
 ;;; ----------------------------------------------------------------------
 ;; (when (and (eq window-system 'w32)
-;; 	   (require 'vsn nil t))
+;;     (require 'vsn nil t))
 ;;   (global-set-key [C-return] 'vsn-line-open-buffer)
 ;;   (setq vsn-open-exec "C:/Meadow/bin/vsn-open.vbs")
 ;;   (setq vsn-open-wait "200")
@@ -585,7 +585,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; speedbar
 ;;; ----------------------------------------------------------------------
-(require 'speedbar)
+;; (require 'speedbar)
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -685,30 +685,30 @@ Highlight last expanded string."
   "My C/C++ Programming Style")
 
 (add-hook 'c-mode-common-hook
-	  (lambda ()
-	    ;; my-c-stye を登録して有効にする
-	    (c-add-style "PERSONAL" my-cc-style t)
-	    ;; タブ長の設定
-	    (setq tab-width 4)
-	    ;; タブの代わりにスペースを使う
-	    ;(setq indent-tabs-mode nil)
-	    ;; 自動改行(auto-newline)を有効にする
-	    (when (fboundp 'c-toggle-auto-newline)
-	      (c-toggle-auto-newline t))
-	    ;; 連続する空白の一括削除(hungry-delete)を有効にする
-	    ;(c-toggle-hungry-state t)
-	    ;; セミコロンで自動改行しない
-	    (setq c-hanging-semi&comma-criteria nil)
-	    ;; カーソルに追従して水平スクロール
-	    ;; (setq truncate-lines t)
-	    ;; コンパイルコマンドの設定
-	    (setq compile-command "make -k" )     ; Cygwin の make
-	    ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
-	    (setq compilation-window-height 16)
-	    ;; hideshow-mode
-	    (when (locate-library "hideshow")
-	      (require 'hideshow)
-	      (hs-minor-mode 1))))
+      (lambda ()
+        ;; my-c-stye を登録して有効にする
+        (c-add-style "PERSONAL" my-cc-style t)
+        ;; タブ長の設定
+        (setq tab-width 4)
+        ;; タブの代わりにスペースを使う
+        ;(setq indent-tabs-mode nil)
+        ;; 自動改行(auto-newline)を有効にする
+        (when (fboundp 'c-toggle-auto-newline)
+          (c-toggle-auto-newline t))
+        ;; 連続する空白の一括削除(hungry-delete)を有効にする
+        ;(c-toggle-hungry-state t)
+        ;; セミコロンで自動改行しない
+        (setq c-hanging-semi&comma-criteria nil)
+        ;; カーソルに追従して水平スクロール
+        ;; (setq truncate-lines t)
+        ;; コンパイルコマンドの設定
+        (setq compile-command "make -k" )     ; Cygwin の make
+        ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
+        (setq compilation-window-height 16)
+        ;; hideshow-mode
+        (when (locate-library "hideshow")
+          (require 'hideshow)
+          (hs-minor-mode 1))))
 
 (define-key c-mode-base-map "\r" 'newline-and-indent)
 (define-key c-mode-base-map "\C-cc" 'compile)
@@ -717,8 +717,8 @@ Highlight last expanded string."
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
       (append '(("\\.C$" . c-mode)
-		("\\.[Hh]$" . c++-mode)
-		("\\.[Hh][Pp][Pp]$" . c++-mode))
+        ("\\.[Hh]$" . c++-mode)
+        ("\\.[Hh][Pp][Pp]$" . c++-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -864,7 +864,7 @@ and source-file directory for your debugger.")
 ;;; auto-complete-ruby
 ;; (when (require 'auto-complete-ruby nil t)
 ;;   (setq ac-omni-completion-sources
-;; 	'((ruby-mode . (("\\.\\=" . (ac-source-rcodetools)))))))
+;;  '((ruby-mode . (("\\.\\=" . (ac-source-rcodetools)))))))
 
 ;;; ----------------------------------------------------------------------
 ;;; rails-mode
@@ -941,13 +941,13 @@ and source-file directory for your debugger.")
 (setq visual-basic-mode-indent 4)
 (setq auto-mode-alist
       (append '(("\\.[Ff][Rr][Mm]$" . visual-basic-mode)  ;;Form Module
-		("\\.[Bb][Aa][Ss]$" . visual-basic-mode)  ;;Bas Module
-		("\\.[Cc][Ll][Ss]$" . visual-basic-mode)  ;;Class Module
-		("\\.[Vv][Bb][Ss]$" . visual-basic-mode)  ;;VBScript file
-		("\\.[Vv][Bb][Pp]$" . vbp-mode)
-		("\\.[Vv][Bb][Gg]$" . vbp-mode)
-		("\\.html\\.erb$"   . html-mode)
-		("\\.rhtml$"        . html-mode))
+        ("\\.[Bb][Aa][Ss]$" . visual-basic-mode)  ;;Bas Module
+        ("\\.[Cc][Ll][Ss]$" . visual-basic-mode)  ;;Class Module
+        ("\\.[Vv][Bb][Ss]$" . visual-basic-mode)  ;;VBScript file
+        ("\\.[Vv][Bb][Pp]$" . vbp-mode)
+        ("\\.[Vv][Bb][Gg]$" . vbp-mode)
+        ("\\.html\\.erb$"   . html-mode)
+        ("\\.rhtml$"        . html-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -959,10 +959,10 @@ and source-file directory for your debugger.")
 (add-to-list 'auto-mode-alist '("\\.phtml$" . php-mode))
 (add-hook 'php-mode-hook
           '(lambda ()
-	     ;; (set-buffer-file-coding-system 'euc-jp-unix)
+         ;; (set-buffer-file-coding-system 'euc-jp-unix)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
-	     (setq dabbrev-abbrev-skip-leading-regexp "\\$")))
+         (setq dabbrev-abbrev-skip-leading-regexp "\\$")))
 
 ;;; ----------------------------------------------------------------------
 ;;; html-helper-mode
@@ -984,8 +984,8 @@ and source-file directory for your debugger.")
 (setq cssm-indent-function #'cssm-c-style-indenter)
 (add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
 (add-hook 'css-mode-hook
-	  '(lambda ()
-	     (define-key cssm-mode-map "\C-m" 'newline-and-indent)))
+      '(lambda ()
+         (define-key cssm-mode-map "\C-m" 'newline-and-indent)))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
@@ -1057,11 +1057,11 @@ and source-file directory for your debugger.")
   ;; 非 GUI 端末の場合
   (if (not window-system)
       (progn
-	(set-face-background 'mmm-default-submode-face nil)
-	(set-face-bold-p 'mmm-default-submode-face t)
-	(set-face-background 'mmm-comment-submode-face nil)
-	(set-face-bold-p 'mmm-comment-submode-face t)
-	))
+    (set-face-background 'mmm-default-submode-face nil)
+    (set-face-bold-p 'mmm-default-submode-face t)
+    (set-face-background 'mmm-comment-submode-face nil)
+    (set-face-bold-p 'mmm-comment-submode-face t)
+    ))
   ;; JavaScript 用に、html-mode内で javascript-mode を使えるようにします。
   (mmm-add-mode-ext-class nil "\\.html?\\'" 'html-javascript)
   (mmm-add-classes
@@ -1077,7 +1077,7 @@ and source-file directory for your debugger.")
       :front "<%"
       :back "%>"
       :insert ((?c asp nil @ "<%" @ " " _ " " @ "%>" @)
-	       (?e asp nil @ "<%=" @ " " _ " " @ "%>" @)))))
+           (?e asp nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class nil "\\.[Aa][Ss][PpAa]$" 'asp)
   ;; JSP 用に、html-mode内で java-mode を使えるようにします。
   (mmm-add-classes
@@ -1086,7 +1086,7 @@ and source-file directory for your debugger.")
       :front "<%"
       :back "%>"
       :insert ((?c jsp nil @ "<%" @ " " _ " " @ "%>" @)
-	       (?e jsp nil @ "<%=" @ " " _ " " @ "%>" @)))))
+           (?e jsp nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class nil "\\.[Jj][Ss][PpAa]$" 'jsp)
   ;; eRuby用に、html-mode内でruby-modeを使えるようにします。
   ;; (mmm-add-classes
@@ -1380,7 +1380,6 @@ and source-file directory for your debugger.")
      anything-c-source-elscreen
      anything-c-source-files-in-current-dir+
      anything-c-source-bm
-     anything-c-source-bookmarks
      anything-c-source-gtags-select
      anything-c-source-recentf
      anything-c-source-file-cache)
@@ -1423,7 +1422,7 @@ and source-file directory for your debugger.")
 
 ;;; anything-project
 (require 'anything-project)
-(global-set-key (kbd "C-c C-f") 'anything-project)
+(global-set-key (kbd "\C-xf") 'anything-project)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
@@ -1442,8 +1441,8 @@ and source-file directory for your debugger.")
 ;; (require 'typing-outputz)
 ;; (setq outputz-key
 ;;       (cdr (assoc 'key
-;; 		  (pit/get 'outputz.com
-;; 			   '(require ((key . "Your Outputz key")))))))
+;;        (pit/get 'outputz.com
+;;             '(require ((key . "Your Outputz key")))))))
 ;; (global-typing-outputz-mode t)
 
 ;;; ----------------------------------------------------------------------
@@ -1549,9 +1548,8 @@ and source-file directory for your debugger.")
 (global-set-key "\C-xw" 'widen)
 (global-set-key [?\C-=] 'call-last-kbd-macro)
 (global-set-key [(shift tab)] 'indent-region)
-(global-set-key [?\C-'] 'expand-abbrev)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
-(global-unset-key "\C-xf")
+;(global-unset-key "\C-xf")
 (cond ((eq window-system 'x)
        (define-key function-key-map [backspace] [8])
        (put 'backspace 'ascii-character 8)
