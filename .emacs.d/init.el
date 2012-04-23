@@ -447,11 +447,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; gpg.el
 ;;; ----------------------------------------------------------------------
-(when (locate-library "gpg")
-  (autoload 'gpg-after-find-file "gpg" nil t)
-  (add-hook 'find-file-hooks 'gpg-after-find-file)
-  (setq gpg-cipher "CAST5"))
-
+;;(autoload 'gpg-after-find-file "gpg" nil t)
+;;(add-hook 'find-file-hooks 'gpg-after-find-file)
+(setq gpg-cipher "CAST5")
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -1252,8 +1250,8 @@ and source-file directory for your debugger.")
 ;;; ----------------------------------------------------------------------
 ;;; flymake
 ;;; ----------------------------------------------------------------------
-(set-face-background 'flymake-errline "red4")
-(set-face-background 'flymake-warnline "dark slate blue")
+;;(set-face-background 'flymake-errline "red4")
+;;(set-face-background 'flymake-warnline "dark slate blue")
 (when (require 'flymake nil t)
   ;; rails-mode で require されるのでコメントアウト
   ;; (defun flymake-ruby-init ()
