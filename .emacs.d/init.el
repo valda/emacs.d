@@ -14,8 +14,6 @@
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
 (setq inhibit-startup-message t)
-(setq line-number-mode t)
-(setq column-number-mode t)
 (setq scroll-step 2)
 (setq next-line-add-newlines nil)
 (setq kill-whole-line t)
@@ -40,6 +38,11 @@
 (setq confirm-kill-emacs nil)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
+
+;; mode-line
+(setq mode-line-frame-identification " ")
+(setq line-number-mode t)
+(setq column-number-mode t)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode t)
@@ -106,8 +109,9 @@
   (setenv "CYGWIN" "nodosfilewarning")
   (setq default-input-method "W32-IME")
   (w32-ime-initialize)
-  (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+  ;; (setq-default w32-ime-mode-line-state-indicator "[--]")
+  ;; (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  )
 
 ;; IME ON/OFF時のカーソルカラー
 (add-hook 'input-method-activate-hook
@@ -337,6 +341,13 @@ Highlight last expanded string."
     (add-hook m
               '(lambda ()
                  (setq show-trailing-whitespace nil)))))
+
+;;; ----------------------------------------------------------------------
+;;; diff-mode で文字単位での強調表示を行う
+;;; ----------------------------------------------------------------------
+(add-hook 'diff-mode-hook
+          '(lambda ()
+             (diff-auto-refine-mode t)))
 
 ;;; ----------------------------------------------------------------------
 ;;; mpg123-mode
@@ -737,6 +748,7 @@ Highlight last expanded string."
                (gtags-mode 1)
                ;;(gtags-make-complete-list)
                )))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -1468,12 +1480,10 @@ and source-file directory for your debugger.")
   ;;(diminish 'typing-outputz-mode)
   (diminish 'flymake-mode)
   (diminish 'auto-complete-mode)
-  (add-hook 'jaspace-mode-hook
-            (lambda ()
-              (diminish 'jaspace-mode)))
-  (add-hook 'ruby-electric-mode-hook
-            (lambda ()
-              (diminish 'ruby-electric-mode))))
+  (add-hook 'jaspace-mode-hook (lambda () (diminish 'jaspace-mode)))
+  (add-hook 'ruby-electric-mode-hook (lambda () (diminish 'ruby-electric-mode)))
+  (add-hook 'gtags-mode-hook (lambda () (diminish 'gtags-mode)))
+  (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode))))
 
 ;;; ----------------------------------------------------------------------
 ;;; auto-install
