@@ -27,7 +27,7 @@
 (menu-bar-mode -1)
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))
-(tool-bar-mode nil)
+(tool-bar-mode -1)
 (blink-cursor-mode 0)
 (delete-selection-mode t)
 (setq line-move-visual nil)
@@ -456,11 +456,10 @@ Highlight last expanded string."
 ;;   (setq tramp-debug-buffer t))
 
 ;;; ----------------------------------------------------------------------
-;;; gpg.el
+;;; alpaca.el
 ;;; ----------------------------------------------------------------------
-;;(autoload 'gpg-after-find-file "gpg" nil t)
-;;(add-hook 'find-file-hooks 'gpg-after-find-file)
-(setq gpg-cipher "CAST5")
+;;(autoload 'alpaca-after-find-file "alpaca" nil t)
+;;(add-hook 'find-file-hooks 'alpaca-after-find-file)
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -551,19 +550,19 @@ Highlight last expanded string."
 (setq org-startup-indented t)
 (setq org-return-follows-link t)
 (setq org-replace-disputed-keys t)
-(setq org-disputed-keys
-      '(([(shift up)]            . [(meta \[)])
-        ([(shift down)]          . [(meta \])])
-        ([(shift left)]          . [(meta -)])
-        ([(shift right)]         . [(meta =)])
-        ([(control shift right)] . [(meta +)])
-        ([(control shift left)]  . [(meta _)])
-        ([(control shift left)]  . [(meta _)])
-        ([(meta left)]           . [(meta ,)])
-        ([(meta right)]          . [(meta .)])
-        ([(meta shift left)]     . [(meta <)])
-        ([(meta shift right)]    . [(meta >)])
-        ))
+;; (setq org-disputed-keys
+;;       '(([(shift up)]            . [(meta \[)])
+;;         ([(shift down)]          . [(meta \])])
+;;         ([(shift left)]          . [(meta -)])
+;;         ([(shift right)]         . [(meta =)])
+;;         ([(control shift right)] . [(meta +)])
+;;         ([(control shift left)]  . [(meta _)])
+;;         ([(control shift left)]  . [(meta _)])
+;;         ([(meta left)]           . [(meta ,)])
+;;         ([(meta right)]          . [(meta .)])
+;;         ([(meta shift left)]     . [(meta <)])
+;;         ([(meta shift right)]    . [(meta >)])
+;;         ))
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 (org-remember-insinuate)
 (setq org-directory "~/Dropbox/Documents/org/")
@@ -713,11 +712,7 @@ Highlight last expanded string."
         ;; コンパイルコマンドの設定
         (setq compile-command "make -k" )     ; Cygwin の make
         ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
-        (setq compilation-window-height 16)
-        ;; hideshow-mode
-        (when (locate-library "hideshow")
-          (require 'hideshow)
-          (hs-minor-mode 1))))
+        (setq compilation-window-height 16)))
 
 (define-key c-mode-base-map "\r" 'newline-and-indent)
 (define-key c-mode-base-map "\C-cc" 'compile)
@@ -729,6 +724,27 @@ Highlight last expanded string."
         ("\\.[Hh]$" . c++-mode)
         ("\\.[Hh][Pp][Pp]$" . c++-mode))
               auto-mode-alist))
+
+;;; ----------------------------------------------------------------------
+;;; hideshow
+;;; ----------------------------------------------------------------------
+(when (locate-library "hideshow")
+  (require 'hideshow)
+  (add-hook 'c-mode-common-hook   'hs-minor-mode)
+  (add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
+  (add-hook 'java-mode-hook       'hs-minor-mode)
+  (add-hook 'lisp-mode-hook       'hs-minor-mode)
+  (add-hook 'perl-mode-hook       'hs-minor-mode)
+  (add-hook 'sh-mode-hook         'hs-minor-mode)
+  (defun ruby-custom-setup ()
+    (add-to-list 'hs-special-modes-alist
+                 '(ruby-mode
+                   "\\(def\\|do\\)"
+                   "end"
+                   "#"
+                   (lambda (arg) (ruby-end-of-block)) nil ))
+    (hs-minor-mode t))
+  (add-hook 'ruby-mode-hook 'ruby-custom-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; gtags
@@ -1407,7 +1423,6 @@ and source-file directory for your debugger.")
      anything-c-source-elscreen
      anything-c-source-files-in-current-dir+
      anything-c-source-bm
-     anything-c-source-gtags-select
      anything-c-source-recentf
      anything-c-source-file-cache)
    " *my-anything*"))
@@ -1418,10 +1433,10 @@ and source-file directory for your debugger.")
 (global-set-key "\M-y" 'anything-show-kill-ring)
 
 ;;; anything-gtags
-(require 'anything-gtags)
-(add-hook 'gtags-mode-hook
-          '(lambda ()
-               (local-set-key "\M-\C-t" 'anything-gtags-select)))
+;; (require 'anything-gtags)
+;; (add-hook 'gtags-mode-hook
+;;           '(lambda ()
+;;                (local-set-key "\M-\C-t" 'anything-gtags-select)))
 
 ;;; anything-c-moccur
 (require 'anything-c-moccur)
@@ -1437,15 +1452,15 @@ and source-file directory for your debugger.")
              (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur)))
 
 ;;; anything-c-adaptive-history の保存を無効化
-(remove-hook 'kill-emacs-hook
-             'anything-c-adaptive-save-history)
-(ad-disable-advice 'anything-exit-minibuffer
-                   'before
-                   'anything-c-adaptive-exit-minibuffer)
-(ad-disable-advice 'anything-select-action
-                   'before
-                   'anything-c-adaptive-select-action)
-(setq anything-c-adaptive-history-length 0)
+;; (remove-hook 'kill-emacs-hook
+;;              'anything-c-adaptive-save-history)
+;; (ad-disable-advice 'anything-exit-minibuffer
+;;                    'before
+;;                    'anything-c-adaptive-exit-minibuffer)
+;; (ad-disable-advice 'anything-select-action
+;;                    'before
+;;                    'anything-c-adaptive-select-action)
+;; (setq anything-c-adaptive-history-length 0)
 
 ;;; anything-project
 (require 'anything-project)
