@@ -410,11 +410,11 @@ Highlight last expanded string."
 ;;; migemo
 ;;; ----------------------------------------------------------------------
 (when (require 'migemo nil t)
-  (if (eq window-system 'w32)
-      (progn (setq migemo-command "./cmigemo")
-             (setq migemo-dictionary "C:/emacs-23.4-20120205/etc/migemo/migemo-dict")
-             (setq migemo-coding-system 'japanese-shift-jis-unix)))
+  (setq migemo-command "cmigemo")
   (setq migemo-options (list "-q" "--emacs"))
+  (if (eq window-system 'w32)
+      (progn (setq migemo-dictionary "../etc/migemo/migemo-dict")
+             (setq migemo-coding-system 'japanese-shift-jis-unix)))
   (setq migemo-use-pattern-alist t)
   (setq migemo-use-frequent-pattern-alist t)
   (setq migemo-pattern-alist-length 1024)
@@ -464,6 +464,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; howm
 ;;; ----------------------------------------------------------------------
+(setq howm-compatible-to-ver1dot3 t)
 (setq howm-directory "~/Dropbox/Documents/howm/")
 (setq howm-menu-lang 'ja)
 (global-set-key "\C-c,," 'howm-menu)
