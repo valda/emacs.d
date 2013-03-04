@@ -38,6 +38,7 @@
 (setq confirm-kill-emacs nil)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
+(setq-default indicate-empty-lines t)
 
 ;; mode-line
 (setq mode-line-frame-identification " ")
@@ -63,7 +64,7 @@
 (set-buffer-file-coding-system 'utf-8-unix)
 (setq default-buffer-file-coding-system 'utf-8-unix)
 (if (eq window-system 'w32)
-    (setq default-file-name-coding-system 'japanese-shift-jis-dos))
+    (setq default-file-name-coding-system 'japanese-cp932-dos))
 
 ;; フォントの設定
 (cond ((eq window-system 'x)
@@ -93,14 +94,13 @@
        ;;   japanese-jisx0208:-*-fixed-*--24-*-jisx0208.1983-0,
        ;;   katakana-jisx0201:-*-fixed-*--24-*-jisx0201.1976-0")
        ;; (set-default-font "fontset-12"))
-       (add-to-list 'initial-frame-alist '(font . "Ricty-12")))
+       (add-to-list 'initial-frame-alist '(font . "Ricty-13")))
       ((eq window-system 'w32)
-       ;; (add-to-list 'initial-frame-alist '(font . "BDF UM+-9"))
-       ;; (add-to-list 'initial-frame-alist '(font . "Ricty-12"))
-       (create-fontset-from-ascii-font "Consolas-11:weight=normal:slant=normal" nil "consolasmeiryo")
-       (set-fontset-font "fontset-consolasmeiryo" 'japanese-jisx0208 '("MeiryoKe_Console" . "jisx0208-sjis"))
-       (set-fontset-font "fontset-consolasmeiryo" 'katakana-jisx0201 '("MeiryoKe_Console" . "jisx0201-katakana"))
-       (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
+       ;; (create-fontset-from-ascii-font "Consolas-11:weight=normal:slant=normal" nil "consolasmeiryo")
+       ;; (set-fontset-font "fontset-consolasmeiryo" 'japanese-jisx0208 '("MeiryoKe_Console" . "jisx0208-sjis"))
+       ;; (set-fontset-font "fontset-consolasmeiryo" 'katakana-jisx0201 '("MeiryoKe_Console" . "jisx0201-katakana"))
+       ;; (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
+       (add-to-list 'initial-frame-alist '(font . "Ricty-13"))
        ))
 (setq default-frame-alist initial-frame-alist)
 
