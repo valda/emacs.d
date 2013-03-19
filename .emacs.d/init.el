@@ -834,17 +834,17 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("config\\.ru$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" . ruby-mode))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
-(autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process")
-(autoload 'inf-ruby-keys "inf-ruby" "Set local key defs for inf-ruby in ruby-mode")
+;; (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process")
+;; (autoload 'inf-ruby-keys "inf-ruby" "Set local key defs for inf-ruby in ruby-mode")
 (autoload 'ruby-electric-mode "ruby-electric" "Minor mode providing electric editing commands for ruby files" t)
-(autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger.")
+;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
+;; The directory containing FILE becomes the initial working directory
+;; and source-file directory for your debugger.")
 (add-hook 'ruby-mode-hook
           '(lambda ()
-             (inf-ruby-keys)
              (ruby-electric-mode t)
-             (define-key ruby-mode-map "\C-cd" 'rubydb)
+             ;; (inf-ruby-keys)
+             ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
              (setq dabbrev-abbrev-skip-leading-regexp "[:@]")))
 
 ;;; ruby-mode のインデントをいい感じにする
