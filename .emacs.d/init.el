@@ -845,6 +845,7 @@ Highlight last expanded string."
              (ruby-electric-mode t)
              ;; (inf-ruby-keys)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
+             (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              (setq dabbrev-abbrev-skip-leading-regexp "[:@]")))
 
 ;;; ruby-mode のインデントをいい感じにする
