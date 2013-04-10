@@ -352,10 +352,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; mpg123-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'mpg123 "mpg123" "A Front-end to mpg123" t)
-(setq mpg123-startup-volume 70)
-(load "id3")
-(setq id3*coding 'shift_jis)
+;; (autoload 'mpg123 "mpg123" "A Front-end to mpg123" t)
+;; (setq mpg123-startup-volume 70)
+;; (load "id3")
+;; (setq id3*coding 'shift_jis)
 
 ;;; ----------------------------------------------------------------------
 ;;; windmove
@@ -845,6 +845,7 @@ Highlight last expanded string."
              (ruby-electric-mode t)
              ;; (inf-ruby-keys)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
+             (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              (setq dabbrev-abbrev-skip-leading-regexp "[:@]")))
 
 ;;; ruby-mode のインデントをいい感じにする
@@ -1272,23 +1273,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (when (require 'elscreen nil t)
   (setq elscreen-display-tab nil)
-  ;; (defun elscreen-frame-title-update ()
-  ;;   (when (elscreen-screen-modified-p 'elscreen-frame-title-update)
-  ;;     (let* ((screen-list (sort (elscreen-get-screen-list) '<))
-  ;;            (screen-to-name-alist (elscreen-get-screen-to-name-alist))
-  ;;            (title (mapconcat
-  ;;                    (lambda (screen)
-  ;;                      (format "%d%s %s"
-  ;;                              screen (elscreen-status-label screen)
-  ;;                              (get-alist screen screen-to-name-alist)))
-  ;;                    screen-list " ")))
-  ;;       (if (fboundp 'set-frame-name)
-  ;;           (set-frame-name title)
-  ;;         (setq frame-title-format title)))))
-  ;; (eval-after-load "elscreen"
-  ;;   '(add-hook 'elscreen-screen-update-hook 'elscreen-frame-title-update))
   (cond (window-system
          (elscreen-set-prefix-key "\C-z")
+         (define-key elscreen-map "\C-z" 'elscreen-toggle)
          (define-key elscreen-map "z" 'iconify-frame))
         (t
          (elscreen-set-prefix-key "\C-t"))))
