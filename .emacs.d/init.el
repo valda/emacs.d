@@ -352,10 +352,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; mpg123-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'mpg123 "mpg123" "A Front-end to mpg123" t)
-(setq mpg123-startup-volume 70)
-(load "id3")
-(setq id3*coding 'shift_jis)
+;; (autoload 'mpg123 "mpg123" "A Front-end to mpg123" t)
+;; (setq mpg123-startup-volume 70)
+;; (load "id3")
+;; (setq id3*coding 'shift_jis)
 
 ;;; ----------------------------------------------------------------------
 ;;; windmove
