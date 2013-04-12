@@ -94,7 +94,7 @@
        ;;   japanese-jisx0208:-*-fixed-*--24-*-jisx0208.1983-0,
        ;;   katakana-jisx0201:-*-fixed-*--24-*-jisx0201.1976-0")
        ;; (set-default-font "fontset-12"))
-       (add-to-list 'initial-frame-alist '(font . "Ricty-13")))
+       (add-to-list 'initial-frame-alist '(font . "Ricty-12")))
       ((eq window-system 'w32)
        ;; (create-fontset-from-ascii-font "Consolas-11:weight=normal:slant=normal" nil "consolasmeiryo")
        ;; (set-fontset-font "fontset-consolasmeiryo" 'japanese-jisx0208 '("MeiryoKe_Console" . "jisx0208-sjis"))
