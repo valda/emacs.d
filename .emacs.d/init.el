@@ -48,11 +48,6 @@
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode t)
 
-;; Mule-UCS
-(when (< emacs-major-version '22)
-  (require 'un-define nil t)
-  (require 'jisx0213 nil t))
-
 ;; 日本語環境設定
 (set-language-environment "Japanese")
 
@@ -120,10 +115,23 @@
           (lambda() (set-cursor-color "green")))
 
 ;;; ----------------------------------------------------------------------
-;;; Anthy
+;;; MELPA
 ;;; ----------------------------------------------------------------------
-(when (require 'anthy nil t)
-  (setq default-input-method "japanese-anthy"))
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+(package-initialize)
+
+
+;;; ----------------------------------------------------------------------
+;;; auto-install
+;;; ----------------------------------------------------------------------
+(when (require 'auto-install nil t)
+  (setq auto-install-directory "~/.emacs.d/elisp/")
+  (auto-install-compatibility-setup) ; 互換性確保
+  (condition-case nil
+      (auto-install-update-emacswiki-package-name t)
+    (error (message "an error occurred, but going my way …"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; ee
@@ -1506,14 +1514,10 @@ Highlight last expanded string."
   (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode))))
 
 ;;; ----------------------------------------------------------------------
-;;; auto-install
+;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
-(when (require 'auto-install nil t)
-  (setq auto-install-directory "~/.emacs.d/elisp/")
-  (auto-install-compatibility-setup) ; 互換性確保
-  (condition-case nil
-      (auto-install-update-emacswiki-package-name t)
-    (error (message "an error occurred, but going my way …"))))
+(require 'git-gutter-fringe)
+(global-git-gutter-mode t)
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -1576,6 +1580,7 @@ Highlight last expanded string."
 (global-set-key "\C-xw" 'widen)
 (global-set-key [?\C-=] 'call-last-kbd-macro)
 (global-set-key [(shift tab)] 'indent-region)
+(global-set-key [backtab] 'indent-region)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
 ;(global-unset-key "\C-xf")
 (cond ((eq window-system 'x)
