@@ -1286,7 +1286,8 @@ Highlight last expanded string."
          (define-key elscreen-map "\C-z" 'elscreen-toggle)
          (define-key elscreen-map "z" 'iconify-frame))
         (t
-         (elscreen-set-prefix-key "\C-t"))))
+         (elscreen-set-prefix-key "\C-t")))
+  (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
 ;;; flymake
