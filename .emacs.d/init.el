@@ -99,20 +99,30 @@
        ))
 (setq default-frame-alist initial-frame-alist)
 
-;; 環境固有の設定
+;; Cygwin, IME など環境固有の設定
 (when (eq window-system 'w32)
   (setenv "CYGWIN" "nodosfilewarning")
   (setq default-input-method "W32-IME")
   (w32-ime-initialize)
   ;; (setq-default w32-ime-mode-line-state-indicator "[--]")
   ;; (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  ;; IM ON/OFF時のカーソルカラー
+  (add-hook 'input-method-activate-hook
+            (lambda() (set-cursor-color "red")))
+  (add-hook 'input-method-inactivate-hook
+            (lambda() (set-cursor-color "green")))
   )
 
-;; IME ON/OFF時のカーソルカラー
-(add-hook 'input-method-activate-hook
-          (lambda() (set-cursor-color "red")))
-(add-hook 'input-method-inactivate-hook
-          (lambda() (set-cursor-color "green")))
+;;; ----------------------------------------------------------------------
+;;; ibus.el
+;;; ----------------------------------------------------------------------
+(when (require 'ibus nil t)
+  (add-hook 'after-init-hook 'ibus-mode-on)
+  (global-set-key "\C-\\" 'ibus-toggle)
+  (setq ibus-cursor-color '("red" "green" "blue"))
+  (ibus-define-common-key [?\C-\  ?\C-/]  nil)
+  (add-hook 'minibuffer-setup-hook 'ibus-disable)
+  (ibus-disable-isearch))
 
 ;;; ----------------------------------------------------------------------
 ;;; MELPA
