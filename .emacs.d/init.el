@@ -124,7 +124,7 @@
 
 
 ;;; ----------------------------------------------------------------------
-;;; auto-install
+;;; auto-install.el
 ;;; ----------------------------------------------------------------------
 (when (require 'auto-install nil t)
   (setq auto-install-directory "~/.emacs.d/elisp/")
@@ -1499,7 +1499,7 @@ Highlight last expanded string."
                   ;; ("*Anything Completions*" :height 20)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
-  (define-key global-map (kbd "C-x p") 'popwin:display-last-buffer))
+  (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
 
 ;;; ----------------------------------------------------------------------
 ;;; diminish
