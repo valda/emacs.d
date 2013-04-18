@@ -159,7 +159,7 @@
 	       [(20120331 1344)
 		nil "run a shell command when saving a buffer [source: github]" single])
  (wacspace .
-	   [(20130416 2246)
+	   [(20130417 1730)
 	    ((dash
 	      (1 1 0))
 	     (cl-lib
@@ -479,8 +479,10 @@
 		 (0)))
 	       "Major mode for editing .jade files [source: github]" single])
  (stripe-buffer .
-		[(20130328 1536)
-		 nil "Use a different background for even and odd lines [source: github]" single])
+		[(20130417 2128)
+		 ((cl-lib
+		   (1 0)))
+		 "Use a different background for even and odd lines [source: github]" single])
  (string-utils .
 	       [(20121108 1917)
 		((list-utils
@@ -910,6 +912,9 @@
  (quick-buffer-switch .
 		      [(20130304 129)
 		       nil "Quick switch to file or dir buffers. [source: github]" single])
+ (qml-mode .
+	   [(20130416 1832)
+	    nil "Major mode for editing QT Declarative (QML) code. [source: github]" single])
  (python-magic .
 	       [(20120505 1355)
 		nil "outline mode extension for python mode [source: wiki]" single])
@@ -1586,7 +1591,7 @@
 	    [(20080915 2156)
 	     nil "map pairs of simultaneously pressed keys to commands [source: wiki]" single])
  (kanban .
-	 [(20130417 1005)
+	 [(20130418 25)
 	  ((org
 	    (7)))
 	  "Parse org-todo headlines to use org-tables as Kanban tables [source: hg]" single])
@@ -1943,6 +1948,11 @@
 	   ((helm
 	     (1 0)))
 	   "the silver search with helm interface [source: github]" single])
+ (helm-ack .
+	   [(20130221 1943)
+	    ((helm
+	      (1 0)))
+	    "Ack command with helm interface [source: github]" single])
  (helm-R .
 	 [(20120820 914)
 	  ((helm
@@ -2538,6 +2548,21 @@
  (enclose .
 	  [(20121008 1814)
 	   nil "Enclose cursor within punctuation pairs. [source: github]" tar])
+ (emr .
+      [(20130417 117)
+       ((s
+	 (1 3 1))
+	(dash
+	 (1 1 0))
+	(cl-lib
+	 (0 2))
+	(popup
+	 (0 5 0))
+	(emacs
+	 (24 1))
+	(list-utils
+	 (0 3 0)))
+       "Emacs refactoring system. [source: github]" tar])
  (emms .
        [(20121219 1939)
 	nil "The Emacs Multimedia System [source: git]" tar])
@@ -2844,6 +2869,9 @@
  (dart-mode .
 	    [(20121218 1449)
 	     nil "Major mode for editing Dart files [source: github]" single])
+ (darcsum .
+	  [(20120115 1513)
+	   nil "a pcl-cvs like interface for managing darcs patches [source: darcs]" tar])
  (d-mode .
 	 [(20121224 146)
 	  nil "D Programming Language mode for (X)Emacs [source: github]" single])
@@ -3200,7 +3228,7 @@
 	   [(20130323 1652)
 	    nil "open anything / QuickSilver-like candidate-selection framework [source: git]" tar])
  (anti-zenburn-theme .
-		     [(20130415 133)
+		     [(20130417 2351)
 		      nil "Low-contrast Zenburn-inverted theme [source: github]" single])
  (ansi .
        [(20121008 1920)
@@ -3305,13 +3333,5 @@
 	      nil "auto-complete.el source for dabbrev [source: wiki]" single])
  (abl-mode .
 	   [(20120718 1655)
-	    nil "Python TDD minor mode [source: github]" single])
- (helm-ack .
-	   [(20130221 1943)
-	    ((helm
-	      (1 0)))
-	    "Ack command with helm interface [source: github]" single])
- (darcsum .
-	  [(20120115 1513)
-	   nil "a pcl-cvs like interface for managing darcs patches [source: darcs]" tar]))
+	    nil "Python TDD minor mode [source: github]" single]))
 

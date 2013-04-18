@@ -119,7 +119,7 @@
 (when (require 'ibus nil t)
   (add-hook 'after-init-hook 'ibus-mode-on)
   (global-set-key "\C-\\" 'ibus-toggle)
-  (setq ibus-cursor-color '("red" "green" "blue"))
+  (setq ibus-cursor-color '("red" "green" "cyan"))
   (ibus-define-common-key [?\C-\  ?\C-/]  nil)
   (add-hook 'minibuffer-setup-hook 'ibus-disable)
   (ibus-disable-isearch))
@@ -142,25 +142,6 @@
   (condition-case nil
       (auto-install-update-emacswiki-package-name t)
     (error (message "an error occurred, but going my way …"))))
-
-;;; ----------------------------------------------------------------------
-;;; ee
-;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/ee")
-(require 'ee-autoloads)
-
-;;; ----------------------------------------------------------------------
-;;; iswitchb
-;;; ----------------------------------------------------------------------
-;; (iswitchb-mode 1)
-;; (iswitchb-default-keybindings)
-;; (add-hook 'iswitchb-define-mode-map-hook
-;;           (lambda ()
-;;             (define-key iswitchb-mode-map [right] 'iswitchb-next-match)
-;;             (define-key iswitchb-mode-map [left] 'iswitchb-prev-match)
-;;             (define-key iswitchb-mode-map "\C-f" 'iswitchb-next-match)
-;;             (define-key iswitchb-mode-map " " 'iswitchb-next-match)
-;;             (define-key iswitchb-mode-map "\C-b" 'iswitchb-prev-match)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -368,14 +349,6 @@ Highlight last expanded string."
              (diff-auto-refine-mode t)))
 
 ;;; ----------------------------------------------------------------------
-;;; mpg123-mode
-;;; ----------------------------------------------------------------------
-;; (autoload 'mpg123 "mpg123" "A Front-end to mpg123" t)
-;; (setq mpg123-startup-volume 70)
-;; (load "id3")
-;; (setq id3*coding 'shift_jis)
-
-;;; ----------------------------------------------------------------------
 ;;; windmove
 ;;; ----------------------------------------------------------------------
 (windmove-default-keybindings)
@@ -445,19 +418,6 @@ Highlight last expanded string."
 (require 'jka-compr)
 (when (require 'wdired nil t)
   (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode))
-
-;;; ----------------------------------------------------------------------
-;;; Wanderlust
-;;; ----------------------------------------------------------------------
-;; (when (locate-library "wl")
-;;   (autoload 'wl "wl" "Wanderlust" t)
-;;   (autoload 'wl-other-frame "wl" "Wanderlust on new frame." t)
-;;   (autoload 'wl-draft "wl-draft" "Write draft with Wanderlust." t)
-;;   ;; wl をデフォルトの MUA に
-;;   (if (boundp 'mail-user-agent)
-;;       (setq mail-user-agent 'wl-user-agent))
-;;   (if (boundp 'read-mail-command)
-;;       (setq read-mail-command 'wl)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ange-ftp
@@ -803,18 +763,6 @@ Highlight last expanded string."
   (global-set-key "\C-c\C-x\C-o" 'moccur))
 
 ;;; ----------------------------------------------------------------------
-;;; psvn
-;;; ----------------------------------------------------------------------
-;; (when (require 'psvn nil t)
-;;   (add-hook 'dired-mode-hook
-;;             '(lambda ()
-;;                (define-key dired-mode-map "V" 'svn-status)
-;;                (turn-on-font-lock)))
-;;   (setq svn-status-hide-unmodified t)
-;;   (setq process-coding-system-alist
-;;         (cons '("svn" . utf-8) process-coding-system-alist)))
-
-;;; ----------------------------------------------------------------------
 ;;; dsvn
 ;;; ----------------------------------------------------------------------
 (when (locate-library "dsvn")
@@ -836,13 +784,6 @@ Highlight last expanded string."
 ;;; git-commit-mode
 ;;; ----------------------------------------------------------------------
 (require 'git-commit nil t)
-
-;;; ----------------------------------------------------------------------
-;;; lisp-mode
-;;; ----------------------------------------------------------------------
-;;(add-hook 'lisp-mode-hook
-;;          '(lambda ()
-;;             (setq indent-tabs-mode nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
@@ -1079,20 +1020,20 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; haskell-mode
 ;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/haskell-mode")
-(autoload 'haskell-mode "haskell-mode"
-   "Major mode for editing Haskell scripts." t)
-(autoload 'literate-haskell-mode "haskell-mode"
-   "Major mode for editing literate Haskell scripts." t)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-ghci)
-(setq haskell-literate-default 'latex)
-(setq haskell-doc-idle-delay 0)
-(add-to-list 'auto-mode-alist '("\\.[hg]s$"  . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.hi$"     . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.l[hg]s$" . literate-haskell-mode))
+;; (add-to-list 'load-path "~/.emacs.d/elisp/haskell-mode")
+;; (autoload 'haskell-mode "haskell-mode"
+;;    "Major mode for editing Haskell scripts." t)
+;; (autoload 'literate-haskell-mode "haskell-mode"
+;;    "Major mode for editing literate Haskell scripts." t)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-ghci)
+;; (setq haskell-literate-default 'latex)
+;; (setq haskell-doc-idle-delay 0)
+;; (add-to-list 'auto-mode-alist '("\\.[hg]s$"  . haskell-mode))
+;; (add-to-list 'auto-mode-alist '("\\.hi$"     . haskell-mode))
+;; (add-to-list 'auto-mode-alist '("\\.l[hg]s$" . literate-haskell-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1273,18 +1214,6 @@ Highlight last expanded string."
     (progn
       (turn-on-mcomplete-mode))
   (icomplete-mode 0))
-
-;;; ----------------------------------------------------------------------
-;;; zlc
-;;; ----------------------------------------------------------------------
-;; (when (require 'zlc nil t)
-;;   (let ((map minibuffer-local-map))
-;;     ;; like menu select
-;;     (define-key map (kbd "<down>")  'zlc-select-next-vertical)
-;;     (define-key map (kbd "<up>")    'zlc-select-previous-vertical)
-;;     (define-key map (kbd "<right>") 'zlc-select-next)
-;;     (define-key map (kbd "<left>")  'zlc-select-previous))
-;;   )
 
 ;;; ----------------------------------------------------------------------
 ;;; elscreen
@@ -1484,17 +1413,6 @@ Highlight last expanded string."
 ;; (require 'anything-gist)
 
 ;;; ----------------------------------------------------------------------
-;;; typing-outputz.el
-;;; ----------------------------------------------------------------------
-;; (require 'pit)
-;; (require 'typing-outputz)
-;; (setq outputz-key
-;;       (cdr (assoc 'key
-;;        (pit/get 'outputz.com
-;;             '(require ((key . "Your Outputz key")))))))
-;; (global-typing-outputz-mode t)
-
-;;; ----------------------------------------------------------------------
 ;;; popwin.el
 ;;; ----------------------------------------------------------------------
 (when (require 'popwin nil t)
@@ -1513,22 +1431,22 @@ Highlight last expanded string."
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
 
 ;;; ----------------------------------------------------------------------
+;;; git-gutter.el
+;;; ----------------------------------------------------------------------
+(require 'git-gutter-fringe)
+(global-git-gutter-mode t)
+
+;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
 (when (require 'diminish nil t)
-  ;;(diminish 'typing-outputz-mode)
   (diminish 'flymake-mode)
   (diminish 'auto-complete-mode)
   (add-hook 'jaspace-mode-hook (lambda () (diminish 'jaspace-mode)))
   (add-hook 'ruby-electric-mode-hook (lambda () (diminish 'ruby-electric-mode)))
   (add-hook 'gtags-mode-hook (lambda () (diminish 'gtags-mode)))
-  (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode))))
-
-;;; ----------------------------------------------------------------------
-;;; git-gutter.el
-;;; ----------------------------------------------------------------------
-(require 'git-gutter-fringe)
-(global-git-gutter-mode t)
+  (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
+  (diminish 'git-gutter-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
