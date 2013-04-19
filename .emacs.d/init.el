@@ -18,11 +18,12 @@
 (setq next-line-add-newlines nil)
 (setq kill-whole-line t)
 (setq case-replace nil)
-(setq default-major-mode 'text-mode)
+(setq major-mode 'text-mode)
 (setq-default transient-mark-mode t)
 (setq indent-line-function 'indent-relative-maybe)
 (setq truncate-partial-width-windows nil)
-(setq completion-ignore-case t)
+(setq read-buffer-completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
 (when (fboundp 'set-scroll-bar-mode)
@@ -57,46 +58,44 @@
 (if (not window-system)
     (set-terminal-coding-system 'utf-8-unix))
 (set-buffer-file-coding-system 'utf-8-unix)
-(setq default-buffer-file-coding-system 'utf-8-unix)
 (if (eq window-system 'w32)
     (setq default-file-name-coding-system 'japanese-cp932-dos))
 
 ;; フォントの設定
-(cond ((eq window-system 'x)
-       ;; (create-fontset-from-fontset-spec
-       ;;  "-mplus-fixed-*-*-*--10-*-*-*-*-*-fontset-10,
-       ;;   ascii:-mplus-gothic-*--10-*-iso8859-1,
-       ;;   japanese-jisx0208:-mplus-gothic-*--10-*-jisx0208.1983-0,
-       ;;   katakana-jisx0201:-mplus-gothic-*--10-*-jisx0201.1976-0")
-       ;; (create-fontset-from-fontset-spec
-       ;;  "-mplus-fixed-*-*-*--12-*-*-*-*-*-fontset-12,
-       ;;   ascii:-mplus-gothic-*--12-*-iso8859-1,
-       ;;   japanese-jisx0208:-mplus-gothic-*--12-*-jisx0208.1983-0,
-       ;;   katakana-jisx0201:-mplus-gothic-*--12-*-jisx0201.1976-0")
-       ;; (create-fontset-from-fontset-spec
-       ;;  "-misc-fixed-*-*-*--14-*-*-*-*-*-fontset-14,
-       ;;   ascii:-misc-fixed-*--14-*-iso8859-1,
-       ;;   japanese-jisx0208:-misc-fixed-*--14-*-jisx0208.1983-0,
-       ;;   katakana-jisx0201:-misc-fixed-*--14-*-jisx0201.1976-0")
-       ;; (create-fontset-from-fontset-spec
-       ;;  "-misc-fixed-*-*-*--16-*-*-*-*-*-fontset-16,
-       ;;   ascii:-*-fixed-*--16-*-iso8859-1,
-       ;;   japanese-jisx0208:-*-fixed-*--16-*-jisx0208.1983-0,
-       ;;   katakana-jisx0201:-*-fixed-*--16-*-jisx0201.1976-0")
-       ;; (create-fontset-from-fontset-spec
-       ;;  "-misc-fixed-*-*-*--24-*-*-*-*-*-fontset-24,
-       ;;   ascii:-*-fixed-*--24-*-iso8859-1,
-       ;;   japanese-jisx0208:-*-fixed-*--24-*-jisx0208.1983-0,
-       ;;   katakana-jisx0201:-*-fixed-*--24-*-jisx0201.1976-0")
-       ;; (set-default-font "fontset-12"))
-       (add-to-list 'initial-frame-alist '(font . "Ricty-13")))
-      ((eq window-system 'w32)
-       ;; (create-fontset-from-ascii-font "Consolas-11:weight=normal:slant=normal" nil "consolasmeiryo")
-       ;; (set-fontset-font "fontset-consolasmeiryo" 'japanese-jisx0208 '("MeiryoKe_Console" . "jisx0208-sjis"))
-       ;; (set-fontset-font "fontset-consolasmeiryo" 'katakana-jisx0201 '("MeiryoKe_Console" . "jisx0201-katakana"))
-       ;; (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
-       (add-to-list 'initial-frame-alist '(font . "Ricty-13"))
-       ))
+;; (cond ((eq window-system 'x)
+;;        (create-fontset-from-fontset-spec
+;;         "-mplus-fixed-*-*-*--10-*-*-*-*-*-fontset-10,
+;;          ascii:-mplus-gothic-*--10-*-iso8859-1,
+;;          japanese-jisx0208:-mplus-gothic-*--10-*-jisx0208.1983-0,
+;;          katakana-jisx0201:-mplus-gothic-*--10-*-jisx0201.1976-0")
+;;        (create-fontset-from-fontset-spec
+;;         "-mplus-fixed-*-*-*--12-*-*-*-*-*-fontset-12,
+;;          ascii:-mplus-gothic-*--12-*-iso8859-1,
+;;          japanese-jisx0208:-mplus-gothic-*--12-*-jisx0208.1983-0,
+;;          katakana-jisx0201:-mplus-gothic-*--12-*-jisx0201.1976-0")
+;;        (create-fontset-from-fontset-spec
+;;         "-misc-fixed-*-*-*--14-*-*-*-*-*-fontset-14,
+;;          ascii:-misc-fixed-*--14-*-iso8859-1,
+;;          japanese-jisx0208:-misc-fixed-*--14-*-jisx0208.1983-0,
+;;          katakana-jisx0201:-misc-fixed-*--14-*-jisx0201.1976-0")
+;;        (create-fontset-from-fontset-spec
+;;         "-misc-fixed-*-*-*--16-*-*-*-*-*-fontset-16,
+;;          ascii:-*-fixed-*--16-*-iso8859-1,
+;;          japanese-jisx0208:-*-fixed-*--16-*-jisx0208.1983-0,
+;;          katakana-jisx0201:-*-fixed-*--16-*-jisx0201.1976-0")
+;;        (create-fontset-from-fontset-spec
+;;         "-misc-fixed-*-*-*--24-*-*-*-*-*-fontset-24,
+;;          ascii:-*-fixed-*--24-*-iso8859-1,
+;;          japanese-jisx0208:-*-fixed-*--24-*-jisx0208.1983-0,
+;;          katakana-jisx0201:-*-fixed-*--24-*-jisx0201.1976-0")
+;;        (set-default-font "fontset-12"))
+;;       ((eq window-system 'w32)
+;;        (create-fontset-from-ascii-font "Consolas-11:weight=normal:slant=normal" nil "consolasmeiryo")
+;;        (set-fontset-font "fontset-consolasmeiryo" 'japanese-jisx0208 '("MeiryoKe_Console" . "jisx0208-sjis"))
+;;        (set-fontset-font "fontset-consolasmeiryo" 'katakana-jisx0201 '("MeiryoKe_Console" . "jisx0201-katakana"))
+;;        (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
+;;        ))
+(add-to-list 'initial-frame-alist '(font . "Ricty-13"))
 (setq default-frame-alist initial-frame-alist)
 
 ;; Cygwin, IME など環境固有の設定
@@ -524,39 +523,39 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; org-mode
 ;;; ----------------------------------------------------------------------
-(require 'org-install)
-(setq org-startup-truncated nil)
-(setq org-startup-indented t)
-(setq org-return-follows-link t)
-(setq org-replace-disputed-keys t)
-;; (setq org-disputed-keys
-;;       '(([(shift up)]            . [(meta \[)])
-;;         ([(shift down)]          . [(meta \])])
-;;         ([(shift left)]          . [(meta -)])
-;;         ([(shift right)]         . [(meta =)])
-;;         ([(control shift right)] . [(meta +)])
-;;         ([(control shift left)]  . [(meta _)])
-;;         ([(control shift left)]  . [(meta _)])
-;;         ([(meta left)]           . [(meta ,)])
-;;         ([(meta right)]          . [(meta .)])
-;;         ([(meta shift left)]     . [(meta <)])
-;;         ([(meta shift right)]    . [(meta >)])
-;;         ))
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-(org-remember-insinuate)
-(setq org-directory "~/Dropbox/Documents/org/")
-(setq org-default-notes-file (concat org-directory "agenda.org"))
-(setq org-remember-templates
-       '(("Todo" ?t "** TODO %?\n   %i\n   %a\n   %t" nil "Inbox")
-         ("Bug" ?b "** TODO %?   :bug:\n   %i\n   %a\n   %t" nil "Inbox")
-         ("Idea" ?i "** %?\n   %i\n   %a\n   %t" nil "New Ideas")
-         ))
-(global-set-key "\C-cr" 'org-remember)
-(add-hook 'org-mode-hook
-          '(lambda ()
-             (local-unset-key [home])
-             (local-unset-key [end])
-             ))
+;; (when (require 'org-install nil t)
+;;   (setq org-startup-truncated nil)
+;;   (setq org-startup-indented t)
+;;   (setq org-return-follows-link t)
+;;   (setq org-replace-disputed-keys t)
+;;   ;; (setq org-disputed-keys
+;;   ;;       '(([(shift up)]            . [(meta \[)])
+;;   ;;         ([(shift down)]          . [(meta \])])
+;;   ;;         ([(shift left)]          . [(meta -)])
+;;   ;;         ([(shift right)]         . [(meta =)])
+;;   ;;         ([(control shift right)] . [(meta +)])
+;;   ;;         ([(control shift left)]  . [(meta _)])
+;;   ;;         ([(control shift left)]  . [(meta _)])
+;;   ;;         ([(meta left)]           . [(meta ,)])
+;;   ;;         ([(meta right)]          . [(meta .)])
+;;   ;;         ([(meta shift left)]     . [(meta <)])
+;;   ;;         ([(meta shift right)]    . [(meta >)])
+;;   ;;         ))
+;;   (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+;;   ;; (org-remember-insinuate)
+;;   (setq org-directory "~/Dropbox/Documents/org/")
+;;   (setq org-default-notes-file (concat org-directory "agenda.org"))
+;;   (setq org-remember-templates
+;;         '(("Todo" ?t "** TODO %?\n   %i\n   %a\n   %t" nil "Inbox")
+;;           ("Bug" ?b "** TODO %?   :bug:\n   %i\n   %a\n   %t" nil "Inbox")
+;;           ("Idea" ?i "** %?\n   %i\n   %a\n   %t" nil "New Ideas")
+;;           ))
+;;   (global-set-key "\C-cr" 'org-remember)
+;;   (add-hook 'org-mode-hook
+;;             '(lambda ()
+;;                (local-unset-key [home])
+;;                (local-unset-key [end])
+;;                )))
 
 ;;; ----------------------------------------------------------------------
 ;;; Visual Studio .NET 2003
