@@ -124,7 +124,7 @@
   (ibus-disable-isearch))
 
 ;;; ----------------------------------------------------------------------
-;;; MELPA
+;;; ELPA
 ;;; ----------------------------------------------------------------------
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
@@ -145,13 +145,12 @@
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
 ;;; ----------------------------------------------------------------------
-(when (load-library "ibuffer")
-  (require 'ibuffer)
+(when (require 'ibuffer nil t)
   (setq ibuffer-formats
         '((mark modified read-only " " (name 30 30)
                 " " (size 6 -1) " " (mode 16 16) " " (coding 15 15) " " filename)
           (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
-  (ibuffer-define-column
+  (define-ibuffer-column
    ;; ibuffer-formats に追加した文字
    coding
    ;; 一行目の文字
@@ -303,12 +302,6 @@ Highlight last expanded string."
   (define-key ac-mode-map (kbd "M-TAB") 'auto-complete))
 
 ;;; ----------------------------------------------------------------------
-;;; snippet
-;;; ----------------------------------------------------------------------
-(require 'snippet nil t)
-;;(require 'yasnippet-bundle nil t)
-
-;;; ----------------------------------------------------------------------
 ;;; font-lock
 ;;; ----------------------------------------------------------------------
 (setq font-lock-support-mode
@@ -390,11 +383,13 @@ Highlight last expanded string."
 ;;              :foreground "light steel blue" :bold t)
 
 ;;; ----------------------------------------------------------------------
-;;; redo
+;;; redo+.el
 ;;; ----------------------------------------------------------------------
-(when (require 'redo nil t)
-  (define-key ctl-x-map (if window-system "U" "r") 'redo)
-  (define-key global-map [?\C-.] 'redo))
+(require 'redo+)
+(setq undo-no-redo t)
+(setq undo-limit 600000)
+(setq undo-strong-limit 900000)
+(define-key global-map [?\C-.] 'redo)
 
 ;;; ----------------------------------------------------------------------
 ;;; migemo
@@ -727,21 +722,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; gtags
 ;;; ----------------------------------------------------------------------
-(when (locate-library "gtags")
-  (autoload 'gtags-mode "gtags" "" t)
-  (add-hook 'gtags-mode-hook
-            '(lambda ()
-               (local-set-key "\M-t" 'gtags-find-tag)
-               (local-set-key "\M-r" 'gtags-find-rtag)
-               (local-set-key "\M-s" 'gtags-find-symbol)
-               (local-set-key "\C-t" 'gtags-pop-stack)
-               (define-key gtags-mode-map [mouse-3] nil)
-               (define-key gtags-select-mode-map [mouse-3] nil)))
-  (add-hook 'c-mode-common-hook
-            '(lambda()
-               (gtags-mode 1)
-               ;;(gtags-make-complete-list)
-               )))
+(add-hook 'gtags-mode-hook
+          '(lambda ()
+             (local-set-key "\M-t" 'gtags-find-tag)
+             (local-set-key "\M-r" 'gtags-find-rtag)
+             (local-set-key "\M-s" 'gtags-find-symbol)
+             (local-set-key "\C-t" 'gtags-pop-stack)
+             (define-key gtags-mode-map [mouse-3] nil)
+             (define-key gtags-select-mode-map [mouse-3] nil)))
+(add-hook 'c-mode-common-hook
+          '(lambda()
+             (gtags-mode 1)
+             ;;(gtags-make-complete-list)
+             ))
 
 
 ;;; ----------------------------------------------------------------------
@@ -775,16 +768,6 @@ Highlight last expanded string."
         (cons '("svn" . utf-8) process-coding-system-alist)))
 
 ;;; ----------------------------------------------------------------------
-;;; magit
-;;; ----------------------------------------------------------------------
-(autoload 'magit-status "magit" nil t)
-
-;;; ----------------------------------------------------------------------
-;;; git-commit-mode
-;;; ----------------------------------------------------------------------
-(require 'git-commit nil t)
-
-;;; ----------------------------------------------------------------------
 ;;; ruby-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
@@ -792,16 +775,12 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("config\\.ru$" . ruby-mode))
 (add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" . ruby-mode))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
-;; (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process")
-;; (autoload 'inf-ruby-keys "inf-ruby" "Set local key defs for inf-ruby in ruby-mode")
-(autoload 'ruby-electric-mode "ruby-electric" "Minor mode providing electric editing commands for ruby files" t)
 ;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
 ;; The directory containing FILE becomes the initial working directory
 ;; and source-file directory for your debugger.")
 (add-hook 'ruby-mode-hook
           '(lambda ()
              (ruby-electric-mode t)
-             ;; (inf-ruby-keys)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              (setq dabbrev-abbrev-skip-leading-regexp "[:@]")))
@@ -849,25 +828,6 @@ Highlight last expanded string."
 (when (locate-library "rd-mode")
   (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
   (add-to-list 'auto-mode-alist '("\\.rd$" . rd-mode)))
-
-;;; ReFe
-;; (when (locate-library "refe")
-;;   (when (featurep 'meadow)
-;;     (setq refe-coding-system 'shift_jis))
-;;   (autoload 'refe "refe" "ReFe" t))
-
-;;; ri-emacs
-;; (when (setq ri-ruby-script (executable-find "ri-emacs"))
-;;   (autoload 'ri "ri-ruby" nil t))
-
-;;; rcodetools
-;; (when (require 'rcodetools nil t)
-;;   (setq rct-find-tag-if-available nil))
-
-;;; auto-complete-ruby
-;; (when (require 'auto-complete-ruby nil t)
-;;   (setq ac-omni-completion-sources
-;;  '((ruby-mode . (("\\.\\=" . (ac-source-rcodetools)))))))
 
 ;;; ----------------------------------------------------------------------
 ;;; rails-mode
@@ -921,19 +881,10 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.t$" . cperl-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; lua-mode
-;;; ----------------------------------------------------------------------
-(autoload 'lua-mode "lua-mode" "Major mode for editing lua scripts.")
-(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; yaml-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'yaml-mode "yaml-mode" "YAML Editing Mode" t)
-(add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
 (add-hook 'yaml-mode-hook
           '(lambda ()
-             ;;(setq indent-tabs-mode nil)
              (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
 ;;; ----------------------------------------------------------------------
@@ -956,16 +907,12 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'php-mode "php-mode" "PHP mode" t)
-(custom-set-variables '(php-mode-force-pear t))
-(add-to-list 'auto-mode-alist '("\\.php$" . php-mode))
-(add-to-list 'auto-mode-alist '("\\.phtml$" . php-mode))
+(setq php-mode-force-pear t)
 (add-hook 'php-mode-hook
           '(lambda ()
-         ;; (set-buffer-file-coding-system 'euc-jp-unix)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
-         (setq dabbrev-abbrev-skip-leading-regexp "\\$")))
+             (setq dabbrev-abbrev-skip-leading-regexp "\\$")))
 
 ;;; ----------------------------------------------------------------------
 ;;; html-helper-mode
@@ -981,58 +928,16 @@ Highlight last expanded string."
 ;;           (outline-minor-mode t)))
 
 ;;; ----------------------------------------------------------------------
-;;; css-mode
-;;; ----------------------------------------------------------------------
-(autoload 'css-mode "css-mode" "CSS Editing Mode" t)
-(setq cssm-indent-function #'cssm-c-style-indenter)
-(add-to-list 'auto-mode-alist '("\\.css$" . css-mode))
-(add-hook 'css-mode-hook
-      '(lambda ()
-         (define-key cssm-mode-map "\C-m" 'newline-and-indent)))
-
-;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
-(autoload 'js2-mode "js2" nil t)
-(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-hook 'js-mode-hook 'js2-minor-mode)
 
 ;;; ----------------------------------------------------------------------
-;;; scss-mode
+;;; less-css-mode / scss-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'scss-mode "scss-mode")
-(setq scss-compile-at-save nil) ;; 自動コンパイルをオフにする
-(add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
-
-;;; ----------------------------------------------------------------------
-;;; less-mode
-;;; ----------------------------------------------------------------------
-(autoload 'less-mode "less-mode")
-(setq less-compile-at-save nil) ;; 自動コンパイルをオフにする
-(add-to-list 'auto-mode-alist '("\\.less$" . less-mode))
-
-;;; ----------------------------------------------------------------------
-;;; coffee-mode
-;;; ----------------------------------------------------------------------
-(autoload 'coffee-mode "coffee-mode" "CoffeeScript Editing Mode" t)
-(add-to-list 'auto-mode-alist '("\\.coffee$" . coffee-mode))
-
-;;; ----------------------------------------------------------------------
-;;; haskell-mode
-;;; ----------------------------------------------------------------------
-;; (add-to-list 'load-path "~/.emacs.d/elisp/haskell-mode")
-;; (autoload 'haskell-mode "haskell-mode"
-;;    "Major mode for editing Haskell scripts." t)
-;; (autoload 'literate-haskell-mode "haskell-mode"
-;;    "Major mode for editing literate Haskell scripts." t)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-;; (add-hook 'haskell-mode-hook 'turn-on-haskell-ghci)
-;; (setq haskell-literate-default 'latex)
-;; (setq haskell-doc-idle-delay 0)
-;; (add-to-list 'auto-mode-alist '("\\.[hg]s$"  . haskell-mode))
-;; (add-to-list 'auto-mode-alist '("\\.hi$"     . haskell-mode))
-;; (add-to-list 'auto-mode-alist '("\\.l[hg]s$" . literate-haskell-mode))
+(setq less-css-compile-at-save nil)
+(setq scss-compile-at-save nil)
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1053,7 +958,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
 ;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/mmm-mode")
 (when (require 'mmm-mode nil t)
   (setq mmm-global-mode 'maybe)
   (setq mmm-submode-decoration-level 2)
@@ -1065,7 +969,7 @@ Highlight last expanded string."
     (set-face-background 'mmm-comment-submode-face nil)
     (set-face-bold-p 'mmm-comment-submode-face t)
     ))
-  ;; JavaScript 用に、html-mode内で javascript-mode を使えるようにします。
+  ;; JavaScript 用に、html-mode内で js2-mode を使えるようにします。
   (mmm-add-mode-ext-class nil "\\.html?\\'" 'html-javascript)
   (mmm-add-classes
    '((html-javascript
@@ -1197,22 +1101,13 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; session
 ;;; ----------------------------------------------------------------------
-(when (require 'session nil t)
-  (setq history-length t)
-  (setq session-initialize '(de-saveplace session keys menus places)
-        session-globals-include '((kill-ring 100)
-                                  (session-file-alist 100 t)
-                                  (file-name-history 1000)))
-  (setq session-globals-max-string 10000000)
-  (add-hook 'after-init-hook 'session-initialize))
-
-;;; ----------------------------------------------------------------------
-;;; mcomplete/icomplete
-;;; ----------------------------------------------------------------------
-(if (require 'mcomplete nil t)
-    (progn
-      (turn-on-mcomplete-mode))
-  (icomplete-mode 0))
+(setq history-length t)
+(setq session-initialize '(de-saveplace session keys menus places)
+      session-globals-include '((kill-ring 100)
+                                (session-file-alist 100 t)
+                                (file-name-history 1000)))
+(setq session-globals-max-string 10000000)
+(add-hook 'after-init-hook 'session-initialize)
 
 ;;; ----------------------------------------------------------------------
 ;;; elscreen
