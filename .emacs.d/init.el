@@ -309,19 +309,22 @@ Highlight last expanded string."
 (global-font-lock-mode t)
 
 ;;; ----------------------------------------------------------------------
-;;; GUI/CUI 固有の設定
+;;; color-theme
 ;;; ----------------------------------------------------------------------
 (cond (window-system
        (require 'color-theme)
        (load "my-color-theme")
-       (my-color-theme)
-       (when (eq window-system 'w32)
-         (require 'jaspace)
-         (setq jaspace-alternate-eol-string "\xab\n")
-         (setq jaspace-highlight-tabs t)
-         (setq jaspace-modes
-               (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes)))))
+       (my-color-theme)))
 
+;;; ----------------------------------------------------------------------
+;;; jaspace.el
+;;; ----------------------------------------------------------------------
+(cond (window-system
+       (require 'jaspace)
+       (setq jaspace-alternate-eol-string "\xab\n")
+       (setq jaspace-highlight-tabs t)
+       (setq jaspace-modes
+             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
@@ -361,11 +364,11 @@ Highlight last expanded string."
 (autoload 'w3m-browse-url "w3m" "Ask emacs-w3m to show a URL." t)
 (require 'browse-url)
 (cond ((eq window-system 'x)
-       (setq browse-url-browser-function 'browse-url-mozilla)
-       (global-set-key [mouse-3] 'browse-url-mozilla))
+       (setq browse-url-browser-function 'browse-url-xdg-open)
+       (global-set-key [mouse-3] 'browse-url-at-mouse))
       ((eq window-system 'w32)
        (setq browse-url-browser-function 'browse-url-default-windows-browser)
-       (global-set-key [mouse-3] 'browse-url-default-windows-browser))
+       (global-set-key [mouse-3] 'browse-url-at-mouse))
       (t
        (setq browse-url-browser-function 'w3m-browse-url)))
 (global-set-key "\C-xm" 'browse-url-at-point)
@@ -1087,6 +1090,7 @@ Highlight last expanded string."
 (require 'filecache)
 (file-cache-add-directory-list
    (list "~"
+         "~/.ssh"
          "~/.emacs.d"
          "~/.emacs.d/elisp"
          "~/bin"
@@ -1104,7 +1108,7 @@ Highlight last expanded string."
 (setq recentf-max-saved-items 10000)
 
 ;;; ----------------------------------------------------------------------
-;;; session
+;;; session.el
 ;;; ----------------------------------------------------------------------
 (setq history-length t)
 (setq session-initialize '(de-saveplace session keys menus places)
@@ -1112,6 +1116,7 @@ Highlight last expanded string."
                                 (session-file-alist 100 t)
                                 (file-name-history 1000)))
 (setq session-globals-max-string 10000000)
+(setq session-save-print-spec '(t nil nil)) ; anything/helmと一緒に使うために必要
 (add-hook 'after-init-hook 'session-initialize)
 
 ;;; ----------------------------------------------------------------------
@@ -1345,7 +1350,10 @@ Highlight last expanded string."
   (add-hook 'ruby-electric-mode-hook (lambda () (diminish 'ruby-electric-mode)))
   (add-hook 'gtags-mode-hook (lambda () (diminish 'gtags-mode)))
   (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
-  (diminish 'git-gutter-mode))
+  (diminish 'git-gutter-mode)
+  (diminish 'undo-tree-mode)
+  (if (fboundp 'ibus-mode) (diminish 'ibus-mode))
+  )
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
