@@ -385,11 +385,16 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; redo+.el
 ;;; ----------------------------------------------------------------------
-(require 'redo+)
-(setq undo-no-redo t)
-(setq undo-limit 600000)
-(setq undo-strong-limit 900000)
-(define-key global-map [?\C-.] 'redo)
+;; (require 'redo+)
+;; (setq undo-no-redo t)
+;; (setq undo-limit 600000)
+;; (setq undo-strong-limit 900000)
+;; (define-key global-map [?\C-.] 'redo)
+
+;;; ----------------------------------------------------------------------
+;;; undo-tree.el
+;;; ----------------------------------------------------------------------
+(global-undo-tree-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; migemo
