@@ -812,8 +812,11 @@ Highlight last expanded string."
 
 (defun ruby-insert-magic-comment-if-needed ()
   "バッファのcoding-systemをもとにmagic commentをつける。"
-  (when (and (eq major-mode 'ruby-mode)
-             (find-multibyte-characters (point-min) (point-max) 1))
+  (when (and
+         (and (eq major-mode 'ruby-mode)
+              (or (not mmm-primary-mode)
+                  (eq mmm-primary-mode 'ruby-mode)))
+         (find-multibyte-characters (point-min) (point-max) 1))
     (save-excursion
       (goto-char 1)
       (when (looking-at "^#!")
@@ -829,7 +832,6 @@ Highlight last expanded string."
                              ((string-match "utf-8" coding-system)
                               "utf-8"))))
         (insert (format "# -*- coding: %s -*-" encoding))))))
-
 (add-hook 'before-save-hook 'ruby-insert-magic-comment-if-needed)
 
 ;;; rd-mode
