@@ -907,9 +907,7 @@ Highlight last expanded string."
         ("\\.[Cc][Ll][Ss]$" . visual-basic-mode)  ;;Class Module
         ("\\.[Vv][Bb][Ss]$" . visual-basic-mode)  ;;VBScript file
         ("\\.[Vv][Bb][Pp]$" . vbp-mode)
-        ("\\.[Vv][Bb][Gg]$" . vbp-mode)
-        ("\\.html\\.erb$"   . html-mode)
-        ("\\.rhtml$"        . html-mode))
+        ("\\.[Vv][Bb][Gg]$" . vbp-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -969,6 +967,7 @@ Highlight last expanded string."
 (when (require 'mmm-mode nil t)
   (setq mmm-global-mode 'maybe)
   (setq mmm-submode-decoration-level 2)
+  (setq mmm-parse-when-idle t)
   ;; 非 GUI 端末の場合
   (if (not window-system)
       (progn
@@ -977,53 +976,36 @@ Highlight last expanded string."
     (set-face-background 'mmm-comment-submode-face nil)
     (set-face-bold-p 'mmm-comment-submode-face t)
     ))
-  ;; JavaScript 用に、html-mode内で js2-mode を使えるようにします。
-  (mmm-add-mode-ext-class nil "\\.html?\\'" 'html-javascript)
   (mmm-add-classes
-   '((html-javascript
+   '((mmm-html-css-mode
+      :submode css-mode
+      :front "<style[^>]*>\\([^<]*<!--\\)?\n"
+      :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
+      )
+     (mmm-html-javascript-mode
       :submode js2-mode
       :front "<script[^>]*>"
-      :face mmm-comment-submode-face
-      :back "</script>")))
-  ;; ASP 用に、html-mode内で visual-basic-mode を使えるようにします。
-  (mmm-add-classes
-   '((asp
+      :back "</script>")
+     (mmm-asp-mode
       :submode visual-basic-mode
       :front "<%"
       :back "%>"
-      :insert ((?c asp nil @ "<%" @ " " _ " " @ "%>" @)
-           (?e asp nil @ "<%=" @ " " _ " " @ "%>" @)))))
-  (mmm-add-mode-ext-class nil "\\.[Aa][Ss][PpAa]$" 'asp)
-  ;; JSP 用に、html-mode内で java-mode を使えるようにします。
-  (mmm-add-classes
-   '((jsp
+      :insert ((?c mmm-asp-mode nil @ "<%" @ " " _ " " @ "%>" @)
+               (?e mmm-asp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
+     (mmm-jsp-mode
       :submode java-mode
       :front "<%"
       :back "%>"
-      :insert ((?c jsp nil @ "<%" @ " " _ " " @ "%>" @)
-           (?e jsp nil @ "<%=" @ " " _ " " @ "%>" @)))))
-  (mmm-add-mode-ext-class nil "\\.[Jj][Ss][PpAa]$" 'jsp)
-  ;; eRuby用に、html-mode内でruby-modeを使えるようにします。
-  ;; (mmm-add-classes
-  ;;  '((eruby
-  ;;     :submode ruby-mode
-  ;;     :front "<%"
-  ;;     :back "%>"
-  ;;     :insert ((?c eruby nil @ "<%" @ " " _ " " @ "%>" @)
-  ;;              (?e eruby nil @ "<%=" @ " " _ " " @ "%>" @)))))
-  ;; (mmm-add-mode-ext-class nil "\\.[Rr][Hh][Tt][Mm][Ll]$" 'eruby)
-  ;; ヒアドキュメント用に、ruby-mode内でtext-modeを使えるようにします。
-  ;; (mmm-add-classes
-  ;;  '((ruby-heredoc
-  ;;     :front "<<-\\([a-zA-Z0-9_-]+\\)"
-  ;;     :front-offset (end-of-line 1)
-  ;;     :back "~1$"
-  ;;     :save-matches 1
-  ;;     :submode text-mode
-  ;;     :insert ((?d ruby-heredoc "Here-document Name: " @ "<<" str _ "\n"
-  ;;                  @ "\n" @ str "\n" @)))))
-  ;; (mmm-add-mode-ext-class nil "\\.[Rr][Bb]$" 'ruby-heredoc)
-  )
+      :insert ((?c mmm-jsp-mode nil @ "<%" @ " " _ " " @ "%>" @)
+           (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
+     (mmm-eruby-mode
+      :submode ruby-mode
+      :front "<%"
+      :back "%>")))
+  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
+  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
+  (mmm-add-mode-ext-class nil "\\.erb?\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; latex-mode
@@ -1042,7 +1024,7 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.psc\\'" . papyrus-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; 拡張子に対応する編集モードを設定
+;;; その他の拡張子に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
       (append '(
@@ -1052,6 +1034,8 @@ Highlight last expanded string."
                 ("\\.[Tt][Pp][Ll]?$"     . html-mode)     ;; Smarty Template
                 ("\\.[Jj][Ss][PpAa]$"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java$"          . java-mode)     ;; i-appli
+                ("\\.html\\.erb$"        . html-mode)     ;; HTML(erb)
+                ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
                 )
               auto-mode-alist))
 
