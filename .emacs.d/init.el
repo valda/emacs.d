@@ -1351,10 +1351,6 @@ Highlight last expanded string."
   "run hook as after advice"
   (run-hooks 'ansi-term-after-hook))
 (ad-activate 'ansi-term)
-;; (add-hook 'ansi-term-after-hook
-;;           (function
-;;            (lambda ()
-;;              (setq show-trailing-whitespace nil))))
 
 ;;; ---------------------------------------------------------------------
 ;;; shell-pop.el
@@ -1448,7 +1444,7 @@ Highlight last expanded string."
   (message "Opening %s...done" file))
 
 ;;; ----------------------------------------------------------------------
-;;; その他のグローバルキーバインドなど
+;;; その他のキーバインド
 ;;; ----------------------------------------------------------------------
 (global-set-key [home] 'beginning-of-buffer )
 (global-set-key [end] 'end-of-buffer )
@@ -1462,7 +1458,6 @@ Highlight last expanded string."
 (global-set-key [(shift tab)] 'indent-region)
 (global-set-key [backtab] 'indent-region)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
-;(global-unset-key "\C-xf")
 (cond ((eq window-system 'x)
        (define-key function-key-map [backspace] [8])
        (put 'backspace 'ascii-character 8)
@@ -1477,12 +1472,17 @@ Highlight last expanded string."
        (global-set-key [mouse-2] 'mouse-yank-at-click))
       (t
        (global-set-key "\C-h" (quote delete-backward-char))))
+(define-key isearch-mode-map [(control h)] 'isearch-delete-char)
+(define-key isearch-mode-map [backspace] 'isearch-delete-char)
 
+;;; ----------------------------------------------------------------------
+;;; narrowing などの操作を有効化
+;;; ----------------------------------------------------------------------
 (put 'eval-expression 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
+;;; ----------------------------------------------------------------------
 (cd "~")
-
 ;;; end of file ;;;
