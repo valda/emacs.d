@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010 Chris Wanstrath
 
-;; Version: 20130414.1902
+;; Version: 20130421.1156
 ;; X-Original-Version: 0.4.1
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
@@ -159,7 +159,10 @@
   :group 'coffee)
 
 (defcustom coffee-js-directory ""
-  "The directory for compiled JavaScript files output"
+  "The directory for compiled JavaScript files output. This can
+be an absolute path starting with a `/`, or it can be path
+relative to the directory containing the coffeescript sources to
+be compiled."
   :type 'string
   :group 'coffee)
 
@@ -255,7 +258,12 @@ with CoffeeScript."
     (set-buffer
      (apply 'make-comint "CoffeeREPL"
             "env"
-            nil (append (list "NODE_NO_READLINE=1" coffee-command) coffee-args-repl))))
+            nil (append (list "NODE_NO_READLINE=1" coffee-command) coffee-args-repl)))
+
+    ;; Workaround: https://github.com/defunkt/coffee-mode/issues/30
+    (set (make-local-variable 'comint-preoutput-filter-functions)
+         (cons (lambda (string)
+                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)) nil)))
 
   (pop-to-buffer coffee-repl-buffer))
 
@@ -263,9 +271,11 @@ with CoffeeScript."
   (let ((working-on-file (expand-file-name (or filename (buffer-file-name)))))
     (unless (string= coffee-js-directory "")
       (setq working-on-file
-            (expand-file-name (concat (file-name-directory working-on-file)
-                                      coffee-js-directory
-                                      (file-name-nondirectory working-on-file)))))
+            (expand-file-name
+             (concat (if (not (string-match "^/" coffee-js-directory))
+                         (concat (file-name-directory working-on-file) "/"))
+                     coffee-js-directory "/"
+                     (file-name-nondirectory working-on-file)))))
     ;; Returns the name of the JavaScript file compiled from a CoffeeScript file.
     ;; If FILENAME is omitted, the current buffer's file name is used.
     (concat (file-name-sans-extension working-on-file) ".js")))
@@ -478,14 +488,18 @@ For details, see `comment-dwim'."
 
 (defun coffee-command-compile (file-name)
   "Run `coffee-command' to compile FILE."
-  (let ((full-file-name
-         (expand-file-name file-name))
-        (output-directory
-         (concat " -o " (file-name-directory (expand-file-name file-name))
-                 coffee-js-directory)))
-    (mapconcat 'identity (append (list coffee-command) coffee-args-compile
-                                 (list output-directory)
-                                 (list full-file-name)) " ")))
+  (let* ((full-file-name
+          (expand-file-name file-name))
+         (output-dir
+          (file-name-directory
+           (coffee-compiled-file-name full-file-name))))
+    (if (not (file-exists-p output-dir))
+        (make-directory output-dir t))
+    (mapconcat 'identity (append (list (shell-quote-argument coffee-command))
+                                 coffee-args-compile
+                                 (list "-o" (shell-quote-argument output-dir))
+                                 (list (shell-quote-argument full-file-name)))
+               " ")))
 
 (defun coffee-run-cmd (args)
   "Run `coffee-command' with the given arguments, and display the
@@ -923,6 +937,10 @@ END lie."
 
   ;; imenu
   (set (make-local-variable 'imenu-create-index-function) #'coffee-imenu-create-index)
+
+  ;; Don't let electric-indent-mode break coffee-mode.
+  (set (make-local-variable 'electric-indent-functions)
+       (list (lambda (arg) 'no-indent)))
 
   ;; no tabs
   (setq indent-tabs-mode nil))

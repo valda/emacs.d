@@ -18,7 +18,7 @@
 (setq next-line-add-newlines nil)
 (setq kill-whole-line t)
 (setq case-replace nil)
-(setq major-mode 'text-mode)
+;;(setq major-mode 'text-mode)
 (setq-default transient-mark-mode t)
 (setq indent-line-function 'indent-relative-maybe)
 (setq truncate-partial-width-windows nil)
@@ -317,26 +317,6 @@ Highlight last expanded string."
        (my-color-theme)))
 
 ;;; ----------------------------------------------------------------------
-;;; jaspace.el
-;;; ----------------------------------------------------------------------
-(cond (window-system
-       (require 'jaspace)
-       (setq jaspace-alternate-eol-string "\xab\n")
-       (setq jaspace-highlight-tabs t)
-       (setq jaspace-modes
-             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
-
-;;; ----------------------------------------------------------------------
-;;; 行末に存在するスペースを強調表示
-;;; ----------------------------------------------------------------------
-(when (boundp 'show-trailing-whitespace)
-  (setq-default show-trailing-whitespace t)
-  (dolist (m '(calendar-mode-hook))
-    (add-hook m
-              '(lambda ()
-                 (setq show-trailing-whitespace nil)))))
-
-;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
 ;;; ----------------------------------------------------------------------
 (add-hook 'diff-mode-hook
@@ -398,6 +378,7 @@ Highlight last expanded string."
 ;;; undo-tree.el
 ;;; ----------------------------------------------------------------------
 (global-undo-tree-mode)
+(define-key global-map [?\C-.] 'undo-tree-redo)
 
 ;;; ----------------------------------------------------------------------
 ;;; migemo
@@ -1227,6 +1208,41 @@ Highlight last expanded string."
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;;; ----------------------------------------------------------------------
+;;; sdic
+;;; ----------------------------------------------------------------------
+(when (require 'sdic nil t)
+  (global-set-key "\C-cw" 'sdic-describe-word)
+  (global-set-key "\C-cW" 'sdic-describe-word-at-point)
+  (setq sdic-eiwa-dictionary-list
+        '((sdicf-client "~/dict/eijiro52u.sdic")))
+  (setq sdic-waei-dictionary-list
+        '((sdicf-client "~/dict/waeiji52u.sdic"
+                        (add-keys-to-headword t))))
+  (setq sdic-default-coding-system 'utf-8-unix)
+
+  ;; sdic-display-buffer 書き換え
+  (defadvice sdic-display-buffer (around sdic-display-buffer-normalize activate)
+    "sdic のバッファ表示を普通にする。"
+    (setq ad-return-value (buffer-size))
+    (let ((p (or (ad-get-arg 0)
+                 (point))))
+      (and sdic-warning-hidden-entry
+              (> p (point-min))
+              (message "この前にもエントリがあります。"))
+      (goto-char p)
+      (display-buffer (get-buffer sdic-buffer-name))
+      (set-window-start (get-buffer-window sdic-buffer-name) p)))
+
+  (defadvice sdic-other-window (around sdic-other-normalize activate)
+    "sdic のバッファ移動を普通にする。"
+    (other-window 1))
+
+  (defadvice sdic-close-window (around sdic-close-normalize activate)
+    "sdic のバッファクローズを普通にする。"
+    (bury-buffer sdic-buffer-name))
+  )
+
+;;; ----------------------------------------------------------------------
 ;;; anything.el
 ;;; ----------------------------------------------------------------------
 (require 'anything)
@@ -1313,6 +1329,7 @@ Highlight last expanded string."
                   ("*Kill Ring*" :height 20 :noselect t)
                   ("*Apropos*" :height 30)
                   ("*Help*" :height 30)
+                  ("*sdic*" :height 20)
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
@@ -1325,6 +1342,27 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
+
+;;; ----------------------------------------------------------------------
+;;; ansi-term
+;;; ----------------------------------------------------------------------
+(defvar ansi-term-after-hook nil)
+(defadvice ansi-term (after ansi-term-after-advice (arg))
+  "run hook as after advice"
+  (run-hooks 'ansi-term-after-hook))
+(ad-activate 'ansi-term)
+;; (add-hook 'ansi-term-after-hook
+;;           (function
+;;            (lambda ()
+;;              (setq show-trailing-whitespace nil))))
+
+;;; ---------------------------------------------------------------------
+;;; shell-pop.el
+;;; ----------------------------------------------------------------------
+(when (require 'shell-pop nil t)
+  (shell-pop-set-universal-key (kbd "\C-t"))
+  (shell-pop-set-internal-mode "ansi-term")
+  (shell-pop-set-internal-mode-shell "/bin/zsh"))
 
 ;;; ----------------------------------------------------------------------
 ;;; diminish
@@ -1340,6 +1378,26 @@ Highlight last expanded string."
   (diminish 'undo-tree-mode)
   (if (fboundp 'ibus-mode) (diminish 'ibus-mode))
   )
+
+;;; ----------------------------------------------------------------------
+;;; jaspace.el
+;;; ----------------------------------------------------------------------
+(cond (window-system
+       (require 'jaspace)
+       (setq jaspace-alternate-eol-string "\xab\n")
+       (setq jaspace-highlight-tabs t)
+       (setq jaspace-modes
+             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
+
+;;; ----------------------------------------------------------------------
+;;; 行末に存在するスペースを強調表示
+;;; ----------------------------------------------------------------------
+(when (boundp 'show-trailing-whitespace)
+  (setq-default show-trailing-whitespace t)
+  (dolist (m '(calendar-mode-hook ansi-term-after-hook))
+    (add-hook m
+              '(lambda ()
+                 (setq show-trailing-whitespace nil)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -1367,7 +1425,7 @@ Highlight last expanded string."
   (put-char-code-property c 'jisx0201 nil))
 
 ;;; ----------------------------------------------------------------------
-;;; ファイルをウィンドウズの関連付けで開く
+;;; ファイルをシステムの関連付けで開く
 ;;; ----------------------------------------------------------------------
 (defun my-file-open-by-windows (file)
   "ファイルをウィンドウズの関連付けで開く"
