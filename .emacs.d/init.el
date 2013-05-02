@@ -11,6 +11,68 @@
   (setq gnuserv-frame (selected-frame)))
 
 ;;; ----------------------------------------------------------------------
+;;; ELPA
+;;; ----------------------------------------------------------------------
+(require 'package)
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")
+                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+(package-initialize)
+
+;; Packages to install from MELPA
+(defvar my/packages
+  '( anything
+     auto-complete
+     auto-install
+     bm
+     coffee-mode
+     color-moccur
+     color-theme
+     csharp-mode
+     cygwin-mount
+     diminish
+     dsvn
+     elscreen
+     gist
+     git-commit-mode
+     git-gutter
+     git-gutter-fringe
+     gtags
+     inf-ruby
+     js2-mode
+     less-css-mode
+     lua-mode
+     magit
+     mmm-mode
+     php-mode
+     popwin
+     recentf-ext
+     ruby-block
+     ruby-electric
+     scss-mode
+     session
+     shell-pop
+     snippet
+     undo-tree
+     yaml-mode )
+  "A list of packages to install from MELPA at launch.")
+
+;; Install MELPA packages
+(dolist (package my/packages)
+  (when (or (not (package-installed-p package)))
+    (package-install package)))
+
+;;; ----------------------------------------------------------------------
+;;; auto-install.el
+;;; ----------------------------------------------------------------------
+(when (require 'auto-install nil t)
+  (setq auto-install-directory "~/.emacs.d/elisp/")
+  (auto-install-compatibility-setup) ; 互換性確保
+  (condition-case nil
+      (auto-install-update-emacswiki-package-name t)
+    (error (message "an error occurred, but going my way …"))))
+
+;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
 (setq inhibit-startup-message t)
@@ -124,25 +186,6 @@
   (ibus-disable-isearch))
 
 ;;; ----------------------------------------------------------------------
-;;; ELPA
-;;; ----------------------------------------------------------------------
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-(package-initialize)
-
-
-;;; ----------------------------------------------------------------------
-;;; auto-install.el
-;;; ----------------------------------------------------------------------
-(when (require 'auto-install nil t)
-  (setq auto-install-directory "~/.emacs.d/elisp/")
-  (auto-install-compatibility-setup) ; 互換性確保
-  (condition-case nil
-      (auto-install-update-emacswiki-package-name t)
-    (error (message "an error occurred, but going my way …"))))
-
-;;; ----------------------------------------------------------------------
 ;;; ibuffer
 ;;; ----------------------------------------------------------------------
 (when (require 'ibuffer nil t)
@@ -176,8 +219,7 @@
 (add-hook 'pre-command-hook
           (lambda ()
             (setq abbrev-mode nil)))
-
-;; dabbrev を強調表示
+(setq dabbrev-abbrev-skip-leading-regexp "[:@$]")
 (require 'dabbrev-highlight)
 
 ;;; ----------------------------------------------------------------------
@@ -772,7 +814,7 @@ Highlight last expanded string."
              (ruby-electric-mode t)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
-             (setq dabbrev-abbrev-skip-leading-regexp "[:@]")))
+             ))
 
 ;;; ruby-mode のインデントをいい感じにする
 (setq ruby-deep-indent-paren-style nil)
@@ -900,8 +942,7 @@ Highlight last expanded string."
 (add-hook 'php-mode-hook
           '(lambda ()
              (define-key php-mode-map '[(control .)] nil)
-             (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
-             (setq dabbrev-abbrev-skip-leading-regexp "\\$")))
+             (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
 ;;; ----------------------------------------------------------------------
 ;;; html-helper-mode
