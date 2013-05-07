@@ -20,7 +20,7 @@
 (package-initialize)
 
 ;; Packages to install from MELPA
-(defvar my/packages
+(defvar installing-package-list
   '( anything
      auto-complete
      auto-install
@@ -57,10 +57,15 @@
      yaml-mode )
   "A list of packages to install from MELPA at launch.")
 
-;; Install MELPA packages
-(dolist (package my/packages)
-  (when (or (not (package-installed-p package)))
-    (package-install package)))
+(require 'cl)
+(let ((not-installed (loop for x in installing-package-list
+                           when (not (package-installed-p x))
+                           collect x)))
+  (when not-installed
+    (package-refresh-contents)
+    (dolist (pkg not-installed)
+      (package-install pkg))))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; auto-install.el
