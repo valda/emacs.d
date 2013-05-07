@@ -41,7 +41,6 @@
     less-css-mode
     lua-mode
     magit
-    migemo
     mmm-mode
     php-mode
     popwin
@@ -450,10 +449,13 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (when (require 'migemo nil t)
   (setq migemo-command "cmigemo")
-  (setq migemo-options (list "-q" "--emacs"))
-  (if (eq window-system 'w32)
-      (progn (setq migemo-dictionary "../etc/migemo/migemo-dict")
-             (setq migemo-coding-system 'japanese-shift-jis-unix)))
+  (setq migemo-options '("-q" "--emacs" "-i" "\g"))
+  (cond ((eq window-system 'w32)
+         (setq migemo-dictionary "../etc/migemo/migemo-dict")
+         (setq migemo-coding-system 'japanese-shift-jis-unix))
+        (t
+         (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
+         (setq migemo-coding-system 'utf-8-unix)))
   (setq migemo-use-pattern-alist t)
   (setq migemo-use-frequent-pattern-alist t)
   (setq migemo-pattern-alist-length 1024)
