@@ -4,14 +4,14 @@
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv
 ;;; ----------------------------------------------------------------------
-(when (not (require 'gnuserv-compat nil t))
+(unless (require 'gnuserv-compat nil t)
   (require 'gnuserv nil t))
 (when (fboundp 'server-start)
   (server-start)
   (setq gnuserv-frame (selected-frame)))
 
 ;;; ----------------------------------------------------------------------
-;;; ELPA
+;;; package.el
 ;;; ----------------------------------------------------------------------
 (require 'package)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
@@ -19,11 +19,9 @@
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
 (package-initialize)
 
-;; Packages to install from MELPA
 (defvar installing-package-list
   '( anything
      auto-complete
-     auto-install
      bm
      coffee-mode
      color-moccur
@@ -66,16 +64,18 @@
     (dolist (pkg not-installed)
       (package-install pkg))))
 
-
 ;;; ----------------------------------------------------------------------
-;;; auto-install.el
+;;; el-get
 ;;; ----------------------------------------------------------------------
-(when (require 'auto-install nil t)
-  (setq auto-install-directory "~/.emacs.d/elisp/")
-  (auto-install-compatibility-setup) ; 互換性確保
-  (condition-case nil
-      (auto-install-update-emacswiki-package-name t)
-    (error (message "an error occurred, but going my way …"))))
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+    (let (el-get-master-branch)
+      (goto-char (point-max))
+      (eval-print-last-sexp))))
+(el-get 'sync)
 
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
