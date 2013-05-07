@@ -41,6 +41,7 @@
     less-css-mode
     lua-mode
     magit
+    migemo
     mmm-mode
     php-mode
     popwin
