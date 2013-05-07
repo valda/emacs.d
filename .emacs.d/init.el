@@ -20,40 +20,41 @@
 (package-initialize)
 
 (defvar installing-package-list
-  '( anything
-     auto-complete
-     bm
-     coffee-mode
-     color-moccur
-     color-theme
-     csharp-mode
-     cygwin-mount
-     diminish
-     dsvn
-     elscreen
-     gist
-     git-commit-mode
-     git-gutter
-     git-gutter-fringe
-     gtags
-     inf-ruby
-     js2-mode
-     less-css-mode
-     lua-mode
-     magit
-     mmm-mode
-     php-mode
-     popwin
-     recentf-ext
-     ruby-block
-     ruby-electric
-     scss-mode
-     session
-     shell-pop
-     snippet
-     undo-tree
-     yaml-mode )
-  "A list of packages to install from MELPA at launch.")
+  '(
+    auto-complete
+    bm
+    coffee-mode
+    color-moccur
+    color-theme
+    csharp-mode
+    cygwin-mount
+    diminish
+    dsvn
+    elscreen
+    gist
+    git-commit-mode
+    git-gutter
+    git-gutter-fringe
+    gtags
+    inf-ruby
+    js2-mode
+    less-css-mode
+    lua-mode
+    magit
+    mmm-mode
+    php-mode
+    popwin
+    recentf-ext
+    ruby-block
+    ruby-electric
+    scss-mode
+    session
+    shell-pop
+    snippet
+    undo-tree
+    yaml-mode
+    )
+  "A list of packages to install by package.el at launch.")
 
 (require 'cl)
 (let ((not-installed (loop for x in installing-package-list
@@ -76,6 +77,22 @@
       (goto-char (point-max))
       (eval-print-last-sexp))))
 (el-get 'sync)
+
+(defvar el-get-installing-package-list
+  '(
+    anything
+    anything-c-moccur
+    anything-howm
+    anything-project
+    howm
+    jaspace
+    moccur-edit
+    po-mode+
+    visual-basic-mode
+    )
+  "A list of packages to install by el-get at launch.")
+
+(el-get 'sync el-get-installing-package-list)
 
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
@@ -981,9 +998,9 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; po-mode
+;;; po-mode+
 ;;; ----------------------------------------------------------------------
-(autoload 'po-mode "po-mode"
+(autoload 'po-mode "po-mode+"
   "Major mode for translators to edit PO files" t)
 (add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
 (autoload 'po-find-file-coding-system "po-compat")
