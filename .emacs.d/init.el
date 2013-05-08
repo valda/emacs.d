@@ -91,6 +91,7 @@
     moccur-edit
     po-mode+
     visual-basic-mode
+    emacs-rails
     )
   "A list of packages to install by el-get at launch.")
 
@@ -818,9 +819,6 @@ Highlight last expanded string."
 (when (locate-library "dsvn")
   (autoload 'svn-status "dsvn" "Run `svn status'." t)
   (autoload 'svn-update "dsvn" "Run `svn update'." t)
-  (add-hook 'dired-mode-hook
-            '(lambda ()
-               (define-key dired-mode-map "V" 'svn-status)))
   (setq svn-status-hide-unmodified t)
   (setq process-coding-system-alist
         (cons '("svn" . utf-8) process-coding-system-alist)))
