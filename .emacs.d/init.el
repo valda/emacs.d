@@ -36,7 +36,6 @@
     git-gutter
     git-gutter-fringe
     gtags
-    inf-ruby
     js2-mode
     less-css-mode
     lua-mode
@@ -888,10 +887,8 @@ Highlight last expanded string."
   (add-to-list 'auto-mode-alist '("\\.rd$" . rd-mode)))
 
 ;;; ----------------------------------------------------------------------
-;;; rails-mode
+;;; emacs-rails
 ;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/emacs-rails")
-(require 'rails-lib)
 (require 'rails)
 (setq rails-indent-and-complete nil)
 (define-keys rails-minor-mode-map
