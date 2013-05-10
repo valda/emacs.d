@@ -3,4 +3,5 @@
        :type github
        :pkgname "remvee/emacs-rails"
        :depends (inf-ruby)
-       :feature "emacs-rails")
+       :feature "emacs-rails"
+       :compile nil)
