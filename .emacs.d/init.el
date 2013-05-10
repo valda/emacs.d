@@ -244,6 +244,10 @@
           (lambda ()
             (setq abbrev-mode nil)))
 (setq dabbrev-abbrev-skip-leading-regexp "[:@$]")
+
+;;; ----------------------------------------------------------------------
+;;; dabbrev-highlight
+;;; ----------------------------------------------------------------------
 (require 'dabbrev-highlight)
 
 ;;; ----------------------------------------------------------------------
@@ -432,15 +436,6 @@ Highlight last expanded string."
 ;;              :foreground "light steel blue" :bold t)
 
 ;;; ----------------------------------------------------------------------
-;;; redo+.el
-;;; ----------------------------------------------------------------------
-;; (require 'redo+)
-;; (setq undo-no-redo t)
-;; (setq undo-limit 600000)
-;; (setq undo-strong-limit 900000)
-;; (define-key global-map [?\C-.] 'redo)
-
-;;; ----------------------------------------------------------------------
 ;;; undo-tree.el
 ;;; ----------------------------------------------------------------------
 (global-undo-tree-mode)
@@ -470,26 +465,6 @@ Highlight last expanded string."
 (require 'jka-compr)
 (when (require 'wdired nil t)
   (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode))
-
-;;; ----------------------------------------------------------------------
-;;; ange-ftp
-;;; ----------------------------------------------------------------------
-;; (setq ange-ftp-ftp-program-args '("-p" "-i" "-n" "-g" "-v" "-e"))
-
-;;; ----------------------------------------------------------------------
-;;; TRAMP
-;;; ----------------------------------------------------------------------
-;; (when (require 'tramp nil t)
-;;   (modify-coding-system-alist 'process "plink" 'euc-japan-unix)
-;;   (modify-coding-system-alist 'process "pscp" 'euc-jp-unix)
-;;   (setq tramp-shell-prompt-pattern "^[^#$%>\n]*[#$%>][^#$%>\n ]* \\([^#$%>\n]*\\[.*\\][^#$%>\n]*\\)?")
-;;   (setq tramp-debug-buffer t))
-
-;;; ----------------------------------------------------------------------
-;;; alpaca.el
-;;; ----------------------------------------------------------------------
-;;(autoload 'alpaca-after-find-file "alpaca" nil t)
-;;(add-hook 'find-file-hooks 'alpaca-after-find-file)
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -571,60 +546,6 @@ Highlight last expanded string."
                     (calendar-cursor-to-date t)))
          (exit-calendar)
          (insert day)))))
-
-
-;;; ----------------------------------------------------------------------
-;;; org-mode
-;;; ----------------------------------------------------------------------
-;; (when (require 'org-install nil t)
-;;   (setq org-startup-truncated nil)
-;;   (setq org-startup-indented t)
-;;   (setq org-return-follows-link t)
-;;   (setq org-replace-disputed-keys t)
-;;   ;; (setq org-disputed-keys
-;;   ;;       '(([(shift up)]            . [(meta \[)])
-;;   ;;         ([(shift down)]          . [(meta \])])
-;;   ;;         ([(shift left)]          . [(meta -)])
-;;   ;;         ([(shift right)]         . [(meta =)])
-;;   ;;         ([(control shift right)] . [(meta +)])
-;;   ;;         ([(control shift left)]  . [(meta _)])
-;;   ;;         ([(control shift left)]  . [(meta _)])
-;;   ;;         ([(meta left)]           . [(meta ,)])
-;;   ;;         ([(meta right)]          . [(meta .)])
-;;   ;;         ([(meta shift left)]     . [(meta <)])
-;;   ;;         ([(meta shift right)]    . [(meta >)])
-;;   ;;         ))
-;;   (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-;;   ;; (org-remember-insinuate)
-;;   (setq org-directory "~/Dropbox/Documents/org/")
-;;   (setq org-default-notes-file (concat org-directory "agenda.org"))
-;;   (setq org-remember-templates
-;;         '(("Todo" ?t "** TODO %?\n   %i\n   %a\n   %t" nil "Inbox")
-;;           ("Bug" ?b "** TODO %?   :bug:\n   %i\n   %a\n   %t" nil "Inbox")
-;;           ("Idea" ?i "** %?\n   %i\n   %a\n   %t" nil "New Ideas")
-;;           ))
-;;   (global-set-key "\C-cr" 'org-remember)
-;;   (add-hook 'org-mode-hook
-;;             '(lambda ()
-;;                (local-unset-key [home])
-;;                (local-unset-key [end])
-;;                )))
-
-;;; ----------------------------------------------------------------------
-;;; Visual Studio .NET 2003
-;;; ----------------------------------------------------------------------
-;; (when (and (eq window-system 'w32)
-;;     (require 'vsn nil t))
-;;   (global-set-key [C-return] 'vsn-line-open-buffer)
-;;   (setq vsn-open-exec "C:/Meadow/bin/vsn-open.vbs")
-;;   (setq vsn-open-wait "200")
-;;   (setq vsn-open-type "VSNET2003")
-;;   (setq vsn-open-key "^g"))
-
-;;; ----------------------------------------------------------------------
-;;; speedbar
-;;; ----------------------------------------------------------------------
-;; (require 'speedbar)
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -902,9 +823,6 @@ Highlight last expanded string."
 ;;; python-mode
 ;;; ----------------------------------------------------------------------
 (setq py-indent-offset 4)
-;;(add-hook 'python-mode-hook
-;;          '(lambda ()
-;;             (setq indent-tabs-mode nil)))
 (add-to-list 'auto-mode-alist '("\\.pyw$" . python-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -965,19 +883,6 @@ Highlight last expanded string."
           '(lambda ()
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
-
-;;; ----------------------------------------------------------------------
-;;; html-helper-mode
-;;; ----------------------------------------------------------------------
-;; (autoload 'html-helper-mode "html-helper-mode" "Yay HTML" t)
-;; (setq html-helper-basic-offset 4)
-;; (add-hook 'html-helper-mode-hook
-;;        '(lambda ()
-;;           (make-local-variable 'outline-minor-mode-prefix)
-;;           (setq outline-minor-mode-prefix "\C-o")
-;;           (make-local-variable 'outline-regexp)
-;;           (setq outline-regexp "")
-;;           (outline-minor-mode t)))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
@@ -1060,14 +965,6 @@ Highlight last expanded string."
           '(lambda ()
              (setq tex-verbatim-face nil)
              (defun tex-font-lock-suscript () nil)))
-
-;;; ----------------------------------------------------------------------
-;;; papyrus-mode
-;;; ----------------------------------------------------------------------
-(unless (fboundp 'prog-mode)
-  (defalias 'prog-mode 'fundamental-mode))
-(autoload 'papyrus-mode "papyrus-mode" "Papyrus mode" t)
-(add-to-list 'auto-mode-alist '("\\.psc\\'" . papyrus-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
@@ -1356,17 +1253,6 @@ Highlight last expanded string."
           '(lambda ()
              (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur)))
 
-;;; anything-c-adaptive-history の保存を無効化
-;; (remove-hook 'kill-emacs-hook
-;;              'anything-c-adaptive-save-history)
-;; (ad-disable-advice 'anything-exit-minibuffer
-;;                    'before
-;;                    'anything-c-adaptive-exit-minibuffer)
-;; (ad-disable-advice 'anything-select-action
-;;                    'before
-;;                    'anything-c-adaptive-select-action)
-;; (setq anything-c-adaptive-history-length 0)
-
 ;;; anything-project
 (require 'anything-project)
 (global-set-key (kbd "\C-xf") 'anything-project)
@@ -1375,11 +1261,6 @@ Highlight last expanded string."
 ;;; gist
 ;;; ----------------------------------------------------------------------
 (require 'gist)
-
-;;; ----------------------------------------------------------------------
-;;; anything-gist
-;;; ----------------------------------------------------------------------
-;; (require 'anything-gist)
 
 ;;; ----------------------------------------------------------------------
 ;;; popwin.el
