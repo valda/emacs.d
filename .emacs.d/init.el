@@ -85,6 +85,7 @@
     anything-c-moccur
     anything-howm
     anything-project
+    dabbrev-highlight
     howm
     jaspace
     moccur-edit
@@ -1305,6 +1306,16 @@ Highlight last expanded string."
   (shell-pop-set-internal-mode-shell "/bin/zsh"))
 
 ;;; ----------------------------------------------------------------------
+;;; jaspace.el
+;;; ----------------------------------------------------------------------
+(cond (window-system
+       (require 'jaspace)
+       (setq jaspace-alternate-eol-string "\xab\n")
+       (setq jaspace-highlight-tabs t)
+       (setq jaspace-modes
+             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
+
+;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
 (when (require 'diminish nil t)
@@ -1318,16 +1329,6 @@ Highlight last expanded string."
   (diminish 'undo-tree-mode)
   (if (fboundp 'ibus-mode) (diminish 'ibus-mode))
   )
-
-;;; ----------------------------------------------------------------------
-;;; jaspace.el
-;;; ----------------------------------------------------------------------
-(cond (window-system
-       (require 'jaspace)
-       (setq jaspace-alternate-eol-string "\xab\n")
-       (setq jaspace-highlight-tabs t)
-       (setq jaspace-modes
-             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
