@@ -2,6 +2,4 @@
        :description "Minor mode for editing RubyOnRails code in Emacs"
        :type github
        :pkgname "remvee/emacs-rails"
-       :depends (inf-ruby)
-       :feature "emacs-rails"
-       :compile nil)
+       :feature "emacs-rails")
