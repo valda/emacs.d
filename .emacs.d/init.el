@@ -134,7 +134,7 @@
 (setq column-number-mode t)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
-(global-auto-revert-mode t)
+(global-auto-revert-mode 1)
 
 ;; 日本語環境設定
 (set-language-environment "Japanese")
@@ -759,6 +759,7 @@ Highlight last expanded string."
           '(lambda ()
              (ruby-electric-mode t)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
+             (define-key ruby-mode-map (kbd "RET") nil) ; unset ruby-electric-return
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              ))
 
@@ -819,6 +820,11 @@ Highlight last expanded string."
   ([?\C-.]               'redo))
 (define-keys rails-view-minor-mode-map
   ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
+
+;;; ----------------------------------------------------------------------
+;;; snippet.el
+;;; ----------------------------------------------------------------------
+(require 'snippet)
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
