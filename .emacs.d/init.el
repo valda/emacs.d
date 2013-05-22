@@ -1077,8 +1077,8 @@ Highlight last expanded string."
                          temp-file
                          (file-name-directory buffer-file-name))))
       (list "ruby" (list "-c" local-file))))
-  (push '(".+\\.rb$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  (push '("\\(Rake\\|Cap\\|Guard\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
+  (push '(".+\\.r[bu]$" flymake-ruby-init) flymake-allowed-file-name-masks)
+  (push '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
   (push '("^\\(.*\\):\\([0-9]+\\): \\(.*\\)$" 1 2 nil 3) flymake-err-line-patterns)
   (add-hook 'ruby-mode-hook
             '(lambda ()
