@@ -92,6 +92,10 @@
     po-mode+
     visual-basic-mode
     emacs-rails
+    open-junk-file
+    lispxmp
+    paredit
+    auto-async-byte-compile
     )
   "A list of packages to install by el-get at launch.")
 
@@ -239,7 +243,7 @@
 ;;; abbrev/dabbrev
 ;;; ----------------------------------------------------------------------
 (setq save-abbrevs t)
-(setq abbrev-file-name (expand-file-name ".abbrev_defs" "~"))
+(setq abbrev-file-name (expand-file-name "~/.emacs.d/.abbrev_defs"))
 (quietly-read-abbrev-file)
 (add-hook 'pre-command-hook
           (lambda ()
@@ -351,26 +355,24 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; auto-complete
 ;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/auto-complete")
-(when (require 'auto-complete-config nil t)
-  (ac-config-default)
-  (when (boundp 'ac-modes)
-    (setq ac-modes
-          (append ac-modes
-                  (list 'html-mode))))
-  (add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp/auto-complete/ac-dict")
-  (setq ac-auto-start 1)
-  (setq ac-dwim nil)
-  (setq-default ac-sources '(ac-source-dictionary
-                             ac-source-words-in-same-mode-buffers
-                             ac-source-files-in-current-dir))
-  (set-face-attribute 'ac-completion-face nil
-              :foreground "yellow" :underline t)
-  (set-face-attribute 'ac-candidate-face nil
-              :background "darkgray" :underline nil)
-  (set-face-attribute 'ac-selection-face nil
-              :background "steelblue")
-  (define-key ac-mode-map (kbd "M-TAB") 'auto-complete))
+(require 'auto-complete)
+(require 'auto-complete-config)
+(ac-config-default)
+(global-auto-complete-mode t)
+(add-to-list 'ac-modes 'html-mode)
+;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(setq ac-auto-start 2)
+(setq ac-dwim t)
+(setq-default ac-sources '(ac-source-dictionary
+                           ac-source-words-in-same-mode-buffers
+                           ac-source-files-in-current-dir))
+(set-face-attribute 'ac-completion-face nil
+                    :foreground "yellow" :underline t)
+(set-face-attribute 'ac-candidate-face nil
+                    :background "darkgray" :underline nil)
+(set-face-attribute 'ac-selection-face nil
+                    :background "steelblue")
+(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -812,7 +814,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
 ;;; ----------------------------------------------------------------------
-(require 'rails)
+(require 'rails) 
 (setq rails-indent-and-complete nil)
 (define-keys rails-minor-mode-map
   ("\C-c\C-p"            'rails-lib:run-primary-switch)
@@ -1007,16 +1009,15 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; テンプレートの自動挿入
 ;;; ----------------------------------------------------------------------
-(add-hook 'find-file-hooks 'auto-insert)
-(setq auto-insert-directory (expand-file-name "insert" (expand-file-name ".emacs.d" "~")))
+(setq auto-insert-directory (expand-file-name "~/.emacs.d/insert"))
+;;(add-hook 'find-file-hooks 'auto-insert)
 
 ;;; ----------------------------------------------------------------------
 ;;; ~のつくバックアップファイルの保存場所の指定
 ;;; ----------------------------------------------------------------------
 (setq make-backup-files t)
-(setq backup-directory-alist
-      (cons (cons "\\.*$" (expand-file-name "bak" "~"))
-            backup-directory-alist))
+(add-to-list 'backup-directory-alist
+             (cons "\\.*$" (expand-file-name "~/bak")))
 
 ;;; ----------------------------------------------------------------------
 ;;; filecache
@@ -1392,8 +1393,46 @@ Highlight last expanded string."
   (message "Opening %s...done" file))
 
 ;;; ----------------------------------------------------------------------
+;;; open-junk-file
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-x\C-z" 'open-junk-file)
+
+;;; ----------------------------------------------------------------------
+;;; lispxmp
+;;; ----------------------------------------------------------------------
+(define-key emacs-lisp-mode-map "\C-c\C-d" 'lispxmp)
+
+;;; ----------------------------------------------------------------------
+;;; paredit
+;;; ----------------------------------------------------------------------
+(define-key paredit-mode-map [C-right] nil)
+(define-key paredit-mode-map [C-left] nil)
+(define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
+(define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)
+(add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
+(add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
+(add-hook 'lisp-mode-hook 'enable-paredit-mode)
+(add-hook 'ielm-mode-hook 'enable-paredit-mode)
+
+;;; ----------------------------------------------------------------------
+;;; auto-async-byte-compile
+;;; ----------------------------------------------------------------------
+(setq auto-async-byte-compile-exclude-files-regexp "/junk/")
+(add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
+
+;;; ----------------------------------------------------------------------
+;;; eldoc-mode
+;;; ----------------------------------------------------------------------
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+(setq eldoc-idle-delay 0.2)
+(setq eldoc-minor-mode-string "")
+
+;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
 ;;; ----------------------------------------------------------------------
+(find-function-setup-keys)
 (global-set-key [home] 'beginning-of-buffer )
 (global-set-key [end] 'end-of-buffer )
 (global-set-key [C-next] 'scroll-other-window)
