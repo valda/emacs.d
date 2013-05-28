@@ -1305,9 +1305,10 @@ Highlight last expanded string."
 ;;; shell-pop.el
 ;;; ----------------------------------------------------------------------
 (when (require 'shell-pop nil t)
-  (shell-pop-set-universal-key (kbd "\C-t"))
   (shell-pop-set-internal-mode "ansi-term")
-  (shell-pop-set-internal-mode-shell "/bin/zsh"))
+  (shell-pop-set-internal-mode-shell "/bin/zsh")
+  (shell-pop-set-window-height 40)
+  (shell-pop-set-universal-key [f8]))
 
 ;;; ----------------------------------------------------------------------
 ;;; jaspace.el
