@@ -1304,7 +1304,8 @@ Highlight last expanded string."
 ;;; ---------------------------------------------------------------------
 ;;; shell-pop.el
 ;;; ----------------------------------------------------------------------
-(when (require 'shell-pop nil t)
+(when (and (not (eq system-type 'windows-nt))
+           (require 'shell-pop nil t))
   (shell-pop-set-internal-mode "ansi-term")
   (shell-pop-set-internal-mode-shell "/bin/zsh")
   (shell-pop-set-window-height 40)
