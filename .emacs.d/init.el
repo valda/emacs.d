@@ -521,18 +521,18 @@ Highlight last expanded string."
 
 ;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
 ;; C-cC-c で保存してバッファをキルする
-(defun my-save-and-kill-buffer ()
+(defun my-save-and-kill-buffer-howm ()
   (interactive)
   (when (and
          (buffer-file-name)
-         (string-match "\\.howm"
-                       (buffer-file-name)))
+         (string-match (expand-file-name howm-directory)
+                       (expand-file-name buffer-file-name)))
     (save-buffer)
     (kill-buffer nil)))
 (eval-after-load "howm"
   '(progn
      (define-key howm-mode-map
-       "\C-c\C-c" 'my-save-and-kill-buffer)))
+       "\C-c\C-c" 'my-save-and-kill-buffer-howm)))
 
 ;; 日付けの入力が面倒
 (eval-after-load "calendar"
@@ -1292,24 +1292,22 @@ Highlight last expanded string."
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
 
-;;; ----------------------------------------------------------------------
-;;; ansi-term
-;;; ----------------------------------------------------------------------
-(defvar ansi-term-after-hook nil)
-(defadvice ansi-term (after ansi-term-after-advice (arg))
-  "run hook as after advice"
-  (run-hooks 'ansi-term-after-hook))
-(ad-activate 'ansi-term)
 
-;;; ---------------------------------------------------------------------
-;;; shell-pop.el
 ;;; ----------------------------------------------------------------------
-(when (and (not (eq system-type 'windows-nt))
-           (require 'shell-pop nil t))
+;;; ansi-term / shell-pop
+;;; ----------------------------------------------------------------------
+(when (not (eq system-type 'windows-nt))
+  (defvar ansi-term-after-hook nil)
+  (defadvice ansi-term (after ansi-term-after-advice (arg))
+    "run hook as after advice"
+    (run-hooks 'ansi-term-after-hook))
+  (ad-activate 'ansi-term)
+
+  (require 'shell-pop)
+  (shell-pop-set-universal-key (kbd "\C-t"))
   (shell-pop-set-internal-mode "ansi-term")
   (shell-pop-set-internal-mode-shell "/bin/zsh")
-  (shell-pop-set-window-height 40)
-  (shell-pop-set-universal-key [f8]))
+  (shell-pop-set-window-height 40))
 
 ;;; ----------------------------------------------------------------------
 ;;; jaspace.el
