@@ -187,6 +187,7 @@
 ;;        (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
 ;;        ))
 (add-to-list 'initial-frame-alist '(font . "Ricty-13"))
+;(add-to-list 'initial-frame-alist '(alpha 100 90))
 (setq default-frame-alist initial-frame-alist)
 
 ;; Cygwin, IME など環境固有の設定
@@ -1297,17 +1298,43 @@ Highlight last expanded string."
 ;;; ansi-term / shell-pop
 ;;; ----------------------------------------------------------------------
 (when (not (eq system-type 'windows-nt))
-  (defvar ansi-term-after-hook nil)
   (defadvice ansi-term (after ansi-term-after-advice (arg))
     "run hook as after advice"
     (run-hooks 'ansi-term-after-hook))
   (ad-activate 'ansi-term)
 
+  (defvar ansi-term-after-hook nil)
+  (add-hook 'term-mode-hook
+            (lambda()
+              (define-key term-raw-map (kbd "M-x") nil)
+              (define-key term-raw-map (kbd "C-k")
+                (lambda (&optional arg) (interactive "P") (funcall 'kill-line arg) (term-send-raw)))
+              (define-key term-raw-map (kbd "C-y") 'term-paste)
+              (define-key term-raw-map (kbd "M-y") 'anything-show-kill-ring)
+              (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
+              (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
+
   (require 'shell-pop)
-  (shell-pop-set-universal-key (kbd "\C-t"))
+  (shell-pop-set-universal-key (kbd "C-t"))
   (shell-pop-set-internal-mode "ansi-term")
   (shell-pop-set-internal-mode-shell "/bin/zsh")
-  (shell-pop-set-window-height 40))
+  (shell-pop-set-window-height 40)
+
+  (defun my-term-switch-line-char ()
+    "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
+    (interactive)
+    (cond
+     ((term-in-line-mode)
+      (term-char-mode))
+     ((term-in-char-mode)
+      (term-line-mode))))
+
+  (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
+    "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
+    (if (eq major-mode 'term-mode)
+        (letf (((symbol-function 'insert-for-yank) (symbol-function 'term-send-raw-string)))
+          ad-do-it)
+      ad-do-it)))
 
 ;;; ----------------------------------------------------------------------
 ;;; jaspace.el
@@ -1331,8 +1358,7 @@ Highlight last expanded string."
   (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
   (diminish 'git-gutter-mode)
   (diminish 'undo-tree-mode)
-  (if (fboundp 'ibus-mode) (diminish 'ibus-mode))
-  )
+  (if (fboundp 'ibus-mode) (diminish 'ibus-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
