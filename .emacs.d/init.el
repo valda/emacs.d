@@ -815,7 +815,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
 ;;; ----------------------------------------------------------------------
-(require 'rails) 
+(custom-set-variables '(rails-minor-mode-local-prefix-key "C-c"))
+(custom-set-variables '(rails-minor-mode-global-prefix-key "C-c C-c"))
+(require 'rails)
 (setq rails-indent-and-complete nil)
 (define-keys rails-minor-mode-map
   ("\C-c\C-p"            'rails-lib:run-primary-switch)
