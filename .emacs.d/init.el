@@ -485,7 +485,7 @@ Highlight last expanded string."
              howm-list-grep howm-create
              howm-keyword-to-kill-ring))
 ;; メモは UTF-8
-(setq auto-coding-alist (cons '("\\.howm\\'" . utf-8-unix) auto-coding-alist))
+(add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
 (setq howm-process-coding-system 'utf-8)
 (add-hook 'howm-create-file-hook
           (lambda ()
@@ -677,8 +677,8 @@ Highlight last expanded string."
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
       (append '(("\\.C$" . c-mode)
-        ("\\.[Hh]$" . c++-mode)
-        ("\\.[Hh][Pp][Pp]$" . c++-mode))
+                ("\\.[Hh]$" . c++-mode)
+                ("\\.[Hh][Pp][Pp]$" . c++-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -746,6 +746,12 @@ Highlight last expanded string."
   (setq svn-status-hide-unmodified t)
   (setq process-coding-system-alist
         (cons '("svn" . utf-8) process-coding-system-alist)))
+
+
+;;; ----------------------------------------------------------------------
+;;; magit
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-xg" 'magit-status)
 
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
@@ -997,11 +1003,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; #!shebang に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
-(setq interpreter-mode-alist
-      (append '(
-                ("ruby" . ruby-mode)
-                )
-              interpreter-mode-alist))
+(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ChangeLog 用の設定
@@ -1285,10 +1287,11 @@ Highlight last expanded string."
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
+                  ("*magit-edit-log*" :height 0.5)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
-
+(length popwin:special-display-config)
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
