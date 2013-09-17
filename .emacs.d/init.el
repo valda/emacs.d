@@ -197,23 +197,38 @@
   (w32-ime-initialize)
   ;; (setq-default w32-ime-mode-line-state-indicator "[--]")
   ;; (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-  ;; IM ON/OFF時のカーソルカラー
-  (add-hook 'input-method-activate-hook
-            (lambda() (set-cursor-color "red")))
-  (add-hook 'input-method-inactivate-hook
-            (lambda() (set-cursor-color "green")))
   )
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus.el
 ;;; ----------------------------------------------------------------------
-(when (require 'ibus nil t)
-  (add-hook 'after-init-hook 'ibus-mode-on)
-  (global-set-key "\C-\\" 'ibus-toggle)
-  (setq ibus-cursor-color '("red" "green" "cyan"))
-  (ibus-define-common-key [?\C-\  ?\C-/]  nil)
-  (add-hook 'minibuffer-setup-hook 'ibus-disable)
-  (ibus-disable-isearch))
+;; (when (require 'ibus nil t)
+;;   (add-hook 'after-init-hook 'ibus-mode-on)
+;;   (global-set-key "\C-\\" 'ibus-toggle)
+;;   (setq ibus-cursor-color '("red" "green" "cyan"))
+;;   (ibus-define-common-key [?\C-\  ?\C-/]  nil)
+;;   (add-hook 'minibuffer-setup-hook 'ibus-disable)
+;;   (ibus-disable-isearch))
+
+;;; ----------------------------------------------------------------------
+;;; uim.el
+;;; ----------------------------------------------------------------------
+;; (when (not (fboundp 'ibus-mode-on))
+;;   (when (require 'uim nil t)
+;;     (setq uim-candidate-display-inline t)
+;;     (global-set-key "\C-\\" 'uim-mode)))
+
+;;; ----------------------------------------------------------------------
+;;; mozc.el
+;;; ----------------------------------------------------------------------
+(when (require 'mozc nil t)
+  (setq default-input-method "japanese-mozc")
+  (setq mozc-candidate-style 'overlay))
+
+(add-hook 'input-method-activate-hook
+          (lambda() (set-cursor-color "red")))
+(add-hook 'input-method-inactivate-hook
+          (lambda() (set-cursor-color "green")))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -705,20 +720,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; gtags
 ;;; ----------------------------------------------------------------------
-(add-hook 'gtags-mode-hook
-          '(lambda ()
-             (local-set-key "\M-t" 'gtags-find-tag)
-             (local-set-key "\M-r" 'gtags-find-rtag)
-             (local-set-key "\M-s" 'gtags-find-symbol)
-             (local-set-key "\C-t" 'gtags-pop-stack)
-             (define-key gtags-mode-map [mouse-3] nil)
-             (define-key gtags-select-mode-map [mouse-3] nil)))
-(add-hook 'c-mode-common-hook
-          '(lambda()
-             (gtags-mode 1)
-             ;;(gtags-make-complete-list)
-             ))
-
+;; (add-hook 'gtags-mode-hook
+;;           '(lambda ()
+;;              (local-set-key "\M-t" 'gtags-find-tag)
+;;              (local-set-key "\M-r" 'gtags-find-rtag)
+;;              (local-set-key "\M-s" 'gtags-find-symbol)
+;;              (local-set-key "\C-t" 'gtags-pop-stack)
+;;              (define-key gtags-mode-map [mouse-3] nil)
+;;              (define-key gtags-select-mode-map [mouse-3] nil)))
+;; (add-hook 'c-mode-common-hook
+;;           '(lambda()
+;;              (gtags-mode 1)
+;;              ;;(gtags-make-complete-list)
+;;              ))
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -955,25 +969,21 @@ Highlight last expanded string."
       :submode js2-mode
       :front "<script[^>]*>"
       :back "</script>")
-     (mmm-asp-mode
-      :submode visual-basic-mode
-      :front "<%"
-      :back "%>"
-      :insert ((?c mmm-asp-mode nil @ "<%" @ " " _ " " @ "%>" @)
-               (?e mmm-asp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
      (mmm-jsp-mode
       :submode java-mode
       :front "<%"
       :back "%>"
       :insert ((?c mmm-jsp-mode nil @ "<%" @ " " _ " " @ "%>" @)
-           (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
+               (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
      (mmm-eruby-mode
       :submode ruby-mode
       :front "<%"
-      :back "%>")))
+      :back "%>"
+      :insert ((?c mmm-eruby-mode nil @ "<%" @ " " _ " " @ "%>" @)
+               (?e mmm-eruby-mode nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  (mmm-add-mode-ext-class nil "\\.erb?\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class nil "\\.html\\.erb?\\'" 'mmm-eruby-mode)
   (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -997,6 +1007,8 @@ Highlight last expanded string."
                 ("\\.[ch]java$"          . java-mode)     ;; i-appli
                 ("\\.html\\.erb$"        . html-mode)     ;; HTML(erb)
                 ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
+                ("\\.text\\.erb$"        . text-mode)     ;; Text(erb)
+                ("\\.rtext$"             . text-mode)     ;; Text(erb)
                 )
               auto-mode-alist))
 
@@ -1311,7 +1323,10 @@ Highlight last expanded string."
   (defvar ansi-term-after-hook nil)
   (add-hook 'term-mode-hook
             (lambda()
+              (define-key term-raw-map (kbd "C-\\") nil)
               (define-key term-raw-map (kbd "M-x") nil)
+              (define-key term-raw-map (kbd "C-z") nil)
+              (define-key term-raw-map (kbd "C-z z") 'term-stop-subjob)
               (define-key term-raw-map (kbd "C-k")
                 (lambda (&optional arg) (interactive "P") (funcall 'kill-line arg) (term-send-raw)))
               (define-key term-raw-map (kbd "C-y") 'term-paste)
@@ -1320,7 +1335,7 @@ Highlight last expanded string."
               (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
 
   (require 'shell-pop)
-  (shell-pop-set-universal-key (kbd "C-t"))
+  (shell-pop-set-universal-key (kbd "<f12>"))
   (shell-pop-set-internal-mode "ansi-term")
   (shell-pop-set-internal-mode-shell "/bin/zsh")
   (shell-pop-set-window-height 40)
