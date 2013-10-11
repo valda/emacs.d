@@ -92,6 +92,10 @@
     po-mode+
     visual-basic-mode
     emacs-rails
+    open-junk-file
+    lispxmp
+    paredit
+    auto-async-byte-compile
     )
   "A list of packages to install by el-get at launch.")
 
@@ -134,7 +138,7 @@
 (setq column-number-mode t)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
-(global-auto-revert-mode t)
+(global-auto-revert-mode 1)
 
 ;; 日本語環境設定
 (set-language-environment "Japanese")
@@ -183,6 +187,7 @@
 ;;        (add-to-list 'initial-frame-alist '(font . "fontset-consolasmeiryo"))
 ;;        ))
 (add-to-list 'initial-frame-alist '(font . "Ricty-13"))
+;(add-to-list 'initial-frame-alist '(alpha 100 90))
 (setq default-frame-alist initial-frame-alist)
 
 ;; Cygwin, IME など環境固有の設定
@@ -192,23 +197,38 @@
   (w32-ime-initialize)
   ;; (setq-default w32-ime-mode-line-state-indicator "[--]")
   ;; (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-  ;; IM ON/OFF時のカーソルカラー
-  (add-hook 'input-method-activate-hook
-            (lambda() (set-cursor-color "red")))
-  (add-hook 'input-method-inactivate-hook
-            (lambda() (set-cursor-color "green")))
   )
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus.el
 ;;; ----------------------------------------------------------------------
-(when (require 'ibus nil t)
-  (add-hook 'after-init-hook 'ibus-mode-on)
-  (global-set-key "\C-\\" 'ibus-toggle)
-  (setq ibus-cursor-color '("red" "green" "cyan"))
-  (ibus-define-common-key [?\C-\  ?\C-/]  nil)
-  (add-hook 'minibuffer-setup-hook 'ibus-disable)
-  (ibus-disable-isearch))
+;; (when (require 'ibus nil t)
+;;   (add-hook 'after-init-hook 'ibus-mode-on)
+;;   (global-set-key "\C-\\" 'ibus-toggle)
+;;   (setq ibus-cursor-color '("red" "green" "cyan"))
+;;   (ibus-define-common-key [?\C-\  ?\C-/]  nil)
+;;   (add-hook 'minibuffer-setup-hook 'ibus-disable)
+;;   (ibus-disable-isearch))
+
+;;; ----------------------------------------------------------------------
+;;; uim.el
+;;; ----------------------------------------------------------------------
+;; (when (not (fboundp 'ibus-mode-on))
+;;   (when (require 'uim nil t)
+;;     (setq uim-candidate-display-inline t)
+;;     (global-set-key "\C-\\" 'uim-mode)))
+
+;;; ----------------------------------------------------------------------
+;;; mozc.el
+;;; ----------------------------------------------------------------------
+(when (require 'mozc nil t)
+  (setq default-input-method "japanese-mozc")
+  (setq mozc-candidate-style 'overlay))
+
+(add-hook 'input-method-activate-hook
+          (lambda() (set-cursor-color "red")))
+(add-hook 'input-method-inactivate-hook
+          (lambda() (set-cursor-color "green")))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -239,7 +259,7 @@
 ;;; abbrev/dabbrev
 ;;; ----------------------------------------------------------------------
 (setq save-abbrevs t)
-(setq abbrev-file-name (expand-file-name ".abbrev_defs" "~"))
+(setq abbrev-file-name (expand-file-name "~/.emacs.d/.abbrev_defs"))
 (quietly-read-abbrev-file)
 (add-hook 'pre-command-hook
           (lambda ()
@@ -351,26 +371,24 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; auto-complete
 ;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/elisp/auto-complete")
-(when (require 'auto-complete-config nil t)
-  (ac-config-default)
-  (when (boundp 'ac-modes)
-    (setq ac-modes
-          (append ac-modes
-                  (list 'html-mode))))
-  (add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp/auto-complete/ac-dict")
-  (setq ac-auto-start 1)
-  (setq ac-dwim nil)
-  (setq-default ac-sources '(ac-source-dictionary
-                             ac-source-words-in-same-mode-buffers
-                             ac-source-files-in-current-dir))
-  (set-face-attribute 'ac-completion-face nil
-              :foreground "yellow" :underline t)
-  (set-face-attribute 'ac-candidate-face nil
-              :background "darkgray" :underline nil)
-  (set-face-attribute 'ac-selection-face nil
-              :background "steelblue")
-  (define-key ac-mode-map (kbd "M-TAB") 'auto-complete))
+(require 'auto-complete)
+(require 'auto-complete-config)
+(ac-config-default)
+(global-auto-complete-mode t)
+(add-to-list 'ac-modes 'html-mode)
+;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(setq ac-auto-start 2)
+(setq ac-dwim t)
+(setq-default ac-sources '(ac-source-dictionary
+                           ac-source-words-in-same-mode-buffers
+                           ac-source-files-in-current-dir))
+(set-face-attribute 'ac-completion-face nil
+                    :foreground "yellow" :underline t)
+(set-face-attribute 'ac-candidate-face nil
+                    :background "darkgray" :underline nil)
+(set-face-attribute 'ac-selection-face nil
+                    :background "steelblue")
+(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -482,7 +500,7 @@ Highlight last expanded string."
              howm-list-grep howm-create
              howm-keyword-to-kill-ring))
 ;; メモは UTF-8
-(setq auto-coding-alist (cons '("\\.howm\\'" . utf-8-unix) auto-coding-alist))
+(add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
 (setq howm-process-coding-system 'utf-8)
 (add-hook 'howm-create-file-hook
           (lambda ()
@@ -519,18 +537,18 @@ Highlight last expanded string."
 
 ;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
 ;; C-cC-c で保存してバッファをキルする
-(defun my-save-and-kill-buffer ()
+(defun my-save-and-kill-buffer-howm ()
   (interactive)
   (when (and
          (buffer-file-name)
-         (string-match "\\.howm"
-                       (buffer-file-name)))
+         (string-match (expand-file-name howm-directory)
+                       (expand-file-name buffer-file-name)))
     (save-buffer)
     (kill-buffer nil)))
 (eval-after-load "howm"
   '(progn
      (define-key howm-mode-map
-       "\C-c\C-c" 'my-save-and-kill-buffer)))
+       "\C-c\C-c" 'my-save-and-kill-buffer-howm)))
 
 ;; 日付けの入力が面倒
 (eval-after-load "calendar"
@@ -674,8 +692,8 @@ Highlight last expanded string."
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
       (append '(("\\.C$" . c-mode)
-        ("\\.[Hh]$" . c++-mode)
-        ("\\.[Hh][Pp][Pp]$" . c++-mode))
+                ("\\.[Hh]$" . c++-mode)
+                ("\\.[Hh][Pp][Pp]$" . c++-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -702,20 +720,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; gtags
 ;;; ----------------------------------------------------------------------
-(add-hook 'gtags-mode-hook
-          '(lambda ()
-             (local-set-key "\M-t" 'gtags-find-tag)
-             (local-set-key "\M-r" 'gtags-find-rtag)
-             (local-set-key "\M-s" 'gtags-find-symbol)
-             (local-set-key "\C-t" 'gtags-pop-stack)
-             (define-key gtags-mode-map [mouse-3] nil)
-             (define-key gtags-select-mode-map [mouse-3] nil)))
-(add-hook 'c-mode-common-hook
-          '(lambda()
-             (gtags-mode 1)
-             ;;(gtags-make-complete-list)
-             ))
-
+;; (add-hook 'gtags-mode-hook
+;;           '(lambda ()
+;;              (local-set-key "\M-t" 'gtags-find-tag)
+;;              (local-set-key "\M-r" 'gtags-find-rtag)
+;;              (local-set-key "\M-s" 'gtags-find-symbol)
+;;              (local-set-key "\C-t" 'gtags-pop-stack)
+;;              (define-key gtags-mode-map [mouse-3] nil)
+;;              (define-key gtags-select-mode-map [mouse-3] nil)))
+;; (add-hook 'c-mode-common-hook
+;;           '(lambda()
+;;              (gtags-mode 1)
+;;              ;;(gtags-make-complete-list)
+;;              ))
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -744,6 +761,12 @@ Highlight last expanded string."
   (setq process-coding-system-alist
         (cons '("svn" . utf-8) process-coding-system-alist)))
 
+
+;;; ----------------------------------------------------------------------
+;;; magit
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-xg" 'magit-status)
+
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
 ;;; ----------------------------------------------------------------------
@@ -759,6 +782,7 @@ Highlight last expanded string."
           '(lambda ()
              (ruby-electric-mode t)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
+             (define-key ruby-mode-map (kbd "RET") nil) ; unset ruby-electric-return
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              ))
 
@@ -811,6 +835,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
 ;;; ----------------------------------------------------------------------
+(custom-set-variables '(rails-minor-mode-local-prefix-key "C-c"))
+(custom-set-variables '(rails-minor-mode-global-prefix-key "C-c C-c"))
 (require 'rails)
 (setq rails-indent-and-complete nil)
 (define-keys rails-minor-mode-map
@@ -819,6 +845,11 @@ Highlight last expanded string."
   ([?\C-.]               'redo))
 (define-keys rails-view-minor-mode-map
   ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
+
+;;; ----------------------------------------------------------------------
+;;; snippet.el
+;;; ----------------------------------------------------------------------
+(require 'snippet)
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
@@ -938,25 +969,21 @@ Highlight last expanded string."
       :submode js2-mode
       :front "<script[^>]*>"
       :back "</script>")
-     (mmm-asp-mode
-      :submode visual-basic-mode
-      :front "<%"
-      :back "%>"
-      :insert ((?c mmm-asp-mode nil @ "<%" @ " " _ " " @ "%>" @)
-               (?e mmm-asp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
      (mmm-jsp-mode
       :submode java-mode
       :front "<%"
       :back "%>"
       :insert ((?c mmm-jsp-mode nil @ "<%" @ " " _ " " @ "%>" @)
-           (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
+               (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
      (mmm-eruby-mode
       :submode ruby-mode
       :front "<%"
-      :back "%>")))
+      :back "%>"
+      :insert ((?c mmm-eruby-mode nil @ "<%" @ " " _ " " @ "%>" @)
+               (?e mmm-eruby-mode nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  (mmm-add-mode-ext-class nil "\\.erb?\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class nil "\\.html\\.erb?\\'" 'mmm-eruby-mode)
   (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -980,17 +1007,15 @@ Highlight last expanded string."
                 ("\\.[ch]java$"          . java-mode)     ;; i-appli
                 ("\\.html\\.erb$"        . html-mode)     ;; HTML(erb)
                 ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
+                ("\\.text\\.erb$"        . text-mode)     ;; Text(erb)
+                ("\\.rtext$"             . text-mode)     ;; Text(erb)
                 )
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
 ;;; #!shebang に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
-(setq interpreter-mode-alist
-      (append '(
-                ("ruby" . ruby-mode)
-                )
-              interpreter-mode-alist))
+(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ChangeLog 用の設定
@@ -1001,16 +1026,15 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; テンプレートの自動挿入
 ;;; ----------------------------------------------------------------------
-(add-hook 'find-file-hooks 'auto-insert)
-(setq auto-insert-directory (expand-file-name "insert" (expand-file-name ".emacs.d" "~")))
+(setq auto-insert-directory (expand-file-name "~/.emacs.d/insert"))
+;;(add-hook 'find-file-hooks 'auto-insert)
 
 ;;; ----------------------------------------------------------------------
 ;;; ~のつくバックアップファイルの保存場所の指定
 ;;; ----------------------------------------------------------------------
 (setq make-backup-files t)
-(setq backup-directory-alist
-      (cons (cons "\\.*$" (expand-file-name "bak" "~"))
-            backup-directory-alist))
+(add-to-list 'backup-directory-alist
+             (cons "\\.*$" (expand-file-name "~/bak")))
 
 ;;; ----------------------------------------------------------------------
 ;;; filecache
@@ -1063,24 +1087,21 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flymake
 ;;; ----------------------------------------------------------------------
-;;(set-face-background 'flymake-errline "red4")
-;;(set-face-background 'flymake-warnline "dark slate blue")
 (when (require 'flymake nil t)
-  ;; rails-mode で require されるのでコメントアウト
-  ;; (defun flymake-ruby-init ()
-  ;;   (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-  ;;                        'flymake-create-temp-inplace))
-  ;;          (local-file  (file-relative-name
-  ;;                        temp-file
-  ;;                        (file-name-directory buffer-file-name))))
-  ;;     (list "ruby" (list "-c" local-file))))
-  ;; (push '(".+\\.rb$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  ;; (push '("\\(Rake\\|Cap\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  ;; (push '("^\\(.*\\):\\([0-9]+\\): \\(.*\\)$" 1 2 nil 3) flymake-err-line-patterns)
-  ;; (add-hook 'ruby-mode-hook
-  ;;           '(lambda ()
-  ;;              ;; Don't want flymake mode for ruby regions in rhtml files
-  ;;              (if (not (null buffer-file-name)) (flymake-mode))))
+  (defun flymake-ruby-init ()
+    (let* ((temp-file   (flymake-init-create-temp-buffer-copy
+                         'flymake-create-temp-inplace))
+           (local-file  (file-relative-name
+                         temp-file
+                         (file-name-directory buffer-file-name))))
+      (list "ruby" (list "-c" local-file))))
+  (push '(".+\\.r[bu]$" flymake-ruby-init) flymake-allowed-file-name-masks)
+  (push '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
+  (push '("^\\(.*\\):\\([0-9]+\\): \\(.*\\)$" 1 2 nil 3) flymake-err-line-patterns)
+  (add-hook 'ruby-mode-hook
+            '(lambda ()
+               ;; Don't want flymake mode for ruby regions in rhtml files
+               (if (not (null buffer-file-name)) (flymake-mode))))
   (defun flymake-perl-init ()
     (let* ((temp-file (flymake-init-create-temp-buffer-copy
                        'flymake-create-temp-inplace))
@@ -1278,32 +1299,62 @@ Highlight last expanded string."
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
+                  ("*magit-edit-log*" :height 0.5)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
-
+(length popwin:special-display-config)
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
 
-;;; ----------------------------------------------------------------------
-;;; ansi-term
-;;; ----------------------------------------------------------------------
-(defvar ansi-term-after-hook nil)
-(defadvice ansi-term (after ansi-term-after-advice (arg))
-  "run hook as after advice"
-  (run-hooks 'ansi-term-after-hook))
-(ad-activate 'ansi-term)
 
-;;; ---------------------------------------------------------------------
-;;; shell-pop.el
 ;;; ----------------------------------------------------------------------
-(when (require 'shell-pop nil t)
-  (shell-pop-set-universal-key (kbd "\C-t"))
+;;; ansi-term / shell-pop
+;;; ----------------------------------------------------------------------
+(when (not (eq system-type 'windows-nt))
+  (defadvice ansi-term (after ansi-term-after-advice (arg))
+    "run hook as after advice"
+    (run-hooks 'ansi-term-after-hook))
+  (ad-activate 'ansi-term)
+
+  (defvar ansi-term-after-hook nil)
+  (add-hook 'term-mode-hook
+            (lambda()
+              (define-key term-raw-map (kbd "C-\\") nil)
+              (define-key term-raw-map (kbd "M-x") nil)
+              (define-key term-raw-map (kbd "C-z") nil)
+              (define-key term-raw-map (kbd "C-z z") 'term-stop-subjob)
+              (define-key term-raw-map (kbd "C-k")
+                (lambda (&optional arg) (interactive "P") (funcall 'kill-line arg) (term-send-raw)))
+              (define-key term-raw-map (kbd "C-y") 'term-paste)
+              (define-key term-raw-map (kbd "M-y") 'anything-show-kill-ring)
+              (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
+              (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
+
+  (require 'shell-pop)
+  (shell-pop-set-universal-key (kbd "<f12>"))
   (shell-pop-set-internal-mode "ansi-term")
-  (shell-pop-set-internal-mode-shell "/bin/zsh"))
+  (shell-pop-set-internal-mode-shell "/bin/zsh")
+  (shell-pop-set-window-height 40)
+
+  (defun my-term-switch-line-char ()
+    "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
+    (interactive)
+    (cond
+     ((term-in-line-mode)
+      (term-char-mode))
+     ((term-in-char-mode)
+      (term-line-mode))))
+
+  (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
+    "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
+    (if (eq major-mode 'term-mode)
+        (letf (((symbol-function 'insert-for-yank) (symbol-function 'term-send-raw-string)))
+          ad-do-it)
+      ad-do-it)))
 
 ;;; ----------------------------------------------------------------------
 ;;; jaspace.el
@@ -1327,8 +1378,7 @@ Highlight last expanded string."
   (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
   (diminish 'git-gutter-mode)
   (diminish 'undo-tree-mode)
-  (if (fboundp 'ibus-mode) (diminish 'ibus-mode))
-  )
+  (if (fboundp 'ibus-mode) (diminish 'ibus-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
@@ -1389,8 +1439,46 @@ Highlight last expanded string."
   (message "Opening %s...done" file))
 
 ;;; ----------------------------------------------------------------------
+;;; open-junk-file
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-x\C-z" 'open-junk-file)
+
+;;; ----------------------------------------------------------------------
+;;; lispxmp
+;;; ----------------------------------------------------------------------
+(define-key emacs-lisp-mode-map "\C-c\C-d" 'lispxmp)
+
+;;; ----------------------------------------------------------------------
+;;; paredit
+;;; ----------------------------------------------------------------------
+(define-key paredit-mode-map [C-right] nil)
+(define-key paredit-mode-map [C-left] nil)
+(define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
+(define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)
+(add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
+(add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
+(add-hook 'lisp-mode-hook 'enable-paredit-mode)
+(add-hook 'ielm-mode-hook 'enable-paredit-mode)
+
+;;; ----------------------------------------------------------------------
+;;; auto-async-byte-compile
+;;; ----------------------------------------------------------------------
+(setq auto-async-byte-compile-exclude-files-regexp "/junk/")
+(add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
+
+;;; ----------------------------------------------------------------------
+;;; eldoc-mode
+;;; ----------------------------------------------------------------------
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+(setq eldoc-idle-delay 0.2)
+(setq eldoc-minor-mode-string "")
+
+;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
 ;;; ----------------------------------------------------------------------
+(find-function-setup-keys)
 (global-set-key [home] 'beginning-of-buffer )
 (global-set-key [end] 'end-of-buffer )
 (global-set-key [C-next] 'scroll-other-window)
