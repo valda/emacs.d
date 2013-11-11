@@ -195,9 +195,8 @@
   (setenv "CYGWIN" "nodosfilewarning")
   (setq default-input-method "W32-IME")
   (w32-ime-initialize)
-  ;; (setq-default w32-ime-mode-line-state-indicator "[--]")
-  ;; (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-  )
+  (setq-default w32-ime-mode-line-state-indicator "[--]")
+  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus.el
