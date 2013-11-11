@@ -199,35 +199,25 @@
   (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
 
 ;;; ----------------------------------------------------------------------
-;;; ibus.el
+;;; ibus / uim / mozc
 ;;; ----------------------------------------------------------------------
-;; (when (require 'ibus nil t)
-;;   (add-hook 'after-init-hook 'ibus-mode-on)
-;;   (global-set-key "\C-\\" 'ibus-toggle)
-;;   (setq ibus-cursor-color '("red" "green" "cyan"))
-;;   (ibus-define-common-key [?\C-\  ?\C-/]  nil)
-;;   (add-hook 'minibuffer-setup-hook 'ibus-disable)
-;;   (ibus-disable-isearch))
-
-;;; ----------------------------------------------------------------------
-;;; uim.el
-;;; ----------------------------------------------------------------------
-;; (when (not (fboundp 'ibus-mode-on))
-;;   (when (require 'uim nil t)
-;;     (setq uim-candidate-display-inline t)
-;;     (global-set-key "\C-\\" 'uim-mode)))
-
-;;; ----------------------------------------------------------------------
-;;; mozc.el
-;;; ----------------------------------------------------------------------
-(when (require 'mozc nil t)
-  (setq default-input-method "japanese-mozc")
-  (setq mozc-candidate-style 'overlay))
-
-(add-hook 'input-method-activate-hook
-          (lambda() (set-cursor-color "red")))
-(add-hook 'input-method-inactivate-hook
-          (lambda() (set-cursor-color "green")))
+(cond ((require 'ibus nil t)
+       (add-hook 'after-init-hook 'ibus-mode-on)
+       (global-set-key "\C-\\" 'ibus-toggle)
+       (setq ibus-cursor-color '("red" "green" "cyan"))
+       (ibus-define-common-key [?\C-\  ?\C-/]  nil)
+       (add-hook 'minibuffer-setup-hook 'ibus-disable)
+       (ibus-disable-isearch))
+      ((require 'uim nil t)
+       (setq uim-candidate-display-inline t)
+       (global-set-key "\C-\\" 'uim-mode))
+      ((require 'mozc nil t)
+       (setq default-input-method "japanese-mozc")
+       (setq mozc-candidate-style 'overlay)
+       (add-hook 'input-method-activate-hook
+                 (lambda() (set-cursor-color "red")))
+       (add-hook 'input-method-inactivate-hook
+                 (lambda() (set-cursor-color "green")))))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
