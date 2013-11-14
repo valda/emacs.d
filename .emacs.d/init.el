@@ -82,7 +82,6 @@
 (defvar el-get-installing-package-list
   '(
     anything
-    anything-c-moccur
     anything-howm
     anything-project
     dabbrev-highlight
@@ -1058,7 +1057,7 @@ Highlight last expanded string."
                                 (session-file-alist 100 t)
                                 (file-name-history 1000)))
 (setq session-globals-max-string 10000000)
-(setq session-save-print-spec '(t nil nil)) ; anything/helmと一緒に使うために必要
+(setq session-save-print-spec '(t nil 40000)) ; anything/helmと一緒に使うために必要
 (add-hook 'after-init-hook 'session-initialize)
 
 ;;; ----------------------------------------------------------------------
@@ -1253,17 +1252,17 @@ Highlight last expanded string."
 ;;                (local-set-key "\M-\C-t" 'anything-gtags-select)))
 
 ;;; anything-c-moccur
-(require 'anything-c-moccur)
-;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
-(setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
-      anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
-      anything-c-moccur-enable-auto-look-flag t ; 現在選択中の候補の位置を他のwindowに表示する
-      anything-c-moccur-enable-initial-pattern t) ; `anything-c-moccur-occur-by-moccur'の起動時にポイントの位置の単語を初期パターンにする
-(global-set-key (kbd "M-o") 'anything-c-moccur-occur-by-moccur) ;バッファ内検索
-(global-set-key (kbd "C-M-o") 'anything-c-moccur-dmoccur) ;ディレクトリ
-(add-hook 'dired-mode-hook ;dired
-          '(lambda ()
-             (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur)))
+(when (require 'anything-c-moccur nil t)
+  ;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
+  (setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
+	anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
+	anything-c-moccur-enable-auto-look-flag t ; 現在選択中の候補の位置を他のwindowに表示する
+	anything-c-moccur-enable-initial-pattern t) ; `anything-c-moccur-occur-by-moccur'の起動時にポイントの位置の単語を初期パターンにする
+  (global-set-key (kbd "M-o") 'anything-c-moccur-occur-by-moccur) ;バッファ内検索
+  (global-set-key (kbd "C-M-o") 'anything-c-moccur-dmoccur) ;ディレクトリ
+  (add-hook 'dired-mode-hook ;dired
+	    '(lambda ()
+	       (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur))))
 
 ;;; anything-project
 (require 'anything-project)
