@@ -679,8 +679,8 @@ Highlight last expanded string."
 (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
-      (append '(("\\.C$" . c-mode)
-                ("\\.[Hh]$" . c++-mode)
+      (append '(("\\.C$"            . c-mode)
+                ("\\.[Hh]$"         . c++-mode)
                 ("\\.[Hh][Pp][Pp]$" . c++-mode))
               auto-mode-alist))
 
@@ -971,8 +971,9 @@ Highlight last expanded string."
                (?e mmm-eruby-mode nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  (mmm-add-mode-ext-class nil "\\.html\\.erb?\\'" 'mmm-eruby-mode)
-  (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode))
+  (mmm-add-mode-ext-class nil "\\.html\\.erb\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class nil "\\.coffee\\.erb\\'" 'mmm-eruby-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; latex-mode
@@ -997,6 +998,7 @@ Highlight last expanded string."
                 ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
                 ("\\.text\\.erb$"        . text-mode)     ;; Text(erb)
                 ("\\.rtext$"             . text-mode)     ;; Text(erb)
+                ("\\.coffee\\.erb$"      . coffee-mode)   ;; CoffeeScript(erb)
                 )
               auto-mode-alist))
 
