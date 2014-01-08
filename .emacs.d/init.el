@@ -11,96 +11,6 @@
   (setq gnuserv-frame (selected-frame)))
 
 ;;; ----------------------------------------------------------------------
-;;; package.el
-;;; ----------------------------------------------------------------------
-(require 'package)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
-(package-initialize)
-
-(defvar installing-package-list
-  '(
-    auto-complete
-    bm
-    coffee-mode
-    color-moccur
-    color-theme
-    csharp-mode
-    cygwin-mount
-    diminish
-    dsvn
-    elscreen
-    gist
-    git-commit-mode
-    git-gutter
-    git-gutter-fringe
-    gtags
-    js2-mode
-    less-css-mode
-    lua-mode
-    magit
-    mmm-mode
-    php-mode
-    popwin
-    recentf-ext
-    ruby-block
-    ruby-electric
-    scss-mode
-    session
-    shell-pop
-    snippet
-    undo-tree
-    yaml-mode
-    )
-  "A list of packages to install by package.el at launch.")
-
-(require 'cl)
-(let ((not-installed (loop for x in installing-package-list
-                           when (not (package-installed-p x))
-                           collect x)))
-  (when not-installed
-    (package-refresh-contents)
-    (dolist (pkg not-installed)
-      (package-install pkg))))
-
-;;; ----------------------------------------------------------------------
-;;; el-get
-;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-(unless (require 'el-get nil 'noerror)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
-
-(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-(el-get 'sync)
-
-(defvar el-get-installing-package-list
-  '(
-    anything
-    anything-howm
-    anything-project
-    dabbrev-highlight
-    howm
-    jaspace
-    moccur-edit
-    po-mode+
-    visual-basic-mode
-    emacs-rails
-    open-junk-file
-    lispxmp
-    paredit
-    auto-async-byte-compile
-    )
-  "A list of packages to install by el-get at launch.")
-
-(el-get 'sync el-get-installing-package-list)
-
-;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
 (setq inhibit-startup-message t)
@@ -145,13 +55,24 @@
 ;; 規定の文字コードを UTF-8 に
 (set-default-coding-systems 'utf-8)
 (set-keyboard-coding-system 'utf-8-unix)
+(set-buffer-file-coding-system 'utf-8-unix)
+(prefer-coding-system 'utf-8-unix)
 (if (not window-system)
     (set-terminal-coding-system 'utf-8-unix))
-(set-buffer-file-coding-system 'utf-8-unix)
 (if (eq window-system 'w32)
     (setq default-file-name-coding-system 'japanese-cp932-dos))
 
-;; フォントの設定
+;; Cygwin, IME など環境固有の設定
+(when (eq window-system 'w32)
+  (setenv "CYGWIN" "nodosfilewarning")
+  (setq default-input-method "W32-IME")
+  (w32-ime-initialize)
+  (setq-default w32-ime-mode-line-state-indicator "[--]")
+  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+
+;;; ----------------------------------------------------------------------
+;;; フォント設定
+;;; ----------------------------------------------------------------------
 ;; (cond ((eq window-system 'x)
 ;;        (create-fontset-from-fontset-spec
 ;;         "-mplus-fixed-*-*-*--10-*-*-*-*-*-fontset-10,
@@ -189,13 +110,97 @@
 ;(add-to-list 'initial-frame-alist '(alpha 100 90))
 (setq default-frame-alist initial-frame-alist)
 
-;; Cygwin, IME など環境固有の設定
-(when (eq window-system 'w32)
-  (setenv "CYGWIN" "nodosfilewarning")
-  (setq default-input-method "W32-IME")
-  (w32-ime-initialize)
-  (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+;;; ----------------------------------------------------------------------
+;;; package.el
+;;; ----------------------------------------------------------------------
+(setq package-user-dir "~/.emacs.d/elpa")
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+(package-initialize)
+
+;; install packages by package.el
+(defvar package-el-installing-package-list
+  '(
+    auto-async-byte-compile
+    auto-complete
+    bm
+    coffee-mode
+    color-moccur
+    color-theme
+    csharp-mode
+    cygwin-mount
+    diminish
+    dsvn
+    elscreen
+    magit
+    git-gutter
+    git-gutter-fringe
+    gist
+    gtags
+    js2-mode
+    less-css-mode
+    lispxmp
+    lua-mode
+    mmm-mode
+    open-junk-file
+    paredit
+    php-mode
+    popwin
+    recentf-ext
+    ruby-block
+    ruby-electric
+    inf-ruby
+    scss-mode
+    session
+    shell-pop
+    snippet
+    undo-tree
+    yaml-mode
+    )
+  "A list of packages to install by package.el at launch.")
+
+(require 'cl)
+(let ((not-installed (loop for x in package-el-installing-package-list
+                           when (not (package-installed-p x))
+                           collect x)))
+  (when not-installed
+    (package-refresh-contents)
+    (dolist (pkg not-installed)
+      (package-install pkg))))
+
+;;; ----------------------------------------------------------------------
+;;; el-get
+;;; ----------------------------------------------------------------------
+(setq el-get-generate-autoloads nil)
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+    (let (el-get-master-branch)
+      (goto-char (point-max))
+      (eval-print-last-sexp))))
+
+(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
+
+;; install packages by el-get
+(defvar el-get-installing-package-list
+  '(
+    anything
+    anything-howm
+    anything-project
+    dabbrev-highlight
+    howm
+    jaspace
+    moccur-edit
+    po-mode+
+    visual-basic-mode
+    emacs-rails
+    )
+  "A list of packages to install by el-get at launch.")
+(el-get 'sync el-get-installing-package-list)
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -749,7 +754,6 @@ Highlight last expanded string."
   (setq process-coding-system-alist
         (cons '("svn" . utf-8) process-coding-system-alist)))
 
-
 ;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
@@ -823,10 +827,11 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
 ;;; ----------------------------------------------------------------------
-(custom-set-variables '(rails-minor-mode-local-prefix-key "C-c"))
-(custom-set-variables '(rails-minor-mode-global-prefix-key "C-c C-c"))
-(require 'rails)
+(custom-set-variables
+ '(rails-minor-mode-local-prefix-key "C-c")
+ '(rails-minor-mode-global-prefix-key "C-c C-c"))
 (setq rails-indent-and-complete nil)
+(require 'rails)
 (define-keys rails-minor-mode-map
   ("\C-c\C-p"            'rails-lib:run-primary-switch)
   ("\C-c\C-n"            'rails-lib:run-secondary-switch)
@@ -837,7 +842,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
 ;;; ----------------------------------------------------------------------
-(require 'snippet)
+(require 'snippet nil t)
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
@@ -1046,8 +1051,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; recentf-ext
 ;;; ----------------------------------------------------------------------
-(require 'recentf-ext)
 (setq recentf-max-saved-items 10000)
+(require 'recentf-ext nil t)
 
 ;;; ----------------------------------------------------------------------
 ;;; session.el
@@ -1293,7 +1298,8 @@ Highlight last expanded string."
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
-(length popwin:special-display-config)
+;;(length popwin:special-display-config)
+
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
@@ -1325,10 +1331,12 @@ Highlight last expanded string."
               (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
 
   (require 'shell-pop)
-  (shell-pop-set-universal-key (kbd "<f12>"))
-  (shell-pop-set-internal-mode "ansi-term")
-  (shell-pop-set-internal-mode-shell "/bin/zsh")
-  (shell-pop-set-window-height 40)
+  (custom-set-variables
+   '(shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
+   '(shell-pop-term-shell "/bin/zsh")
+   '(shell-pop-universal-key "C-t")
+   '(shell-pop-window-height 40)
+   '(shell-pop-window-position "bottom"))
 
   (defun my-term-switch-line-char ()
     "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
@@ -1441,20 +1449,24 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; paredit
 ;;; ----------------------------------------------------------------------
-(define-key paredit-mode-map [C-right] nil)
-(define-key paredit-mode-map [C-left] nil)
-(define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
-(define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)
-(add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
-(add-hook 'lisp-mode-hook 'enable-paredit-mode)
-(add-hook 'ielm-mode-hook 'enable-paredit-mode)
+(when (require 'paredit nil t)
+  (add-hook 'paredit-mode-hook
+            (lambda ()
+              (define-key paredit-mode-map [C-right] nil)
+              (define-key paredit-mode-map [C-left] nil)
+              (define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
+              (define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)))
+  (add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
+  (add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook 'enable-paredit-mode)
+  (add-hook 'ielm-mode-hook 'enable-paredit-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
-(setq auto-async-byte-compile-exclude-files-regexp "/junk/")
-(add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
+(when (require 'auto-async-byte-compile nil t)
+  (setq auto-async-byte-compile-exclude-files-regexp "/junk/")
+  (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; eldoc-mode
