@@ -840,6 +840,25 @@ Highlight last expanded string."
   ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
 
 ;;; ----------------------------------------------------------------------
+;;; git-commit-mode では rails-minor-mode の C-c C-c を無効にする
+;;; ----------------------------------------------------------------------
+(defun local-set-minor-mode-key (mode key def)
+  "Overrides a minor mode keybinding for the local
+   buffer, by creating or altering keymaps stored in buffer-local
+   `minor-mode-overriding-map-alist'."
+  (let* ((oldmap (cdr (assoc mode minor-mode-map-alist)))
+         (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
+                     (let ((map (make-sparse-keymap)))
+                       (set-keymap-parent map oldmap)
+                       (push `(,mode . ,map) minor-mode-overriding-map-alist)
+                       map))))
+    (define-key newmap key def)))
+
+(add-hook 'git-commit-mode-hook
+          (lambda ()
+            (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") nil)))
+
+;;; ----------------------------------------------------------------------
 ;;; snippet.el
 ;;; ----------------------------------------------------------------------
 (require 'snippet nil t)
@@ -1294,7 +1313,7 @@ Highlight last expanded string."
                   ;; ("*anything*" :height 20)
                   ;; ("*anything moccur*" :height 20)
                   ;; ("*Anything Completions*" :height 20)
-                  ("*magit-edit-log*" :height 0.5)
+                  ;; ("*magit-edit-log*" :height 0.5)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
@@ -1305,7 +1324,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
-
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1334,7 +1352,8 @@ Highlight last expanded string."
   (custom-set-variables
    '(shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
    '(shell-pop-term-shell "/bin/zsh")
-   '(shell-pop-universal-key "C-t")
+   ;;'(shell-pop-universal-key "C-t")
+   '(shell-pop-universal-key "<f12>")
    '(shell-pop-window-height 40)
    '(shell-pop-window-position "bottom"))
 
