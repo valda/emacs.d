@@ -144,7 +144,7 @@
     lua-mode
     mmm-mode
     open-junk-file
-    paredit
+    ;; paredit
     php-mode
     popwin
     recentf-ext
@@ -157,6 +157,10 @@
     snippet
     undo-tree
     yaml-mode
+    ag
+    wgrep-ag
+    highlight-symbol
+    auto-highlight-symbol
     )
   "A list of packages to install by package.el at launch.")
 
@@ -188,9 +192,6 @@
 ;; install packages by el-get
 (defvar el-get-installing-package-list
   '(
-    anything
-    anything-howm
-    anything-project
     dabbrev-highlight
     howm
     jaspace
@@ -1192,7 +1193,7 @@ Highlight last expanded string."
   (add-hook 'kill-emacs-hook '(lambda nil
                                 (bm-buffer-save-all)
                                 (bm-repository-save)))
-  ;;   M$ Visual Studio key setup.
+  ;; M$ Visual Studio key setup.
   (global-set-key (kbd "<C-f2>") 'bm-toggle)
   (global-set-key (kbd "<f2>")   'bm-next)
   (global-set-key (kbd "<S-f2>") 'bm-previous))
@@ -1241,57 +1242,93 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; anything.el
 ;;; ----------------------------------------------------------------------
-(require 'anything)
-(require 'anything-config)
-(require 'anything-match-plugin)
+;; (require 'anything)
+;; (require 'anything-config)
+;; (require 'anything-match-plugin)
 
-(setq anything-idle-delay 0.3)
-(setq anything-input-idle-delay 0.1)
-(setq anything-candidate-number-limit 100)
-(when window-system
-  (set-face-attribute 'anything-file-name nil
-                      :foreground "white" :background nil)
-  (set-face-attribute 'anything-dir-priv nil
-                      :foreground "LightSkyBlue" :background nil))
+;; (setq anything-idle-delay 0.3)
+;; (setq anything-input-idle-delay 0.1)
+;; (setq anything-candidate-number-limit 100)
+;; (when window-system
+;;   (set-face-attribute 'anything-file-name nil
+;;                       :foreground "white" :background nil)
+;;   (set-face-attribute 'anything-dir-priv nil
+;;                       :foreground "LightSkyBlue" :background nil))
 
-(defun my-anything ()
+;; (defun my-anything ()
+;;   (interactive)
+;;   (anything-other-buffer
+;;    '(anything-c-source-buffers+
+;;      anything-c-source-elscreen
+;;      anything-c-source-files-in-current-dir+
+;;      anything-c-source-bm
+;;      anything-c-source-recentf
+;;      anything-c-source-file-cache)
+;;    " *my-anything*"))
+
+;; (global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
+;; (global-set-key "\M-x" 'anything-M-x)
+;; (global-set-key "\C-xb" 'anything-buffers+)
+;; (global-set-key "\M-y" 'anything-show-kill-ring)
+
+;; ;;; anything-gtags
+;; ;; (require 'anything-gtags)
+;; ;; (add-hook 'gtags-mode-hook
+;; ;;           '(lambda ()
+;; ;;                (local-set-key "\M-\C-t" 'anything-gtags-select)))
+
+;; ;;; anything-c-moccur
+;; (when (require 'anything-c-moccur nil t)
+;;   ;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
+;;   (setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
+;; 	anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
+;; 	anything-c-moccur-enable-auto-look-flag t ; 現在選択中の候補の位置を他のwindowに表示する
+;; 	anything-c-moccur-enable-initial-pattern t) ; `anything-c-moccur-occur-by-moccur'の起動時にポイントの位置の単語を初期パターンにする
+;;   (global-set-key (kbd "M-o") 'anything-c-moccur-occur-by-moccur) ;バッファ内検索
+;;   (global-set-key (kbd "C-M-o") 'anything-c-moccur-dmoccur) ;ディレクトリ
+;;   (add-hook 'dired-mode-hook ;dired
+;; 	    '(lambda ()
+;; 	       (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur))))
+
+;; ;;; anything-project
+;; (require 'anything-project)
+;; (global-set-key (kbd "\C-xf") 'anything-project)
+
+;;; ----------------------------------------------------------------------
+;;; helm
+;;; ----------------------------------------------------------------------
+(require 'helm)
+(require 'helm-config)
+(require 'helm-match-plugin)
+(require 'helm-descbinds)
+(helm-descbinds-mode)
+(require 'helm-migemo)
+(setq helm-use-migemo t)
+(require 'helm-bm)
+(require 'helm-git)
+
+(setq helm-idle-delay 0.3)
+(setq helm-input-idle-delay 0.2)
+(setq helm-candidate-number-limit 100)
+
+(defun my-helm ()
   (interactive)
-  (anything-other-buffer
-   '(anything-c-source-buffers+
-     anything-c-source-elscreen
-     anything-c-source-files-in-current-dir+
-     anything-c-source-bm
-     anything-c-source-recentf
-     anything-c-source-file-cache)
-   " *my-anything*"))
+  (helm-other-buffer
+   '(helm-c-source-buffers-list
+     helm-c-source-elscreen
+     helm-c-source-files-in-current-dir
+     helm-source-bm
+     helm-c-source-recentf
+     helm-c-source-file-cache)
+   " *my-helm*"))
 
-(global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
-(global-set-key "\M-x" 'anything-M-x)
-(global-set-key "\C-xb" 'anything-buffers+)
-(global-set-key "\M-y" 'anything-show-kill-ring)
-
-;;; anything-gtags
-;; (require 'anything-gtags)
-;; (add-hook 'gtags-mode-hook
-;;           '(lambda ()
-;;                (local-set-key "\M-\C-t" 'anything-gtags-select)))
-
-;;; anything-c-moccur
-(when (require 'anything-c-moccur nil t)
-  ;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
-  (setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
-	anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
-	anything-c-moccur-enable-auto-look-flag t ; 現在選択中の候補の位置を他のwindowに表示する
-	anything-c-moccur-enable-initial-pattern t) ; `anything-c-moccur-occur-by-moccur'の起動時にポイントの位置の単語を初期パターンにする
-  (global-set-key (kbd "M-o") 'anything-c-moccur-occur-by-moccur) ;バッファ内検索
-  (global-set-key (kbd "C-M-o") 'anything-c-moccur-dmoccur) ;ディレクトリ
-  (add-hook 'dired-mode-hook ;dired
-	    '(lambda ()
-	       (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur))))
-
-;;; anything-project
-(require 'anything-project)
-(global-set-key (kbd "\C-xf") 'anything-project)
+(global-set-key (if window-system (kbd "C-;") "\C-c;") 'my-helm)
+(global-set-key "\M-x" 'helm-M-x)
+(global-set-key "\C-xb" 'helm-buffers-list)
+(global-set-key "\M-y" 'helm-show-kill-ring)
+(global-set-key "\C-zw" 'helm-elscreen)
+(global-set-key "\C-cb" 'helm-bm)
+(global-set-key "\C-xf" 'helm-git-find-files)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
@@ -1310,14 +1347,10 @@ Highlight last expanded string."
                   ("*Apropos*" :height 30)
                   ("*Help*" :height 30)
                   ("*sdic*" :height 20)
-                  ;; ("*anything*" :height 20)
-                  ;; ("*anything moccur*" :height 20)
-                  ;; ("*Anything Completions*" :height 20)
-                  ;; ("*magit-edit-log*" :height 0.5)
+                  ("^\*helm .+\*$" :regexp t)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
-;;(length popwin:special-display-config)
 
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
@@ -1468,17 +1501,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; paredit
 ;;; ----------------------------------------------------------------------
-(when (require 'paredit nil t)
-  (add-hook 'paredit-mode-hook
-            (lambda ()
-              (define-key paredit-mode-map [C-right] nil)
-              (define-key paredit-mode-map [C-left] nil)
-              (define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
-              (define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)))
-  (add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
-  (add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
-  (add-hook 'lisp-mode-hook 'enable-paredit-mode)
-  (add-hook 'ielm-mode-hook 'enable-paredit-mode))
+;; (when (require 'paredit nil t)
+;;   (add-hook 'paredit-mode-hook
+;;             (lambda ()
+;;               (define-key paredit-mode-map [C-right] nil)
+;;               (define-key paredit-mode-map [C-left] nil)
+;;               (define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
+;;               (define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)))
+;;   (add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
+;;   (add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
+;;   (add-hook 'lisp-mode-hook 'enable-paredit-mode)
+;;   (add-hook 'ielm-mode-hook 'enable-paredit-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; auto-async-byte-compile
@@ -1495,6 +1528,32 @@ Highlight last expanded string."
 (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 (setq eldoc-idle-delay 0.2)
 (setq eldoc-minor-mode-string "")
+
+;;; ----------------------------------------------------------------------
+;;; highlight-symbol / auto-highlight-symbol
+;;; ----------------------------------------------------------------------
+(require 'highlight-symbol)
+(require 'auto-highlight-symbol)
+(setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1"))
+(global-auto-highlight-symbol-mode t)
+(global-set-key [(control f3)] 'highlight-symbol-at-point)
+(global-set-key [f3] 'highlight-symbol-next)
+(global-set-key [(shift f3)] 'highlight-symbol-prev)
+(global-set-key [(meta f3)] 'highlight-symbol-query-replace)
+
+;;; ----------------------------------------------------------------------
+;;; ag / wgrep-ag
+;;; ----------------------------------------------------------------------
+(require 'ag)
+(custom-set-variables
+ '(ag-highlight-search t)
+ '(ag-reuse-window 'nil)
+ '(ag-reuse-buffers 'nil))
+
+(require 'wgrep-ag)
+(autoload 'wgrep-ag-setup "wgrep-ag")
+(add-hook 'ag-mode-hook 'wgrep-ag-setup)
+(define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
