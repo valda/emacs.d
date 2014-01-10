@@ -149,7 +149,7 @@
     popwin
     recentf-ext
     ruby-block
-    ruby-electric
+    ruby-end
     inf-ruby
     scss-mode
     session
@@ -778,9 +778,11 @@ Highlight last expanded string."
 ;; and source-file directory for your debugger.")
 (add-hook 'ruby-mode-hook
           '(lambda ()
-             (ruby-electric-mode t)
+             (electric-pair-mode t)
+             (electric-indent-mode t)
+             (electric-layout-mode t)
+             (ruby-end-mode t)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
-             (define-key ruby-mode-map (kbd "RET") nil) ; unset ruby-electric-return
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              ))
 
@@ -1429,7 +1431,6 @@ Highlight last expanded string."
   (diminish 'flymake-mode)
   (diminish 'auto-complete-mode)
   (add-hook 'jaspace-mode-hook (lambda () (diminish 'jaspace-mode)))
-  (add-hook 'ruby-electric-mode-hook (lambda () (diminish 'ruby-electric-mode)))
   (add-hook 'gtags-mode-hook (lambda () (diminish 'gtags-mode)))
   (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
   (diminish 'git-gutter-mode)
