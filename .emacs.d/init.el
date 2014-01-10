@@ -157,6 +157,11 @@
     snippet
     undo-tree
     yaml-mode
+    helm
+    helm-descbinds
+    helm-migemo
+    helm-bm
+    helm-ls-git
     ag
     wgrep-ag
     highlight-symbol
@@ -1304,8 +1309,10 @@ Highlight last expanded string."
 (helm-descbinds-mode)
 (require 'helm-migemo)
 (setq helm-use-migemo t)
-(require 'helm-bm)
-(require 'helm-git)
+;; (require 'helm-bm) ; autoload
+;; (require 'helm-ls-git) ; autoload
+(require 'helm-buffers)
+(require 'helm-files)
 
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
@@ -1314,12 +1321,11 @@ Highlight last expanded string."
 (defun my-helm ()
   (interactive)
   (helm-other-buffer
-   '(helm-c-source-buffers-list
-     helm-c-source-elscreen
-     helm-c-source-files-in-current-dir
-     helm-source-bm
-     helm-c-source-recentf
-     helm-c-source-file-cache)
+   '(helm-source-buffers-list
+     helm-source-elscreen
+     helm-source-files-in-current-dir
+     helm-source-recentf
+     helm-source-file-cache)
    " *my-helm*"))
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'my-helm)
@@ -1328,7 +1334,7 @@ Highlight last expanded string."
 (global-set-key "\M-y" 'helm-show-kill-ring)
 (global-set-key "\C-zw" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
-(global-set-key "\C-xf" 'helm-git-find-files)
+(global-set-key "\C-xf" 'helm-ls-git-ls)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
