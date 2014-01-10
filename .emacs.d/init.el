@@ -1254,7 +1254,7 @@ Highlight last expanded string."
 ;; (require 'anything-match-plugin)
 
 ;; (setq anything-idle-delay 0.3)
-;; (setq anything-input-idle-delay 0.1)
+;; (setq anything-input-idle-delay 0.2)
 ;; (setq anything-candidate-number-limit 100)
 ;; (when window-system
 ;;   (set-face-attribute 'anything-file-name nil
@@ -1277,25 +1277,6 @@ Highlight last expanded string."
 ;; (global-set-key "\M-x" 'anything-M-x)
 ;; (global-set-key "\C-xb" 'anything-buffers+)
 ;; (global-set-key "\M-y" 'anything-show-kill-ring)
-
-;; ;;; anything-gtags
-;; ;; (require 'anything-gtags)
-;; ;; (add-hook 'gtags-mode-hook
-;; ;;           '(lambda ()
-;; ;;                (local-set-key "\M-\C-t" 'anything-gtags-select)))
-
-;; ;;; anything-c-moccur
-;; (when (require 'anything-c-moccur nil t)
-;;   ;; カスタマイズ可能変数の設定(M-x customize-group anything-c-moccur でも設定可能)
-;;   (setq anything-c-moccur-anything-idle-delay 0.3 ;`anything-idle-delay'
-;; 	anything-c-moccur-higligt-info-line-flag t ; `anything-c-moccur-dmoccur'などのコマンドでバッファの情報をハイライトする
-;; 	anything-c-moccur-enable-auto-look-flag t ; 現在選択中の候補の位置を他のwindowに表示する
-;; 	anything-c-moccur-enable-initial-pattern t) ; `anything-c-moccur-occur-by-moccur'の起動時にポイントの位置の単語を初期パターンにする
-;;   (global-set-key (kbd "M-o") 'anything-c-moccur-occur-by-moccur) ;バッファ内検索
-;;   (global-set-key (kbd "C-M-o") 'anything-c-moccur-dmoccur) ;ディレクトリ
-;;   (add-hook 'dired-mode-hook ;dired
-;; 	    '(lambda ()
-;; 	       (local-set-key (kbd "O") 'anything-c-moccur-dired-do-moccur-by-moccur))))
 
 ;; ;;; anything-project
 ;; (require 'anything-project)
