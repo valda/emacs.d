@@ -162,6 +162,7 @@
     helm-migemo
     helm-bm
     helm-ls-git
+    helm-rails
     ag
     wgrep-ag
     highlight-symbol
@@ -835,9 +836,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(rails-minor-mode-local-prefix-key "C-c")
- '(rails-minor-mode-global-prefix-key "C-c C-c"))
+(setq rails-minor-mode-local-prefix-key "C-c")
+(setq rails-minor-mode-global-prefix-key "C-c C-c")
 (setq rails-indent-and-complete nil)
 (require 'rails)
 (define-keys rails-minor-mode-map
@@ -1370,14 +1370,12 @@ Highlight last expanded string."
               (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
               (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
 
+  (setq shell-pop-shell-type '("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell))))
+  (setq shell-pop-term-shell "/bin/zsh")
+  (setq shell-pop-universal-key "<f12>")
+  (setq shell-pop-window-height 40)
+  (setq shell-pop-window-position "bottom")
   (require 'shell-pop)
-  (custom-set-variables
-   '(shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-   '(shell-pop-term-shell "/bin/zsh")
-   ;;'(shell-pop-universal-key "C-t")
-   '(shell-pop-universal-key "<f12>")
-   '(shell-pop-window-height 40)
-   '(shell-pop-window-position "bottom"))
 
   (defun my-term-switch-line-char ()
     "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
@@ -1532,11 +1530,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
 ;;; ----------------------------------------------------------------------
+(setq ag-highlight-search t)
+(setq ag-reuse-window t)
+(setq ag-reuse-buffers t)
 (require 'ag)
-(custom-set-variables
- '(ag-highlight-search t)
- '(ag-reuse-window 'nil)
- '(ag-reuse-buffers 'nil))
 
 (require 'wgrep-ag)
 (autoload 'wgrep-ag-setup "wgrep-ag")
