@@ -167,6 +167,7 @@
     wgrep-ag
     highlight-symbol
     auto-highlight-symbol
+    anzu
     )
   "A list of packages to install by package.el at launch.")
 
@@ -1300,6 +1301,8 @@ Highlight last expanded string."
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
 (setq helm-candidate-number-limit 100)
+(setq helm-buffer-max-length 50)
+(setq helm-truncate-lines t)
 
 (defun my-helm ()
   (interactive)
@@ -1318,6 +1321,29 @@ Highlight last expanded string."
 (global-set-key "\C-zw" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
 (global-set-key "\C-xf" 'helm-ls-git-ls)
+
+;; helm-rails
+(require 'helm-rails)
+(helm-rails-def-resource 'layouts  "app/views/layouts/" "^app/views/layouts/(.+)$")
+(helm-rails-def-resource 'migrates "db/migrate/" "^db/migrate/(.+)$")
+(define-keys rails-minor-mode-map
+  ((rails-global-key "g m") 'helm-rails-models)
+  ((rails-global-key "g c") 'helm-rails-controllers)
+  ((rails-global-key "g n") 'helm-rails-mailers)
+  ((rails-global-key "g h") 'helm-rails-helpers)
+  ((rails-global-key "g l") 'helm-rails-layouts)
+  ((rails-global-key "g s") 'helm-rails-stylesheets)
+  ((rails-global-key "g j") 'helm-rails-javascripts)
+  ((rails-global-key "g g") 'helm-rails-migrates))
+
+;;; ----------------------------------------------------------------------
+;;; anzu
+;;; ----------------------------------------------------------------------
+(setq anzu-mode-lighter "")
+(setq anzu-deactivate-region t)
+(setq anzu-search-threshold 1000)
+(setq anzu-use-migemo t)
+(global-anzu-mode t)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
