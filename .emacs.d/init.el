@@ -40,8 +40,6 @@
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
 (setq-default indicate-empty-lines t)
-
-;; mode-line
 (setq mode-line-frame-identification " ")
 (setq line-number-mode t)
 (setq column-number-mode t)
@@ -211,9 +209,29 @@
 (el-get 'sync el-get-installing-package-list)
 
 ;;; ----------------------------------------------------------------------
+;;; diminish
+;;; ----------------------------------------------------------------------
+(require 'diminish)
+(eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
+(eval-after-load "jaspace" '(diminish 'jaspace-mode))
+(eval-after-load "hideshow" '(diminish 'hs-minor-mode))
+(eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
+(eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
+(eval-after-load "ibus" '(diminish 'ibus-mode))
+(eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
+(eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
 ;;; ----------------------------------------------------------------------
-(cond ((require 'ibus nil t)
+(cond ((require 'mozc nil t)
+       (setq default-input-method "japanese-mozc")
+       (setq mozc-candidate-style 'overlay)
+       (add-hook 'input-method-activate-hook
+                 (lambda() (set-cursor-color "red")))
+       (add-hook 'input-method-inactivate-hook
+                 (lambda() (set-cursor-color "green"))))
+      ((require 'ibus nil t)
        (add-hook 'after-init-hook 'ibus-mode-on)
        (global-set-key "\C-\\" 'ibus-toggle)
        (setq ibus-cursor-color '("red" "green" "cyan"))
@@ -222,14 +240,7 @@
        (ibus-disable-isearch))
       ((require 'uim nil t)
        (setq uim-candidate-display-inline t)
-       (global-set-key "\C-\\" 'uim-mode))
-      ((require 'mozc nil t)
-       (setq default-input-method "japanese-mozc")
-       (setq mozc-candidate-style 'overlay)
-       (add-hook 'input-method-activate-hook
-                 (lambda() (set-cursor-color "red")))
-       (add-hook 'input-method-inactivate-hook
-                 (lambda() (set-cursor-color "green")))))
+       (global-set-key "\C-\\" 'uim-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -700,8 +711,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hideshow
 ;;; ----------------------------------------------------------------------
-(when (locate-library "hideshow")
-  (require 'hideshow)
+(when (require 'hideshow nil t)
   (add-hook 'c-mode-common-hook   'hs-minor-mode)
   (add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
   (add-hook 'java-mode-hook       'hs-minor-mode)
@@ -1344,6 +1354,8 @@ Highlight last expanded string."
 (setq anzu-search-threshold 1000)
 (setq anzu-use-migemo t)
 (global-anzu-mode t)
+(global-set-key (kbd "M-%") 'anzu-query-replace)
+(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
@@ -1428,19 +1440,6 @@ Highlight last expanded string."
        (setq jaspace-highlight-tabs t)
        (setq jaspace-modes
              (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
-
-;;; ----------------------------------------------------------------------
-;;; diminish
-;;; ----------------------------------------------------------------------
-(when (require 'diminish nil t)
-  (diminish 'flymake-mode)
-  (diminish 'auto-complete-mode)
-  (add-hook 'jaspace-mode-hook (lambda () (diminish 'jaspace-mode)))
-  (add-hook 'gtags-mode-hook (lambda () (diminish 'gtags-mode)))
-  (add-hook 'hs-minor-mode-hook (lambda () (diminish 'hs-minor-mode)))
-  (diminish 'git-gutter-mode)
-  (diminish 'undo-tree-mode)
-  (if (fboundp 'ibus-mode) (diminish 'ibus-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; 行末に存在するスペースを強調表示
@@ -1560,6 +1559,7 @@ Highlight last expanded string."
 (setq ag-reuse-window t)
 (setq ag-reuse-buffers t)
 (require 'ag)
+(global-set-key "\C-cg" 'ag)
 
 (require 'wgrep-ag)
 (autoload 'wgrep-ag-setup "wgrep-ag")
