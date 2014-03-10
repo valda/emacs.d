@@ -391,6 +391,7 @@ Highlight last expanded string."
 ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
+(setq ac-ignore-case t)
 (setq-default ac-sources '(ac-source-dictionary
                            ac-source-words-in-same-mode-buffers
                            ac-source-files-in-current-dir))
