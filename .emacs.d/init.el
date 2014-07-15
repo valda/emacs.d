@@ -749,19 +749,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
 ;;; ----------------------------------------------------------------------
-(when (require 'color-moccur nil t)
-  (require 'moccur-edit)
-  (setq moccur-split-word t) ;スペース区切りでAND検索
-  (when (require 'migemo nil t)
-    (setq moccur-use-migemo t))
-  (setq *moccur-buffer-name-exclusion-list*
-        '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (define-key dired-mode-map "O" 'dired-do-moccur)))
-  (define-key Buffer-menu-mode-map "O" 'Buffer-menu-moccur)
-  (global-set-key "\M-o" 'occur-by-moccur)
-  (global-set-key "\C-c\C-x\C-o" 'moccur))
+(require 'color-moccur)
+(setq moccur-split-word t) ; スペース区切りでAND検索
+(setq moccur-use-migemo t)
+(setq *moccur-buffer-name-exclusion-list*
+      '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (define-key dired-mode-map "O" 'dired-do-moccur)))
+(define-key Buffer-menu-mode-map "O" 'Buffer-menu-moccur)
+(global-set-key "\M-o" 'occur-by-moccur)
+(global-set-key "\C-c\C-x\C-o" 'moccur)
 
 ;;; ----------------------------------------------------------------------
 ;;; dsvn
@@ -1192,7 +1190,7 @@ Highlight last expanded string."
               (my-make-scratch 1))))
 
 ;;; ----------------------------------------------------------------------
-;; kill-ring に同じ内容の文字列を複数入れない
+;;; kill-ring に同じ内容の文字列を複数入れない
 ;;; ----------------------------------------------------------------------
 (defadvice kill-new (before ys:no-kill-new-duplicates activate)
   (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
@@ -1257,42 +1255,6 @@ Highlight last expanded string."
     "sdic のバッファクローズを普通にする。"
     (bury-buffer sdic-buffer-name))
   )
-
-;;; ----------------------------------------------------------------------
-;;; anything.el
-;;; ----------------------------------------------------------------------
-;; (require 'anything)
-;; (require 'anything-config)
-;; (require 'anything-match-plugin)
-
-;; (setq anything-idle-delay 0.3)
-;; (setq anything-input-idle-delay 0.2)
-;; (setq anything-candidate-number-limit 100)
-;; (when window-system
-;;   (set-face-attribute 'anything-file-name nil
-;;                       :foreground "white" :background nil)
-;;   (set-face-attribute 'anything-dir-priv nil
-;;                       :foreground "LightSkyBlue" :background nil))
-
-;; (defun my-anything ()
-;;   (interactive)
-;;   (anything-other-buffer
-;;    '(anything-c-source-buffers+
-;;      anything-c-source-elscreen
-;;      anything-c-source-files-in-current-dir+
-;;      anything-c-source-bm
-;;      anything-c-source-recentf
-;;      anything-c-source-file-cache)
-;;    " *my-anything*"))
-
-;; (global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
-;; (global-set-key "\M-x" 'anything-M-x)
-;; (global-set-key "\C-xb" 'anything-buffers+)
-;; (global-set-key "\M-y" 'anything-show-kill-ring)
-
-;; ;;; anything-project
-;; (require 'anything-project)
-;; (global-set-key (kbd "\C-xf") 'anything-project)
 
 ;;; ----------------------------------------------------------------------
 ;;; helm
@@ -1385,6 +1347,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
+(custom-set-variables
+ '(git-gutter:window-width 0))
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1552,6 +1516,7 @@ Highlight last expanded string."
 (global-set-key [f3] 'highlight-symbol-next)
 (global-set-key [(shift f3)] 'highlight-symbol-prev)
 (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
+(add-hook 'coffee-mode-hook 'auto-highlight-symbol-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
