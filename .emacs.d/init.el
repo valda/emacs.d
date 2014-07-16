@@ -142,7 +142,6 @@
     lua-mode
     mmm-mode
     open-junk-file
-    ;; paredit
     php-mode
     popwin
     recentf-ext
@@ -166,6 +165,8 @@
     highlight-symbol
     auto-highlight-symbol
     anzu
+    flycheck
+    flycheck-pyflakes
     )
   "A list of packages to install by package.el at launch.")
 
@@ -199,7 +200,6 @@
   '(
     dabbrev-highlight
     howm
-    jaspace
     moccur-edit
     po-mode+
     visual-basic-mode
@@ -213,13 +213,13 @@
 ;;; ----------------------------------------------------------------------
 (require 'diminish)
 (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
-(eval-after-load "jaspace" '(diminish 'jaspace-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
 (eval-after-load "ibus" '(diminish 'ibus-mode))
 (eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
+(eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -1117,47 +1117,9 @@ Highlight last expanded string."
   (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
-;;; flymake
+;;; flycheck
 ;;; ----------------------------------------------------------------------
-(when (require 'flymake nil t)
-  (defun flymake-ruby-init ()
-    (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-                         'flymake-create-temp-inplace))
-           (local-file  (file-relative-name
-                         temp-file
-                         (file-name-directory buffer-file-name))))
-      (list "ruby" (list "-c" local-file))))
-  (push '(".+\\.r[bu]$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  (push '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  (push '("^\\(.*\\):\\([0-9]+\\): \\(.*\\)$" 1 2 nil 3) flymake-err-line-patterns)
-  (add-hook 'ruby-mode-hook
-            '(lambda ()
-               ;; Don't want flymake mode for ruby regions in rhtml files
-               (if (not (null buffer-file-name)) (flymake-mode))))
-  (defun flymake-perl-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file  (file-relative-name
-                         temp-file
-                         (file-name-directory buffer-file-name))))
-      (list "perl" (list "-wc" local-file))))
-  (push '(".+\\.p[lm]$\\|.+\\.t$" flymake-perl-init) flymake-allowed-file-name-masks)
-  (push '("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1) flymake-err-line-patterns)
-  (add-hook 'cperl-mode-hook
-            '(lambda ()
-               (if (not (null buffer-file-name)) (flymake-mode))))
-  (defun flymake-pyflakes-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file (file-relative-name
-                        temp-file
-                        (file-name-directory buffer-file-name))))
-      (list "pyflakes" (list local-file))))
-  (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.py\\'" flymake-pyflakes-init))
-  (add-hook 'python-mode-hook
-             '(lambda ()
-                (if (not (null buffer-file-name)) (flymake-mode)))))
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1397,24 +1359,36 @@ Highlight last expanded string."
       ad-do-it)))
 
 ;;; ----------------------------------------------------------------------
-;;; jaspace.el
+;;; whitespace-mode like jaspace.el
 ;;; ----------------------------------------------------------------------
-(cond (window-system
-       (require 'jaspace)
-       (setq jaspace-alternate-eol-string "\xab\n")
-       (setq jaspace-highlight-tabs t)
-       (setq jaspace-modes
-             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
-
-;;; ----------------------------------------------------------------------
-;;; 行末に存在するスペースを強調表示
-;;; ----------------------------------------------------------------------
-(when (boundp 'show-trailing-whitespace)
-  (setq-default show-trailing-whitespace t)
-  (dolist (m '(calendar-mode-hook ansi-term-after-hook))
-    (add-hook m
-              '(lambda ()
-                 (setq show-trailing-whitespace nil)))))
+(when (and (>= emacs-major-version 23)
+       (require 'whitespace nil t))
+  (setq whitespace-style
+    '(face
+      tabs spaces newline trailing space-before-tab space-after-tab
+      space-mark tab-mark newline-mark))
+  (let ((dark (eq 'dark (frame-parameter nil 'background-mode))))
+    (set-face-attribute 'whitespace-space nil
+            :foreground (if dark "pink4" "azure3")
+            :background 'unspecified)
+    (set-face-attribute 'whitespace-tab nil
+            :foreground (if dark "gray20" "gray80")
+            :background 'unspecified
+            :strike-through t)
+    (set-face-attribute 'whitespace-newline nil
+            :foreground (if dark "darkcyan" "darkseagreen")))
+  (setq whitespace-space-regexp "\\(　+\\)")
+  (setq whitespace-display-mappings
+    '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
+      (space-mark   ?\x8A0 [?\x8A4] [?_]) ; hard space - currency
+      (space-mark   ?\x920 [?\x924] [?_]) ; hard space - currency
+      (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
+      (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
+      (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
+      (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
+      ))
+  (setq whitespace-global-modes '(not dired-mode tar-mode))
+  (global-whitespace-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
