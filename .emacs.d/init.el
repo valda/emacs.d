@@ -138,6 +138,7 @@
     gtags
     js2-mode
     less-css-mode
+    scss-mode
     lispxmp
     lua-mode
     mmm-mode
@@ -148,7 +149,6 @@
     ruby-block
     ruby-end
     inf-ruby
-    scss-mode
     session
     shell-pop
     snippet
@@ -704,9 +704,9 @@ Highlight last expanded string."
 (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
-      (append '(("\\.C$"            . c-mode)
-                ("\\.[Hh]$"         . c++-mode)
-                ("\\.[Hh][Pp][Pp]$" . c++-mode))
+      (append '(("\\.C\\'"            . c-mode)
+                ("\\.[Hh]\\'"         . c++-mode)
+                ("\\.[Hh][Pp][Pp]\\'" . c++-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -780,9 +780,9 @@ Highlight last expanded string."
 ;;; ruby-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
-(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("config\\.ru$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist '("config\\.ru\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 ;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
 ;; The directory containing FILE becomes the initial working directory
@@ -841,7 +841,7 @@ Highlight last expanded string."
 ;;; rd-mode
 (when (locate-library "rd-mode")
   (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
-  (add-to-list 'auto-mode-alist '("\\.rd$" . rd-mode)))
+  (add-to-list 'auto-mode-alist '("\\.rd\\'" . rd-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
@@ -885,7 +885,7 @@ Highlight last expanded string."
 ;;; python-mode
 ;;; ----------------------------------------------------------------------
 (setq py-indent-offset 4)
-(add-to-list 'auto-mode-alist '("\\.pyw$" . python-mode))
+(add-to-list 'auto-mode-alist '("\\.pyw\\'" . python-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; cperl-mode
@@ -913,7 +913,7 @@ Highlight last expanded string."
             (set-face-underline-p 'cperl-hash-face t)
             (set-face-background 'cperl-hash-face nil)
             ))
-(add-to-list 'auto-mode-alist '("\\.t$" . cperl-mode))
+(add-to-list 'auto-mode-alist '("\\.t\\'" . cperl-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; yaml-mode
@@ -929,12 +929,12 @@ Highlight last expanded string."
 (autoload 'vbp-mode "vbp-mode" "VBP mode." t)
 (setq visual-basic-mode-indent 4)
 (setq auto-mode-alist
-      (append '(("\\.[Ff][Rr][Mm]$" . visual-basic-mode)  ;;Form Module
-        ("\\.[Bb][Aa][Ss]$" . visual-basic-mode)  ;;Bas Module
-        ("\\.[Cc][Ll][Ss]$" . visual-basic-mode)  ;;Class Module
-        ("\\.[Vv][Bb][Ss]$" . visual-basic-mode)  ;;VBScript file
-        ("\\.[Vv][Bb][Pp]$" . vbp-mode)
-        ("\\.[Vv][Bb][Gg]$" . vbp-mode))
+      (append '(("\\.[Ff][Rr][Mm]\\'" . visual-basic-mode)  ;;Form Module
+        ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
+        ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
+        ("\\.[Vv][Bb][Ss]\\'" . visual-basic-mode)  ;;VBScript file
+        ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
+        ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -953,16 +953,25 @@ Highlight last expanded string."
 (add-hook 'js-mode-hook 'js2-minor-mode)
 
 ;;; ----------------------------------------------------------------------
-;;; less-css-mode / scss-mode
+;;; less-css-mode
 ;;; ----------------------------------------------------------------------
 (setq less-css-compile-at-save nil)
+(add-to-list 'ac-modes 'less-css-mode)
+(add-hook 'less-css-mode-hook 'ac-css-mode-setup)
+
+;;; ----------------------------------------------------------------------
+;;; scss-mode
+;;; ----------------------------------------------------------------------
 (setq scss-compile-at-save nil)
+(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)) ; emacs-rails が勝手に css-mode に設定しやがるので上書き
+(add-to-list 'ac-modes 'scss-mode)
+(add-hook 'scss-mode-hook 'ac-css-mode-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
-(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; po-mode+
@@ -1030,17 +1039,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
       (append '(
-                ("\\.doc$"               . text-mode)
-                ("\\.[Hh][Tt][Mm][Ll]?$" . html-mode)     ;; HTML Document
-                ("\\.[Aa][Ss][PpAa]$"    . html-mode)     ;; Active Server Page
-                ("\\.[Tt][Pp][Ll]?$"     . html-mode)     ;; Smarty Template
-                ("\\.[Jj][Ss][PpAa]$"    . html-mode)     ;; Java Server Pages
-                ("\\.[ch]java$"          . java-mode)     ;; i-appli
-                ("\\.html\\.erb$"        . html-mode)     ;; HTML(erb)
-                ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
-                ("\\.text\\.erb$"        . text-mode)     ;; Text(erb)
-                ("\\.rtext$"             . text-mode)     ;; Text(erb)
-                ("\\.coffee\\.erb$"      . coffee-mode)   ;; CoffeeScript(erb)
+                ("\\.doc\\'"               . text-mode)
+                ("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
+                ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
+                ("\\.[Tt][Pp][Ll]?\\'"     . html-mode)     ;; Smarty Template
+                ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
+                ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
+                ("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
+                ("\\.rhtml\\'"             . html-mode)     ;; HTML(erb)
+                ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
+                ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
+                ("\\.coffee\\.erb\\'"      . coffee-mode)   ;; CoffeeScript(erb)
                 )
               auto-mode-alist))
 
@@ -1119,7 +1128,14 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-(add-hook 'after-init-hook #'global-flycheck-mode)
+;;(add-hook 'after-init-hook #'global-flycheck-mode)
+(add-hook 'cperl-mode-hook 'flycheck-mode)
+(add-hook 'ruby-mode-hook 'flycheck-mode)
+(require 'flycheck-pyflakes)
+(add-hook 'python-mode-hook 'flycheck-mode)
+(add-hook 'coffee-mode-hook 'flycheck-mode)
+(add-hook 'js2-mode-hook 'flycheck-mode)
+(add-hook 'css-mode-hook 'flycheck-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
