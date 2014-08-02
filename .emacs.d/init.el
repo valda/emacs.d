@@ -138,18 +138,17 @@
     gtags
     js2-mode
     less-css-mode
+    scss-mode
     lispxmp
     lua-mode
     mmm-mode
     open-junk-file
-    ;; paredit
     php-mode
     popwin
     recentf-ext
     ruby-block
     ruby-end
     inf-ruby
-    scss-mode
     session
     shell-pop
     snippet
@@ -166,6 +165,8 @@
     highlight-symbol
     auto-highlight-symbol
     anzu
+    flycheck
+    flycheck-pyflakes
     )
   "A list of packages to install by package.el at launch.")
 
@@ -199,7 +200,6 @@
   '(
     dabbrev-highlight
     howm
-    jaspace
     moccur-edit
     po-mode+
     visual-basic-mode
@@ -213,13 +213,13 @@
 ;;; ----------------------------------------------------------------------
 (require 'diminish)
 (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
-(eval-after-load "jaspace" '(diminish 'jaspace-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
 (eval-after-load "ibus" '(diminish 'ibus-mode))
 (eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
+(eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -704,9 +704,9 @@ Highlight last expanded string."
 (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
 (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
-      (append '(("\\.C$"            . c-mode)
-                ("\\.[Hh]$"         . c++-mode)
-                ("\\.[Hh][Pp][Pp]$" . c++-mode))
+      (append '(("\\.C\\'"            . c-mode)
+                ("\\.[Hh]\\'"         . c++-mode)
+                ("\\.[Hh][Pp][Pp]\\'" . c++-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -749,19 +749,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
 ;;; ----------------------------------------------------------------------
-(when (require 'color-moccur nil t)
-  (require 'moccur-edit)
-  (setq moccur-split-word t) ;スペース区切りでAND検索
-  (when (require 'migemo nil t)
-    (setq moccur-use-migemo t))
-  (setq *moccur-buffer-name-exclusion-list*
-        '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (define-key dired-mode-map "O" 'dired-do-moccur)))
-  (define-key Buffer-menu-mode-map "O" 'Buffer-menu-moccur)
-  (global-set-key "\M-o" 'occur-by-moccur)
-  (global-set-key "\C-c\C-x\C-o" 'moccur))
+(require 'color-moccur)
+(setq moccur-split-word t) ; スペース区切りでAND検索
+(setq moccur-use-migemo t)
+(setq *moccur-buffer-name-exclusion-list*
+      '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (define-key dired-mode-map "O" 'dired-do-moccur)))
+(define-key Buffer-menu-mode-map "O" 'Buffer-menu-moccur)
+(global-set-key "\M-o" 'occur-by-moccur)
+(global-set-key "\C-c\C-x\C-o" 'moccur)
 
 ;;; ----------------------------------------------------------------------
 ;;; dsvn
@@ -782,9 +780,9 @@ Highlight last expanded string."
 ;;; ruby-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
-(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("config\\.ru$" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist '("config\\.ru\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 ;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
 ;; The directory containing FILE becomes the initial working directory
@@ -843,7 +841,7 @@ Highlight last expanded string."
 ;;; rd-mode
 (when (locate-library "rd-mode")
   (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
-  (add-to-list 'auto-mode-alist '("\\.rd$" . rd-mode)))
+  (add-to-list 'auto-mode-alist '("\\.rd\\'" . rd-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-rails
@@ -887,7 +885,7 @@ Highlight last expanded string."
 ;;; python-mode
 ;;; ----------------------------------------------------------------------
 (setq py-indent-offset 4)
-(add-to-list 'auto-mode-alist '("\\.pyw$" . python-mode))
+(add-to-list 'auto-mode-alist '("\\.pyw\\'" . python-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; cperl-mode
@@ -915,7 +913,7 @@ Highlight last expanded string."
             (set-face-underline-p 'cperl-hash-face t)
             (set-face-background 'cperl-hash-face nil)
             ))
-(add-to-list 'auto-mode-alist '("\\.t$" . cperl-mode))
+(add-to-list 'auto-mode-alist '("\\.t\\'" . cperl-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; yaml-mode
@@ -931,12 +929,12 @@ Highlight last expanded string."
 (autoload 'vbp-mode "vbp-mode" "VBP mode." t)
 (setq visual-basic-mode-indent 4)
 (setq auto-mode-alist
-      (append '(("\\.[Ff][Rr][Mm]$" . visual-basic-mode)  ;;Form Module
-        ("\\.[Bb][Aa][Ss]$" . visual-basic-mode)  ;;Bas Module
-        ("\\.[Cc][Ll][Ss]$" . visual-basic-mode)  ;;Class Module
-        ("\\.[Vv][Bb][Ss]$" . visual-basic-mode)  ;;VBScript file
-        ("\\.[Vv][Bb][Pp]$" . vbp-mode)
-        ("\\.[Vv][Bb][Gg]$" . vbp-mode))
+      (append '(("\\.[Ff][Rr][Mm]\\'" . visual-basic-mode)  ;;Form Module
+        ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
+        ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
+        ("\\.[Vv][Bb][Ss]\\'" . visual-basic-mode)  ;;VBScript file
+        ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
+        ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -955,16 +953,25 @@ Highlight last expanded string."
 (add-hook 'js-mode-hook 'js2-minor-mode)
 
 ;;; ----------------------------------------------------------------------
-;;; less-css-mode / scss-mode
+;;; less-css-mode
 ;;; ----------------------------------------------------------------------
 (setq less-css-compile-at-save nil)
+(add-to-list 'ac-modes 'less-css-mode)
+(add-hook 'less-css-mode-hook 'ac-css-mode-setup)
+
+;;; ----------------------------------------------------------------------
+;;; scss-mode
+;;; ----------------------------------------------------------------------
 (setq scss-compile-at-save nil)
+(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)) ; emacs-rails が勝手に css-mode に設定しやがるので上書き
+(add-to-list 'ac-modes 'scss-mode)
+(add-hook 'scss-mode-hook 'ac-css-mode-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
-(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; po-mode+
@@ -1032,17 +1039,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
       (append '(
-                ("\\.doc$"               . text-mode)
-                ("\\.[Hh][Tt][Mm][Ll]?$" . html-mode)     ;; HTML Document
-                ("\\.[Aa][Ss][PpAa]$"    . html-mode)     ;; Active Server Page
-                ("\\.[Tt][Pp][Ll]?$"     . html-mode)     ;; Smarty Template
-                ("\\.[Jj][Ss][PpAa]$"    . html-mode)     ;; Java Server Pages
-                ("\\.[ch]java$"          . java-mode)     ;; i-appli
-                ("\\.html\\.erb$"        . html-mode)     ;; HTML(erb)
-                ("\\.rhtml$"             . html-mode)     ;; HTML(erb)
-                ("\\.text\\.erb$"        . text-mode)     ;; Text(erb)
-                ("\\.rtext$"             . text-mode)     ;; Text(erb)
-                ("\\.coffee\\.erb$"      . coffee-mode)   ;; CoffeeScript(erb)
+                ("\\.doc\\'"               . text-mode)
+                ("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
+                ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
+                ("\\.[Tt][Pp][Ll]?\\'"     . html-mode)     ;; Smarty Template
+                ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
+                ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
+                ("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
+                ("\\.rhtml\\'"             . html-mode)     ;; HTML(erb)
+                ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
+                ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
+                ("\\.coffee\\.erb\\'"      . coffee-mode)   ;; CoffeeScript(erb)
                 )
               auto-mode-alist))
 
@@ -1119,47 +1126,16 @@ Highlight last expanded string."
   (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
-;;; flymake
+;;; flycheck
 ;;; ----------------------------------------------------------------------
-(when (require 'flymake nil t)
-  (defun flymake-ruby-init ()
-    (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-                         'flymake-create-temp-inplace))
-           (local-file  (file-relative-name
-                         temp-file
-                         (file-name-directory buffer-file-name))))
-      (list "ruby" (list "-c" local-file))))
-  (push '(".+\\.r[bu]$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  (push '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file$" flymake-ruby-init) flymake-allowed-file-name-masks)
-  (push '("^\\(.*\\):\\([0-9]+\\): \\(.*\\)$" 1 2 nil 3) flymake-err-line-patterns)
-  (add-hook 'ruby-mode-hook
-            '(lambda ()
-               ;; Don't want flymake mode for ruby regions in rhtml files
-               (if (not (null buffer-file-name)) (flymake-mode))))
-  (defun flymake-perl-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file  (file-relative-name
-                         temp-file
-                         (file-name-directory buffer-file-name))))
-      (list "perl" (list "-wc" local-file))))
-  (push '(".+\\.p[lm]$\\|.+\\.t$" flymake-perl-init) flymake-allowed-file-name-masks)
-  (push '("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1) flymake-err-line-patterns)
-  (add-hook 'cperl-mode-hook
-            '(lambda ()
-               (if (not (null buffer-file-name)) (flymake-mode))))
-  (defun flymake-pyflakes-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file (file-relative-name
-                        temp-file
-                        (file-name-directory buffer-file-name))))
-      (list "pyflakes" (list local-file))))
-  (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.py\\'" flymake-pyflakes-init))
-  (add-hook 'python-mode-hook
-             '(lambda ()
-                (if (not (null buffer-file-name)) (flymake-mode)))))
+;;(add-hook 'after-init-hook #'global-flycheck-mode)
+(add-hook 'cperl-mode-hook 'flycheck-mode)
+(add-hook 'ruby-mode-hook 'flycheck-mode)
+(require 'flycheck-pyflakes)
+(add-hook 'python-mode-hook 'flycheck-mode)
+(add-hook 'coffee-mode-hook 'flycheck-mode)
+(add-hook 'js2-mode-hook 'flycheck-mode)
+(add-hook 'css-mode-hook 'flycheck-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1192,7 +1168,7 @@ Highlight last expanded string."
               (my-make-scratch 1))))
 
 ;;; ----------------------------------------------------------------------
-;; kill-ring に同じ内容の文字列を複数入れない
+;;; kill-ring に同じ内容の文字列を複数入れない
 ;;; ----------------------------------------------------------------------
 (defadvice kill-new (before ys:no-kill-new-duplicates activate)
   (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
@@ -1257,42 +1233,6 @@ Highlight last expanded string."
     "sdic のバッファクローズを普通にする。"
     (bury-buffer sdic-buffer-name))
   )
-
-;;; ----------------------------------------------------------------------
-;;; anything.el
-;;; ----------------------------------------------------------------------
-;; (require 'anything)
-;; (require 'anything-config)
-;; (require 'anything-match-plugin)
-
-;; (setq anything-idle-delay 0.3)
-;; (setq anything-input-idle-delay 0.2)
-;; (setq anything-candidate-number-limit 100)
-;; (when window-system
-;;   (set-face-attribute 'anything-file-name nil
-;;                       :foreground "white" :background nil)
-;;   (set-face-attribute 'anything-dir-priv nil
-;;                       :foreground "LightSkyBlue" :background nil))
-
-;; (defun my-anything ()
-;;   (interactive)
-;;   (anything-other-buffer
-;;    '(anything-c-source-buffers+
-;;      anything-c-source-elscreen
-;;      anything-c-source-files-in-current-dir+
-;;      anything-c-source-bm
-;;      anything-c-source-recentf
-;;      anything-c-source-file-cache)
-;;    " *my-anything*"))
-
-;; (global-set-key (if window-system (kbd "C-;") "\C-x;") 'my-anything)
-;; (global-set-key "\M-x" 'anything-M-x)
-;; (global-set-key "\C-xb" 'anything-buffers+)
-;; (global-set-key "\M-y" 'anything-show-kill-ring)
-
-;; ;;; anything-project
-;; (require 'anything-project)
-;; (global-set-key (kbd "\C-xf") 'anything-project)
 
 ;;; ----------------------------------------------------------------------
 ;;; helm
@@ -1385,6 +1325,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
+(custom-set-variables
+ '(git-gutter:window-width 0))
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1433,24 +1375,36 @@ Highlight last expanded string."
       ad-do-it)))
 
 ;;; ----------------------------------------------------------------------
-;;; jaspace.el
+;;; whitespace-mode like jaspace.el
 ;;; ----------------------------------------------------------------------
-(cond (window-system
-       (require 'jaspace)
-       (setq jaspace-alternate-eol-string "\xab\n")
-       (setq jaspace-highlight-tabs t)
-       (setq jaspace-modes
-             (append '(python-mode php-mode coffee-mode js2-mode) jaspace-modes))))
-
-;;; ----------------------------------------------------------------------
-;;; 行末に存在するスペースを強調表示
-;;; ----------------------------------------------------------------------
-(when (boundp 'show-trailing-whitespace)
-  (setq-default show-trailing-whitespace t)
-  (dolist (m '(calendar-mode-hook ansi-term-after-hook))
-    (add-hook m
-              '(lambda ()
-                 (setq show-trailing-whitespace nil)))))
+(when (and (>= emacs-major-version 23)
+       (require 'whitespace nil t))
+  (setq whitespace-style
+    '(face
+      tabs spaces newline trailing space-before-tab space-after-tab
+      space-mark tab-mark newline-mark))
+  (let ((dark (eq 'dark (frame-parameter nil 'background-mode))))
+    (set-face-attribute 'whitespace-space nil
+            :foreground (if dark "pink4" "azure3")
+            :background 'unspecified)
+    (set-face-attribute 'whitespace-tab nil
+            :foreground (if dark "gray20" "gray80")
+            :background 'unspecified
+            :strike-through t)
+    (set-face-attribute 'whitespace-newline nil
+            :foreground (if dark "darkcyan" "darkseagreen")))
+  (setq whitespace-space-regexp "\\(　+\\)")
+  (setq whitespace-display-mappings
+    '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
+      (space-mark   ?\x8A0 [?\x8A4] [?_]) ; hard space - currency
+      (space-mark   ?\x920 [?\x924] [?_]) ; hard space - currency
+      (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
+      (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
+      (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
+      (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
+      ))
+  (setq whitespace-global-modes '(not dired-mode tar-mode))
+  (global-whitespace-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -1552,6 +1506,7 @@ Highlight last expanded string."
 (global-set-key [f3] 'highlight-symbol-next)
 (global-set-key [(shift f3)] 'highlight-symbol-prev)
 (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
+(add-hook 'coffee-mode-hook 'auto-highlight-symbol-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
