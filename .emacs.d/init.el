@@ -43,6 +43,7 @@
 (setq mode-line-frame-identification " ")
 (setq line-number-mode t)
 (setq column-number-mode t)
+(setq mode-require-final-newline nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -478,16 +479,16 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (when (require 'migemo nil t)
   (setq migemo-command "cmigemo")
-  (setq migemo-options '("-q" "--emacs" "-i" "\g"))
+  (setq migemo-options '("-q" "--emacs"))
   (cond ((eq window-system 'w32)
          (setq migemo-dictionary "../etc/migemo/migemo-dict")
          (setq migemo-coding-system 'japanese-shift-jis-unix))
         (t
          (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
          (setq migemo-coding-system 'utf-8-unix)))
-  (setq migemo-use-pattern-alist t)
-  (setq migemo-use-frequent-pattern-alist t)
-  (setq migemo-pattern-alist-length 1024)
+  (setq migemo-use-pattern-alist nil)
+  ;;(setq migemo-use-frequent-pattern-alist t)
+  ;;(setq migemo-pattern-alist-length 1024)
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
@@ -1244,8 +1245,6 @@ Highlight last expanded string."
 (helm-descbinds-mode)
 (require 'helm-migemo)
 (setq helm-use-migemo t)
-;; (require 'helm-bm) ; autoload
-;; (require 'helm-ls-git) ; autoload
 (require 'helm-buffers)
 (require 'helm-files)
 
