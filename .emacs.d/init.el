@@ -168,6 +168,7 @@
     anzu
     flycheck
     flycheck-pyflakes
+    google-translate
     )
   "A list of packages to install by package.el at launch.")
 
@@ -202,6 +203,7 @@
     dabbrev-highlight
     howm
     moccur-edit
+    po-mode
     po-mode+
     visual-basic-mode
     emacs-rails
@@ -977,12 +979,12 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; po-mode+
 ;;; ----------------------------------------------------------------------
-(autoload 'po-mode "po-mode+"
-  "Major mode for translators to edit PO files" t)
-(add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
-(autoload 'po-find-file-coding-system "po-compat")
-(modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
-                            'po-find-file-coding-system)
+;; (autoload 'po-mode "po-mode+"
+;;   "Major mode for translators to edit PO files" t)
+;; (add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
+;; (autoload 'po-find-file-coding-system "po-compat")
+;; (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
+;;                             'po-find-file-coding-system)
 
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
@@ -1314,6 +1316,7 @@ Highlight last expanded string."
                   ("*Apropos*" :height 30)
                   ("*Help*" :height 30)
                   ("*sdic*" :height 20)
+                  ("*Google Translate*" :height 20)
                   ("^\*helm .+\*$" :regexp t)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
@@ -1404,6 +1407,16 @@ Highlight last expanded string."
       ))
   (setq whitespace-global-modes '(not dired-mode tar-mode))
   (global-whitespace-mode 1))
+
+;;; ----------------------------------------------------------------------
+;;; google-translate.el
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-xt" 'google-translate-at-point)
+(global-set-key "\C-xT" 'google-translate-query-translate)
+(global-set-key "\C-ct" 'google-translate-smooth-translate)
+(custom-set-variables
+  '(google-translate-default-source-language "en")
+  '(google-translate-default-target-language "ja"))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
