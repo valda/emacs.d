@@ -1,5 +1,5 @@
 ;;; -*- mode: lisp-interaction; syntax: elisp; coding: utf-8-unix -*-
-(add-to-list 'load-path "~/.emacs.d/elisp")
+(add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv
@@ -1088,7 +1088,7 @@ Highlight last expanded string."
    (list "~"
          "~/.ssh"
          "~/.emacs.d"
-         "~/.emacs.d/elisp"
+         "~/.emacs.d/lisp"
          "~/bin"
          "~/Dropbox"
          "~/chrome/SubScript"))
@@ -1199,8 +1199,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; uniquify
 ;;; ----------------------------------------------------------------------
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+;(require 'uniquify)
+;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;;; ----------------------------------------------------------------------
 ;;; sdic
@@ -1550,6 +1550,7 @@ Highlight last expanded string."
 (global-set-key [(shift tab)] 'indent-region)
 (global-set-key [backtab] 'indent-region)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
 (cond ((eq window-system 'x)
        (define-key function-key-map [backspace] [8])
        (put 'backspace 'ascii-character 8)
