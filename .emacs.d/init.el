@@ -115,7 +115,7 @@
 (setq package-user-dir "~/.emacs.d/elpa")
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 
 ;; install packages by package.el
@@ -136,7 +136,6 @@
     git-gutter
     git-gutter-fringe
     gist
-    gtags
     js2-mode
     less-css-mode
     scss-mode
@@ -169,6 +168,7 @@
     flycheck
     flycheck-pyflakes
     google-translate
+    web-mode
     )
   "A list of packages to install by package.el at launch.")
 
@@ -391,6 +391,7 @@ Highlight last expanded string."
 (ac-config-default)
 (global-auto-complete-mode t)
 (add-to-list 'ac-modes 'html-mode)
+(add-to-list 'ac-modes 'web-mode)
 ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
@@ -733,23 +734,6 @@ Highlight last expanded string."
   (add-hook 'ruby-mode-hook 'ruby-custom-setup))
 
 ;;; ----------------------------------------------------------------------
-;;; gtags
-;;; ----------------------------------------------------------------------
-;; (add-hook 'gtags-mode-hook
-;;           '(lambda ()
-;;              (local-set-key "\M-t" 'gtags-find-tag)
-;;              (local-set-key "\M-r" 'gtags-find-rtag)
-;;              (local-set-key "\M-s" 'gtags-find-symbol)
-;;              (local-set-key "\C-t" 'gtags-pop-stack)
-;;              (define-key gtags-mode-map [mouse-3] nil)
-;;              (define-key gtags-select-mode-map [mouse-3] nil)))
-;; (add-hook 'c-mode-common-hook
-;;           '(lambda()
-;;              (gtags-mode 1)
-;;              ;;(gtags-make-complete-list)
-;;              ))
-
-;;; ----------------------------------------------------------------------
 ;;; color-moccur
 ;;; ----------------------------------------------------------------------
 (require 'color-moccur)
@@ -875,9 +859,10 @@ Highlight last expanded string."
                        map))))
     (define-key newmap key def)))
 
+(require 'git-commit-mode nil t)
 (add-hook 'git-commit-mode-hook
           (lambda ()
-            (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") nil)))
+            (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") 'git-commit-commit)))
 
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
@@ -1002,7 +987,8 @@ Highlight last expanded string."
     (set-face-bold-p 'mmm-comment-submode-face t)
     ))
   (mmm-add-classes
-   '((mmm-html-css-mode
+   '(
+     (mmm-html-css-mode
       :submode css-mode
       :front "<style[^>]*>\\([^<]*<!--\\)?\n"
       :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
