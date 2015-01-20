@@ -1231,8 +1231,8 @@ Highlight last expanded string."
 (require 'helm-match-plugin)
 (require 'helm-descbinds)
 (helm-descbinds-mode)
-(require 'helm-migemo)
-(setq helm-use-migemo t)
+;;(require 'helm-migemo)
+;;(setq helm-use-migemo nil)
 (require 'helm-buffers)
 (require 'helm-files)
 
