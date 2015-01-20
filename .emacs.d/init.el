@@ -1,5 +1,5 @@
 ;;; -*- mode: lisp-interaction; syntax: elisp; coding: utf-8-unix -*-
-(add-to-list 'load-path "~/.emacs.d/elisp")
+(add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv
@@ -43,6 +43,7 @@
 (setq mode-line-frame-identification " ")
 (setq line-number-mode t)
 (setq column-number-mode t)
+(setq mode-require-final-newline nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -167,6 +168,7 @@
     anzu
     flycheck
     flycheck-pyflakes
+    google-translate
     )
   "A list of packages to install by package.el at launch.")
 
@@ -201,6 +203,7 @@
     dabbrev-highlight
     howm
     moccur-edit
+    po-mode
     po-mode+
     visual-basic-mode
     emacs-rails
@@ -478,16 +481,16 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (when (require 'migemo nil t)
   (setq migemo-command "cmigemo")
-  (setq migemo-options '("-q" "--emacs" "-i" "\g"))
+  (setq migemo-options '("-q" "--emacs"))
   (cond ((eq window-system 'w32)
          (setq migemo-dictionary "../etc/migemo/migemo-dict")
          (setq migemo-coding-system 'japanese-shift-jis-unix))
         (t
          (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
          (setq migemo-coding-system 'utf-8-unix)))
-  (setq migemo-use-pattern-alist t)
-  (setq migemo-use-frequent-pattern-alist t)
-  (setq migemo-pattern-alist-length 1024)
+  (setq migemo-use-pattern-alist nil)
+  ;;(setq migemo-use-frequent-pattern-alist t)
+  ;;(setq migemo-pattern-alist-length 1024)
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
@@ -976,12 +979,12 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; po-mode+
 ;;; ----------------------------------------------------------------------
-(autoload 'po-mode "po-mode+"
-  "Major mode for translators to edit PO files" t)
-(add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
-(autoload 'po-find-file-coding-system "po-compat")
-(modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
-                            'po-find-file-coding-system)
+;; (autoload 'po-mode "po-mode+"
+;;   "Major mode for translators to edit PO files" t)
+;; (add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
+;; (autoload 'po-find-file-coding-system "po-compat")
+;; (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
+;;                             'po-find-file-coding-system)
 
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
@@ -1085,7 +1088,7 @@ Highlight last expanded string."
    (list "~"
          "~/.ssh"
          "~/.emacs.d"
-         "~/.emacs.d/elisp"
+         "~/.emacs.d/lisp"
          "~/bin"
          "~/Dropbox"
          "~/chrome/SubScript"))
@@ -1196,8 +1199,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; uniquify
 ;;; ----------------------------------------------------------------------
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+;(require 'uniquify)
+;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;;; ----------------------------------------------------------------------
 ;;; sdic
@@ -1244,8 +1247,6 @@ Highlight last expanded string."
 (helm-descbinds-mode)
 (require 'helm-migemo)
 (setq helm-use-migemo t)
-;; (require 'helm-bm) ; autoload
-;; (require 'helm-ls-git) ; autoload
 (require 'helm-buffers)
 (require 'helm-files)
 
@@ -1315,6 +1316,7 @@ Highlight last expanded string."
                   ("*Apropos*" :height 30)
                   ("*Help*" :height 30)
                   ("*sdic*" :height 20)
+                  ("*Google Translate*" :height 20)
                   ("^\*helm .+\*$" :regexp t)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
@@ -1405,6 +1407,16 @@ Highlight last expanded string."
       ))
   (setq whitespace-global-modes '(not dired-mode tar-mode))
   (global-whitespace-mode 1))
+
+;;; ----------------------------------------------------------------------
+;;; google-translate.el
+;;; ----------------------------------------------------------------------
+(global-set-key "\C-xt" 'google-translate-at-point)
+(global-set-key "\C-xT" 'google-translate-query-translate)
+(global-set-key "\C-ct" 'google-translate-smooth-translate)
+(custom-set-variables
+  '(google-translate-default-source-language "en")
+  '(google-translate-default-target-language "ja"))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -1538,6 +1550,7 @@ Highlight last expanded string."
 (global-set-key [(shift tab)] 'indent-region)
 (global-set-key [backtab] 'indent-region)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
+(global-set-key (kbd "M-SPC") 'cycle-spacing)
 (cond ((eq window-system 'x)
        (define-key function-key-map [backspace] [8])
        (put 'backspace 'ascii-character 8)
