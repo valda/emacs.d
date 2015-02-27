@@ -502,7 +502,7 @@
      (whitespace-space-after-tab ((t (:background "yellow" :foreground "firebrick"))))
      (whitespace-space-before-tab ((t (:background "DarkOrange" :foreground "firebrick"))))
      (whitespace-tab ((t (:background "grey22" :foreground "aquamarine3"))))
-     (whitespace-trailing ((t (:bold t :background "red1" :foreground "yellow" :weight bold))))
+     (whitespace-trailing ((t (:background "darkred" :foreground "yellow"))))
      (widget-button ((t (:bold t :weight bold))))
      (widget-button-pressed ((t (:foreground "red"))))
      (widget-documentation ((t (:foreground "lime green"))))
