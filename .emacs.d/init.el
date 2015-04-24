@@ -1271,6 +1271,7 @@ Highlight last expanded string."
                   ("*Google Translate*" :height 20)
                   ("^\*helm .+\*$" :regexp t)
                   ("\\*ag search.*\\*" :height 25 :regexp t)
+                  ("*git-gutter:diff*" :height 25 :stick t)
                   (dired-mode :height 20 :position top))
                 popwin:special-display-config))
   (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
