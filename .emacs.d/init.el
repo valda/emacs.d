@@ -92,7 +92,6 @@
     bm
     coffee-mode
     color-moccur
-    color-theme
     csharp-mode
     cygwin-mount
     diminish
@@ -381,12 +380,26 @@ Highlight last expanded string."
 (global-font-lock-mode t)
 
 ;;; ----------------------------------------------------------------------
-;;; color-theme
+;;; hl-line
 ;;; ----------------------------------------------------------------------
-(cond (window-system
-       (require 'color-theme)
-       (load "my-color-theme")
-       (my-color-theme)))
+(defface hlline-face
+  '((((class color)
+      (background dark))
+     (:background "gray15"))
+    (((class color)
+      (background light))
+     (:background "gray50"))
+    (t
+     ()))
+  "*Face used by hl-line.")
+(setq hl-line-face 'hlline-face)
+(global-hl-line-mode t)
+
+;;; ----------------------------------------------------------------------
+;;; theme
+;;; ----------------------------------------------------------------------
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+(load-theme 'mytheme t)
 
 ;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
@@ -431,7 +444,7 @@ Highlight last expanded string."
 ;; (require 'browse-kill-ring)
 ;;  (browse-kill-ring-default-keybindings)
 ;;  (setq browse-kill-ring-no-duplicates t)
-;;  (setq browse-kill-ring-separator "--ヽ(´ー｀)ノ--------------------")
+;;  (browse setq-kill-ring-separator "--ヽ(´ー｀)ノ--------------------")
 ;;  (setq browse-kill-ring-separator-face 'browse-kill-ring-separator-face)
 ;;  (make-face 'browse-kill-ring-separator-face)
 ;;  (set-face-attribute 'browse-kill-ring-separator-face nil
