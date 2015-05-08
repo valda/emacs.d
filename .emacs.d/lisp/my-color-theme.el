@@ -1,4 +1,4 @@
-;;; -*- mode: lisp-interaction; syntax: elisp; coding: utf-8-unix -*-
+;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
 (defun my-color-theme ()
   "Color theme by YAMAGUCHI, Seiji, created 2012-01-27."
   (interactive)

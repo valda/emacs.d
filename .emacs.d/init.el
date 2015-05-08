@@ -1,4 +1,4 @@
-;;; -*- mode: lisp-interaction; syntax: elisp; coding: utf-8-unix -*-
+;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;;; ----------------------------------------------------------------------
@@ -91,7 +91,6 @@
     auto-complete
     bm
     coffee-mode
-    color-moccur
     csharp-mode
     cygwin-mount
     diminish
@@ -134,6 +133,7 @@
     flycheck-pyflakes
     google-translate
     web-mode
+    rainbow-mode
     )
   "A list of packages to install by package.el at launch.")
 
@@ -399,7 +399,9 @@ Highlight last expanded string."
 ;;; theme
 ;;; ----------------------------------------------------------------------
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-(load-theme 'mytheme t)
+;;(load-theme 'mytheme t)
+(load-theme 'monokai t)
+;;(load-theme 'atom-dark t)
 
 ;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
@@ -985,7 +987,7 @@ Highlight last expanded string."
      (mmm-eruby-mode
       :submode ruby-mode
       :front "<%"
-      :back "%>"
+      :back "-?%>"
       :insert ((?c mmm-eruby-mode nil @ "<%" @ " " _ " " @ "%>" @)
                (?e mmm-eruby-mode nil @ "<%=" @ " " _ " " @ "%>" @)))))
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
@@ -1352,16 +1354,16 @@ Highlight last expanded string."
     '(face
       tabs spaces newline trailing space-before-tab space-after-tab
       space-mark tab-mark newline-mark))
-  (let ((dark (eq 'dark (frame-parameter nil 'background-mode))))
-    (set-face-attribute 'whitespace-space nil
-            :foreground (if dark "pink4" "azure3")
-            :background 'unspecified)
-    (set-face-attribute 'whitespace-tab nil
-            :foreground (if dark "gray20" "gray80")
-            :background 'unspecified
-            :strike-through t)
-    (set-face-attribute 'whitespace-newline nil
-            :foreground (if dark "darkcyan" "darkseagreen")))
+  ;; (let ((dark (eq 'dark (frame-parameter nil 'background-mode))))
+  ;;   (set-face-attribute 'whitespace-space nil
+  ;;           :foreground (if dark "pink4" "azure3")
+  ;;           :background 'unspecified)
+  ;;   (set-face-attribute 'whitespace-tab nil
+  ;;           :foreground (if dark "gray20" "gray80")
+  ;;           :background 'unspecified
+  ;;           :strike-through t)
+  ;;   (set-face-attribute 'whitespace-newline nil
+  ;;           :foreground (if dark "darkcyan" "darkseagreen")))
   (setq whitespace-space-regexp "\\(　+\\)")
   (setq whitespace-display-mappings
     '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency

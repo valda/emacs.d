@@ -1,4 +1,4 @@
-;;; -*- mode: lisp-interaction; syntax: elisp; coding: utf-8-unix -*-
+;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
 (deftheme mytheme
   "Color theme by YAMAGUCHI Seiji, Created 2015-05-01.")
 
@@ -16,8 +16,8 @@
  '(secondary-selection ((t (:background "darkslateblue"))))
  '(trailing-whitespace ((t (:background "darkred"))))
  '(font-lock-builtin-face ((t (:foreground "LightSteelBlue"))))
- '(font-lock-comment-delimiter-face ((t (:foreground "LightSlateGrey"))))
- '(font-lock-comment-face ((t (:foreground "LightSlateGrey"))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "OrangeRed"))))
+ '(font-lock-comment-face ((t (:foreground "OrangeRed"))))
  '(font-lock-constant-face ((t (:foreground "Aquamarine"))))
  '(font-lock-doc-face ((t (:foreground "LightSalmon"))))
  '(font-lock-function-name-face ((t (:foreground "LightSkyBlue"))))
@@ -46,7 +46,17 @@
  '(lazy-highlight ((t (:background "paleturquoise4"))))
  '(match ((t (:background "RoyalBlue3"))))
  '(next-error ((t (:background "blue"))))
- '(query-replace ((t (:background "SteelBlue")))))
+ '(query-replace ((t (:background "SteelBlue"))))
+ '(mmm-cleanup-submode-face ((t (:background "Wheat"))))
+ '(mmm-code-submode-face ((t (:background "LightGray"))))
+ '(mmm-comment-submode-face ((t (:background "navy"))))
+ '(mmm-declaration-submode-face ((t (:background "Aquamarine"))))
+ '(mmm-default-submode-face ((t (:background "gray15"))))
+ '(mmm-delimiter-face ((t (nil))))
+ '(mmm-init-submode-face ((t (:background "Pink"))))
+ '(mmm-output-submode-face ((t (:background "Plum"))))
+ '(mmm-special-submode-face ((t (:background "MediumSpringGreen"))))
+ )
 
 ;;;###autoload
 (when load-file-name
