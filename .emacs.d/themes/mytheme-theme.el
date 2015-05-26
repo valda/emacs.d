@@ -56,6 +56,7 @@
  '(mmm-init-submode-face ((t (:background "Pink"))))
  '(mmm-output-submode-face ((t (:background "Plum"))))
  '(mmm-special-submode-face ((t (:background "MediumSpringGreen"))))
+ '(hl-line ((t (:background "gray15"))))
  )
 
 ;;;###autoload

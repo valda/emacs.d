@@ -382,17 +382,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hl-line
 ;;; ----------------------------------------------------------------------
-(defface hlline-face
-  '((((class color)
-      (background dark))
-     (:background "gray15"))
-    (((class color)
-      (background light))
-     (:background "gray50"))
-    (t
-     ()))
-  "*Face used by hl-line.")
-(setq hl-line-face 'hlline-face)
+;; (defface hlline-face
+;;   '((((class color)
+;;       (background dark))
+;;      (:background "gray15"))
+;;     (((class color)
+;;       (background light))
+;;      (:background "gray50"))
+;;     (t
+;;      ()))
+;;   "*Face used by hl-line.")
+;; (setq hl-line-face 'hlline-face)
 (global-hl-line-mode t)
 
 ;;; ----------------------------------------------------------------------
@@ -918,8 +918,18 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
+(custom-set-variables
+ '(js2-basic-offset 2))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 (add-hook 'js-mode-hook 'js2-minor-mode)
+
+;;; ----------------------------------------------------------------------
+;;; coffee-mode
+;;; ----------------------------------------------------------------------
+(add-hook 'coffee-mode-hook
+          '(lambda()
+             (set (make-local-variable 'tab-width) 2)
+             (setq coffee-tab-width 2)))
 
 ;;; ----------------------------------------------------------------------
 ;;; less-css-mode
@@ -1050,19 +1060,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; filecache
 ;;; ----------------------------------------------------------------------
-(require 'filecache)
-(file-cache-add-directory-list
-   (list "~"
-         "~/.ssh"
-         "~/.emacs.d"
-         "~/.emacs.d/lisp"
-         "~/bin"
-         "~/Dropbox"
-         "~/chrome/SubScript"))
-(when (eq window-system 'w32)
-  (file-cache-add-directory-list
-   (list "c:/Libraries/WTL80/include"
-         "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include")))
+;; (require 'filecache)
+;; (file-cache-add-directory-list
+;;    (list "~"
+;;          "~/.ssh"
+;;          "~/bin"
+;;          "~/Dropbox"
+;;          "~/chrome/SubScript"))
+;; (when (eq window-system 'w32)
+;;   (file-cache-add-directory-list
+;;    (list "c:/Libraries/WTL80/include"
+;;          "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include")))
 
 ;;; ----------------------------------------------------------------------
 ;;; recentf-ext
@@ -1230,7 +1238,8 @@ Highlight last expanded string."
      helm-source-elscreen
      helm-source-files-in-current-dir
      helm-source-recentf
-     helm-source-file-cache)
+     ;;helm-source-file-cache
+     )
    " *my-helm*"))
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'my-helm)
@@ -1239,21 +1248,21 @@ Highlight last expanded string."
 (global-set-key "\M-y" 'helm-show-kill-ring)
 (global-set-key "\C-zw" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
-(global-set-key "\C-xf" 'helm-ls-git-ls)
+(global-set-key (if window-system (kbd "C-'") "\C-c'") 'helm-ls-git-ls)
 
 ;; helm-rails
 (require 'helm-rails)
 (helm-rails-def-resource 'layouts  "app/views/layouts/" "^app/views/layouts/(.+)$")
 (helm-rails-def-resource 'migrates "db/migrate/" "^db/migrate/(.+)$")
-(define-keys rails-minor-mode-map
-  ((rails-global-key "g m") 'helm-rails-models)
-  ((rails-global-key "g c") 'helm-rails-controllers)
-  ((rails-global-key "g n") 'helm-rails-mailers)
-  ((rails-global-key "g h") 'helm-rails-helpers)
-  ((rails-global-key "g l") 'helm-rails-layouts)
-  ((rails-global-key "g s") 'helm-rails-stylesheets)
-  ((rails-global-key "g j") 'helm-rails-javascripts)
-  ((rails-global-key "g g") 'helm-rails-migrates))
+;; (define-keys rails-minor-mode-map
+;;   ((rails-global-key "g m") 'helm-rails-models)
+;;   ((rails-global-key "g c") 'helm-rails-controllers)
+;;   ((rails-global-key "g n") 'helm-rails-mailers)
+;;   ((rails-global-key "g h") 'helm-rails-helpers)
+;;   ((rails-global-key "g l") 'helm-rails-layouts)
+;;   ((rails-global-key "g s") 'helm-rails-stylesheets)
+;;   ((rails-global-key "g j") 'helm-rails-javascripts)
+;;   ((rails-global-key "g g") 'helm-rails-migrates))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -1481,7 +1490,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'highlight-symbol)
 (require 'auto-highlight-symbol)
-(setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1"))
+;;(setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1"))
 (global-auto-highlight-symbol-mode t)
 (global-set-key [(control f3)] 'highlight-symbol-at-point)
 (global-set-key [f3] 'highlight-symbol-next)
@@ -1496,7 +1505,8 @@ Highlight last expanded string."
 (setq ag-reuse-window t)
 (setq ag-reuse-buffers t)
 (require 'ag)
-(global-set-key "\C-cg" 'ag)
+(global-set-key "\C-ca" 'ag)
+(global-set-key "\C-cf" 'ag-project)
 
 (require 'wgrep-ag)
 (autoload 'wgrep-ag-setup "wgrep-ag")

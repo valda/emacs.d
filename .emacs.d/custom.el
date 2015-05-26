@@ -6,6 +6,7 @@
  '(git-gutter:window-width 0)
  '(google-translate-default-source-language "en")
  '(google-translate-default-target-language "ja")
+ '(magit-use-overlays nil)
  '(safe-local-variable-values
    (quote
     ((eval when

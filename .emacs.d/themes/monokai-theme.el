@@ -770,7 +770,7 @@ Also affects 'linum-mode' background."
                                                          :style unspecified)))))
 
    `(region
-     ((,class (:background ,monokai-hl
+     ((,class (:background "DeepSkyBlue4"
                            :inherit t))
       (,terminal-class (:background ,terminal-monokai-hl
                                     :inherit t))))
@@ -5163,8 +5163,8 @@ Also affects 'linum-mode' background."
 
    ;; mmm-mode
    `(mmm-default-submode-face
-     ((,class (:background ,monokai-hl-line :inherit t))
-      (,terminal-class (:background ,terminal-monokai-hl-line :inherit t))))
+     ((,class (:background ,gray-d :inherit t))
+      (,terminal-class (:background ,terminal-gray-d :inherit t))))
 
    ;; wanderlust
    `(wl-highlight-folder-few-face

@@ -1,5 +1,9 @@
-;;-*-coding: emacs-mule;-*-
+;;-*-coding: utf-8;-*-
 (define-abbrev-table 'Buffer-menu-mode-abbrev-table '())
+
+(define-abbrev-table 'Info-edit-mode-abbrev-table '())
+
+(define-abbrev-table 'ag-mode-abbrev-table '())
 
 (define-abbrev-table 'antlr-mode-abbrev-table '())
 
@@ -17,6 +21,10 @@ $>*/")) 0)
     ("else" "else" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0)
    ))
+
+(define-abbrev-table 'bookmark-bmenu-mode-abbrev-table '())
+
+(define-abbrev-table 'bookmark-edit-annotation-mode-abbrev-table '())
 
 (define-abbrev-table 'browse-kill-ring-edit-mode-abbrev-table '())
 
@@ -62,6 +70,8 @@ $>*/")) 0)
     ("else" "else" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0)
    ))
+
+(define-abbrev-table 'calendar-mode-abbrev-table '())
 
 (define-abbrev-table 'change-log-mode-abbrev-table '())
 
@@ -126,6 +136,12 @@ $>*/")) 0)
     ("while" "while" c-electric-continued-statement 0)
    ))
 
+(define-abbrev-table 'edit-abbrevs-mode-abbrev-table '())
+
+(define-abbrev-table 'el-get-check-mode-abbrev-table '())
+
+(define-abbrev-table 'emacs-lisp-byte-code-mode-abbrev-table '())
+
 (define-abbrev-table 'emacs-lisp-mode-abbrev-table '())
 
 (define-abbrev-table 'f90-mode-abbrev-table
@@ -184,6 +200,8 @@ $>*/")) 0)
     ("`wh" "where" nil 0)
     ("`wr" "write" nil 0)
    ))
+
+(define-abbrev-table 'flycheck-error-list-mode-abbrev-table '())
 
 (define-abbrev-table 'fortran-mode-abbrev-table
   '(
@@ -249,9 +267,19 @@ $>*/")) 0)
 
 (define-abbrev-table 'fundamental-mode-abbrev-table '())
 
+(define-abbrev-table 'gist-list-mode-abbrev-table '())
+
+(define-abbrev-table 'git-commit-mode-abbrev-table '())
+
 (define-abbrev-table 'global-abbrev-table '())
 
 (define-abbrev-table 'grep-mode-abbrev-table '())
+
+(define-abbrev-table 'helm-grep-mode-abbrev-table '())
+
+(define-abbrev-table 'helm-moccur-mode-abbrev-table '())
+
+(define-abbrev-table 'help-mode-abbrev-table '())
 
 (define-abbrev-table 'html-helper-mode-abbrev-table
   '(
@@ -449,6 +477,8 @@ $><tr><td>$${Data}</td></tr>
     ("title" "" (lambda nil (interactive) (snippet-insert "<title>$${title}</title>")) 0)
    ))
 
+(define-abbrev-table 'ibuffer-mode-abbrev-table '())
+
 (define-abbrev-table 'ibuffer-occur-mode-abbrev-table '())
 
 (define-abbrev-table 'icon-mode-abbrev-table '())
@@ -558,6 +588,10 @@ $><tr><td>$${Data}</td></tr>
     ("xor" "xor" (lambda nil (idlwave-check-abbrev 0 t)) 0)
    ))
 
+(define-abbrev-table 'image-dired-display-image-mode-abbrev-table '())
+
+(define-abbrev-table 'image-dired-thumbnail-mode-abbrev-table '())
+
 (define-abbrev-table 'irbsh-background-shell-mode-abbrev-table '())
 
 (define-abbrev-table 'irbsh-eval-list-mode-abbrev-table '())
@@ -591,6 +625,10 @@ $>*/")) 0)
 (define-abbrev-table 'm4-mode-abbrev-table '())
 
 (define-abbrev-table 'makefile-mode-abbrev-table '())
+
+(define-abbrev-table 'message-mode-abbrev-table '())
+
+(define-abbrev-table 'messages-buffer-mode-abbrev-table '())
 
 (define-abbrev-table 'meta-mode-abbrev-table '())
 
@@ -698,6 +736,8 @@ $><tr><td>$${Data}</td></tr>
     ("while" "while" c-electric-continued-statement 0)
    ))
 
+(define-abbrev-table 'occur-edit-mode-abbrev-table '())
+
 (define-abbrev-table 'occur-mode-abbrev-table '())
 
 (define-abbrev-table 'octave-abbrev-table
@@ -732,7 +772,11 @@ $><tr><td>$${Data}</td></tr>
     ("`w" "while ()" nil 0)
    ))
 
+(define-abbrev-table 'org-mode-abbrev-table '())
+
 (define-abbrev-table 'outline-mode-abbrev-table '())
+
+(define-abbrev-table 'package-menu-mode-abbrev-table '())
 
 (define-abbrev-table 'pascal-mode-abbrev-table '())
 
@@ -756,6 +800,10 @@ $>*/")) 0)
    ))
 
 (define-abbrev-table 'po-mode-abbrev-table '())
+
+(define-abbrev-table 'process-menu-mode-abbrev-table '())
+
+(define-abbrev-table 'prog-mode-abbrev-table '())
 
 (define-abbrev-table 'prolog-mode-abbrev-table '())
 
@@ -1510,6 +1558,8 @@ end$>")) 0)
 
 (define-abbrev-table 'special-mode-abbrev-table '())
 
+(define-abbrev-table 'speedbar-mode-abbrev-table '())
+
 (define-abbrev-table 'sql-mode-abbrev-table
   '(
    ))
@@ -1520,15 +1570,25 @@ end$>")) 0)
 
 (define-abbrev-table 'svn-status-diff-mode-abbrev-table '())
 
+(define-abbrev-table 'tabulated-list-mode-abbrev-table '())
+
 (define-abbrev-table 'tcl-mode-abbrev-table '())
 
+(define-abbrev-table 'term-mode-abbrev-table '())
+
 (define-abbrev-table 'text-mode-abbrev-table '())
+
+(define-abbrev-table 'url-cookie-mode-abbrev-table '())
 
 (define-abbrev-table 'vc-annotate-mode-abbrev-table '())
 
 (define-abbrev-table 'vc-dired-mode-abbrev-table '())
 
+(define-abbrev-table 'vc-git-log-edit-mode-abbrev-table '())
+
 (define-abbrev-table 'vc-git-log-view-mode-abbrev-table '())
+
+(define-abbrev-table 'vc-svn-log-view-mode-abbrev-table '())
 
 (define-abbrev-table 'vhdl-mode-abbrev-table
   '(
@@ -1923,6 +1983,12 @@ end$>")) 0)
     ("workspaces" "Workspaces" nil 0)
     ("write" "Write" nil 0)
     ("year" "Year" nil 0)
+   ))
+
+(define-abbrev-table 'web-mode-abbrev-table
+  '(
+    ("%" "" (lambda nil (interactive) (snippet-insert "<% $. -%>")) 0)
+    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 0)
    ))
 
 (define-abbrev-table 'yaml-mode-abbrev-table '())
