@@ -134,6 +134,7 @@
     google-translate
     web-mode
     rainbow-mode
+    vcl-mode
     )
   "A list of packages to install by package.el at launch.")
 
@@ -1013,6 +1014,13 @@ Highlight last expanded string."
           '(lambda ()
              (setq tex-verbatim-face nil)
              (defun tex-font-lock-suscript () nil)))
+
+;;; ----------------------------------------------------------------------
+;;; vcl-mode
+;;; ----------------------------------------------------------------------
+(custom-set-variables
+  '(vcl-indent-level 2))
+(add-to-list 'auto-mode-alist '("\\.vcl\\'" . vcl-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
