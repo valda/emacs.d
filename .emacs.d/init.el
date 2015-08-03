@@ -466,14 +466,13 @@ Highlight last expanded string."
   (setq migemo-command "cmigemo")
   (setq migemo-options '("-q" "--emacs"))
   (cond ((eq window-system 'w32)
-         (setq migemo-dictionary "../etc/migemo/migemo-dict")
-         (setq migemo-coding-system 'japanese-shift-jis-unix))
+         (setq migemo-dictionary "./dict/utf-8/migemo-dict"))
         (t
-         (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")
-         (setq migemo-coding-system 'utf-8-unix)))
+         (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")))
+  (setq migemo-coding-system 'utf-8-unix)
   (setq migemo-use-pattern-alist nil)
-  ;;(setq migemo-use-frequent-pattern-alist t)
-  ;;(setq migemo-pattern-alist-length 1024)
+  (setq migemo-use-frequent-pattern-alist t)
+  (setq migemo-pattern-alist-length 1024)
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
