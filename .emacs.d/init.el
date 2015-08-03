@@ -828,22 +828,22 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; git-commit-mode では rails-minor-mode の C-c C-c を無効にする
 ;;; ----------------------------------------------------------------------
-(defun local-set-minor-mode-key (mode key def)
-  "Overrides a minor mode keybinding for the local
-   buffer, by creating or altering keymaps stored in buffer-local
-   `minor-mode-overriding-map-alist'."
-  (let* ((oldmap (cdr (assoc mode minor-mode-map-alist)))
-         (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
-                     (let ((map (make-sparse-keymap)))
-                       (set-keymap-parent map oldmap)
-                       (push `(,mode . ,map) minor-mode-overriding-map-alist)
-                       map))))
-    (define-key newmap key def)))
+;; (defun local-set-minor-mode-key (mode key def)
+;;   "Overrides a minor mode keybinding for the local
+;;    buffer, by creating or altering keymaps stored in buffer-local
+;;    `minor-mode-overriding-map-alist'."
+;;   (let* ((oldmap (cdr (assoc mode minor-mode-map-alist)))
+;;          (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
+;;                      (let ((map (make-sparse-keymap)))
+;;                        (set-keymap-parent map oldmap)
+;;                        (push `(,mode . ,map) minor-mode-overriding-map-alist)
+;;                        map))))
+;;     (define-key newmap key def)))
 
-(require 'git-commit-mode nil t)
-(add-hook 'git-commit-mode-hook
-          (lambda ()
-            (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") 'git-commit-commit)))
+;; (require 'git-commit-mode nil t)
+;; (add-hook 'git-commit-mode-hook
+;;           (lambda ()
+;;             (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
