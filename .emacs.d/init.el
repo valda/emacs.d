@@ -743,6 +743,7 @@ Highlight last expanded string."
 ;;; magit
 ;;; ----------------------------------------------------------------------
 (global-set-key "\C-xg" 'magit-status)
+(setq magit-push-always-verify nil)
 
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
@@ -1224,11 +1225,11 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'helm)
 (require 'helm-config)
-(require 'helm-match-plugin)
 (require 'helm-descbinds)
 (helm-descbinds-mode)
+(require 'helm-multi-match)
 ;;(require 'helm-migemo)
-;;(setq helm-use-migemo nil)
+;;(setq helm-use-migemo t)
 (require 'helm-buffers)
 (require 'helm-files)
 
