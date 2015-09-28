@@ -902,7 +902,7 @@ Highlight last expanded string."
       (append '(("\\.[Ff][Rr][Mm]\\'" . visual-basic-mode)  ;;Form Module
         ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
         ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
-        ("\\.[Vv][Bb][Ss]\\'" . visual-basic-mode)  ;;VBScript file
+        ("\\.[Vv][Bb][Ss]?\\'" . visual-basic-mode) ;;VBScript file
         ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
         ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
               auto-mode-alist))
