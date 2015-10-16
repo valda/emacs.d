@@ -911,17 +911,15 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(setq php-mode-force-pear t)
 (add-hook 'php-mode-hook
           '(lambda ()
+             (php-enable-psr2-coding-style)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(js2-basic-offset 2))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 (add-hook 'js-mode-hook 'js2-minor-mode)
 
@@ -1019,8 +1017,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; vcl-mode
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
-  '(vcl-indent-level 2))
 (add-to-list 'auto-mode-alist '("\\.vcl\\'" . vcl-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -1116,13 +1112,14 @@ Highlight last expanded string."
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
 ;;(add-hook 'after-init-hook #'global-flycheck-mode)
+(require 'flycheck-pyflakes)
 (add-hook 'cperl-mode-hook 'flycheck-mode)
 (add-hook 'ruby-mode-hook 'flycheck-mode)
-(require 'flycheck-pyflakes)
 (add-hook 'python-mode-hook 'flycheck-mode)
 (add-hook 'coffee-mode-hook 'flycheck-mode)
 (add-hook 'js2-mode-hook 'flycheck-mode)
 (add-hook 'css-mode-hook 'flycheck-mode)
+(add-hook 'php-mode-hook 'flycheck-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1244,7 +1241,7 @@ Highlight last expanded string."
   (interactive)
   (helm-other-buffer
    '(helm-source-buffers-list
-     helm-source-elscreen
+     ;;helm-source-elscreen
      helm-source-files-in-current-dir
      helm-source-recentf
      ;;helm-source-file-cache
@@ -1314,8 +1311,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
 (global-git-gutter-mode t)
-(custom-set-variables
- '(git-gutter:window-width 0))
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1401,9 +1396,6 @@ Highlight last expanded string."
 (global-set-key "\C-xt" 'google-translate-at-point)
 (global-set-key "\C-xT" 'google-translate-query-translate)
 (global-set-key "\C-ct" 'google-translate-smooth-translate)
-(custom-set-variables
-  '(google-translate-default-source-language "en")
-  '(google-translate-default-target-language "ja"))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
