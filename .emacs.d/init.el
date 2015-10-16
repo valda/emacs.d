@@ -473,6 +473,7 @@ Highlight last expanded string."
   (setq migemo-use-pattern-alist nil)
   (setq migemo-use-frequent-pattern-alist t)
   (setq migemo-pattern-alist-length 1024)
+  (setq migemo-isearch-min-length 2)
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
