@@ -6,6 +6,9 @@
  '(git-gutter:window-width 0)
  '(google-translate-default-source-language "en")
  '(google-translate-default-target-language "ja")
+ '(helm-mini-default-sources
+   (quote
+    (helm-source-elscreen-list helm-source-files-in-current-dir helm-source-recentf helm-source-buffers-list helm-source-ls-git)))
  '(js2-basic-offset 2)
  '(php-mode-coding-style (quote psr2))
  '(session-use-package t nil (session))

@@ -119,6 +119,8 @@ $>*/")) 0)
 
 (define-abbrev-table 'cvs-mode-abbrev-table '())
 
+(define-abbrev-table 'debugger-mode-abbrev-table '())
+
 (define-abbrev-table 'delphi-mode-abbrev-table '())
 
 (define-abbrev-table 'diff-mode-abbrev-table '())
@@ -135,6 +137,8 @@ $>*/")) 0)
     ("finally" "finally" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0)
    ))
+
+(define-abbrev-table 'edebug-eval-mode-abbrev-table '())
 
 (define-abbrev-table 'edit-abbrevs-mode-abbrev-table '())
 
@@ -381,8 +385,8 @@ $><tr><td>$${Data}</td></tr>
 
 (define-abbrev-table 'html-mode-abbrev-table
   '(
-    ("%" "" (lambda nil (interactive) (snippet-insert "<% $. -%>")) 0)
-    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 0)
+    ("%" "" (lambda nil (interactive) (snippet-insert "<% $. -%>")) 1)
+    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 1)
     ("%for" "" (lambda nil (interactive) (snippet-insert "<% for $${elem} in @$${list} %>
 $>$.
 <% end %>$>")) 0)
@@ -784,6 +788,10 @@ $><tr><td>$${Data}</td></tr>
 
 (define-abbrev-table 'php-mode-abbrev-table
   '(
+    ("?" "" (lambda nil (interactive) (snippet-insert "<?php
+$.
+?>")) 1)
+    ("??" "" (lambda nil (interactive) (snippet-insert "<?= $. ?>")) 0)
     ("co" "" (lambda nil (interactive) (snippet-insert "/**
 $>* $.
 $>* @param

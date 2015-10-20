@@ -87,8 +87,11 @@
 ;; install packages by package.el
 (defvar package-el-installing-package-list
   '(
+    ag
+    anzu
     auto-async-byte-compile
     auto-complete
+    auto-highlight-symbol
     bm
     coffee-mode
     csharp-mode
@@ -96,45 +99,44 @@
     diminish
     dsvn
     elscreen
-    magit
+    flycheck
+    flycheck-pyflakes
+    gist
     git-gutter
     git-gutter-fringe
-    gist
+    google-translate
+    helm
+    helm-bm
+    helm-c-yasnippet
+    helm-descbinds
+    helm-ls-git
+    helm-migemo
+    helm-rails
+    highlight-symbol
+    inf-ruby
     js2-mode
     less-css-mode
-    scss-mode
     lispxmp
     lua-mode
+    magit
     mmm-mode
     open-junk-file
     php-mode
     popwin
+    rainbow-mode
     recentf-ext
     ruby-block
     ruby-end
-    inf-ruby
+    scss-mode
     session
     shell-pop
     snippet
     undo-tree
-    yaml-mode
-    helm
-    helm-descbinds
-    helm-migemo
-    helm-bm
-    helm-ls-git
-    helm-rails
-    ag
-    wgrep-ag
-    highlight-symbol
-    auto-highlight-symbol
-    anzu
-    flycheck
-    flycheck-pyflakes
-    google-translate
-    web-mode
-    rainbow-mode
     vcl-mode
+    web-mode
+    wgrep-ag
+    yaml-mode
+    yasnippet
     )
   "A list of packages to install by package.el at launch.")
 
@@ -180,15 +182,16 @@
 ;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
-(require 'diminish)
+;; (require 'diminish)
 (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
-(eval-after-load "ibus" '(diminish 'ibus-mode))
-(eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
+;; (eval-after-load "ibus" '(diminish 'ibus-mode))
+;; (eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
+;; (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -237,6 +240,22 @@
 (require 'imenu)
 
 ;;; ----------------------------------------------------------------------
+;;; snippet.el
+;;; ----------------------------------------------------------------------
+(require 'snippet)
+
+;;; ----------------------------------------------------------------------
+;;; yasnippet.el
+;;; ----------------------------------------------------------------------
+(require 'yasnippet)
+(add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
+(yas-global-mode 1)
+
+;; Remove Yasnippet's default tab key binding
+(define-key yas-minor-mode-map (kbd "<tab>") nil)
+(define-key yas-minor-mode-map (kbd "TAB") nil)
+
+;;; ----------------------------------------------------------------------
 ;;; abbrev/dabbrev
 ;;; ----------------------------------------------------------------------
 (setq save-abbrevs t)
@@ -258,11 +277,13 @@
 (defun try-complete-abbrev (old)
   (if (expand-abbrev) t nil))
 (setq hippie-expand-try-functions-list
-      '(try-complete-abbrev
-        try-complete-file-name
+      '(yas/hippie-try-expand
+        try-complete-abbrev
         try-expand-dabbrev
         try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill))
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name))
 (define-key esc-map  "/" 'hippie-expand) ;; M-/
 
 ;; 光る hippie-expand
@@ -358,13 +379,13 @@ Highlight last expanded string."
 (global-auto-complete-mode t)
 (add-to-list 'ac-modes 'html-mode)
 (add-to-list 'ac-modes 'web-mode)
-;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
 (setq ac-ignore-case t)
-(setq-default ac-sources '(ac-source-dictionary
-                           ac-source-words-in-same-mode-buffers
-                           ac-source-files-in-current-dir))
+(setq-default ac-sources '(ac-source-abbrev
+                           ac-source-dictionary
+                           ac-source-words-in-same-mode-buffers))
 (set-face-attribute 'ac-completion-face nil
                     :foreground "yellow" :underline t)
 (set-face-attribute 'ac-candidate-face nil
@@ -848,11 +869,6 @@ Highlight last expanded string."
 ;;             (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") nil)))
 
 ;;; ----------------------------------------------------------------------
-;;; snippet.el
-;;; ----------------------------------------------------------------------
-(require 'snippet nil t)
-
-;;; ----------------------------------------------------------------------
 ;;; python-mode
 ;;; ----------------------------------------------------------------------
 (setq py-indent-offset 4)
@@ -914,6 +930,9 @@ Highlight last expanded string."
 (add-hook 'php-mode-hook
           '(lambda ()
              (php-enable-psr2-coding-style)
+             (electric-pair-mode t)
+             (electric-indent-mode t)
+             (electric-layout-mode t)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
@@ -1230,6 +1249,9 @@ Highlight last expanded string."
 ;;(setq helm-use-migemo t)
 (require 'helm-buffers)
 (require 'helm-files)
+(require 'helm-ls-git)
+(require 'helm-elscreen)
+(require 'helm-c-yasnippet)
 
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
@@ -1237,18 +1259,7 @@ Highlight last expanded string."
 (setq helm-buffer-max-length 50)
 (setq helm-truncate-lines t)
 
-(defun my-helm ()
-  (interactive)
-  (helm-other-buffer
-   '(helm-source-buffers-list
-     ;;helm-source-elscreen
-     helm-source-files-in-current-dir
-     helm-source-recentf
-     ;;helm-source-file-cache
-     )
-   " *my-helm*"))
-
-(global-set-key (if window-system (kbd "C-;") "\C-c;") 'my-helm)
+(global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
 (global-set-key "\M-x" 'helm-M-x)
 (global-set-key "\C-xb" 'helm-buffers-list)
 (global-set-key "\M-y" 'helm-show-kill-ring)
@@ -1269,6 +1280,10 @@ Highlight last expanded string."
 ;;   ((rails-global-key "g s") 'helm-rails-stylesheets)
 ;;   ((rails-global-key "g j") 'helm-rails-javascripts)
 ;;   ((rails-global-key "g g") 'helm-rails-migrates))
+
+(setq helm-yas-space-match-any-greedy t)
+(global-set-key (kbd "C-c y") 'helm-yas-complete)
+(push '("emacs.+/snippets/" . snippet-mode) auto-mode-alist)
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -1299,7 +1314,7 @@ Highlight last expanded string."
                   ("*Help*" :height 30)
                   ("*sdic*" :height 20)
                   ("*Google Translate*" :height 20)
-                  ("^\*helm .+\*$" :regexp t)
+                  ;;("^\\*helm .+\\*$" :regexp t)
                   ("\\*ag search.*\\*" :height 25 :regexp t)
                   ("*git-gutter:diff*" :height 25 :stick t)
                   (dired-mode :height 20 :position top))
