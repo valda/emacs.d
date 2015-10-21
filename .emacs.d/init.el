@@ -91,7 +91,6 @@
     anzu
     auto-async-byte-compile
     auto-complete
-    auto-highlight-symbol
     bm
     coffee-mode
     csharp-mode
@@ -188,7 +187,6 @@
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
 ;; (eval-after-load "ibus" '(diminish 'ibus-mode))
-;; (eval-after-load "auto-highlight-symbol" '(diminish 'auto-highlight-symbol-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 ;; (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
@@ -1502,17 +1500,14 @@ Highlight last expanded string."
 (setq eldoc-minor-mode-string "")
 
 ;;; ----------------------------------------------------------------------
-;;; highlight-symbol / auto-highlight-symbol
+;;; highlight-symbol
 ;;; ----------------------------------------------------------------------
 (require 'highlight-symbol)
-(require 'auto-highlight-symbol)
-;;(setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1"))
-(global-auto-highlight-symbol-mode t)
 (global-set-key [(control f3)] 'highlight-symbol-at-point)
 (global-set-key [f3] 'highlight-symbol-next)
 (global-set-key [(shift f3)] 'highlight-symbol-prev)
 (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
-(add-hook 'coffee-mode-hook 'auto-highlight-symbol-mode)
+(add-hook 'prog-mode-hook 'highlight-symbol-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
