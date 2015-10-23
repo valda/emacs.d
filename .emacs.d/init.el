@@ -769,10 +769,15 @@ Highlight last expanded string."
 ;;; ruby-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
-(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("config\\.ru\\'" . ruby-mode))
-(add-to-list 'auto-mode-alist '("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode))
+(setq auto-mode-alist
+      (append '(
+                ("\\.rb\\'" . ruby-mode)
+                ("config\\.ru\\'" . ruby-mode)
+                ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode)
+                )
+              auto-mode-alist))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
+
 ;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
 ;; The directory containing FILE becomes the initial working directory
 ;; and source-file directory for your debugger.")
@@ -935,6 +940,21 @@ Highlight last expanded string."
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
 ;;; ----------------------------------------------------------------------
+;;; web-mode
+;;; ----------------------------------------------------------------------
+;; (setq auto-mode-alist
+;;       (append '(
+;;                 ("\\.php\\'" . web-mode)
+;;                 ) auto-mode-alist))
+(add-hook 'web-mode-hook
+          '(lambda()
+             (electric-pair-mode t)
+             ;; (setq web-mode-markup-indent-offset 2)
+             ;; (setq web-mode-css-indent-offset 2)
+             ;; (setq web-mode-code-indent-offset 2)
+             ))
+
+;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
@@ -982,46 +1002,52 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
 ;;; ----------------------------------------------------------------------
-(when (require 'mmm-mode nil t)
-  (setq mmm-global-mode 'maybe)
-  (setq mmm-submode-decoration-level 2)
-  (setq mmm-parse-when-idle t)
-  ;; 非 GUI 端末の場合
-  (if (not window-system)
-      (progn
-    (set-face-background 'mmm-default-submode-face nil)
-    (set-face-bold-p 'mmm-default-submode-face t)
-    (set-face-background 'mmm-comment-submode-face nil)
-    (set-face-bold-p 'mmm-comment-submode-face t)
-    ))
-  (mmm-add-classes
-   '(
-     (mmm-html-css-mode
-      :submode css-mode
-      :front "<style[^>]*>\\([^<]*<!--\\)?\n"
-      :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
-      )
-     (mmm-html-javascript-mode
-      :submode js2-mode
-      :front "<script[^>]*>"
-      :back "</script>")
-     (mmm-jsp-mode
-      :submode java-mode
-      :front "<%"
-      :back "%>"
-      :insert ((?c mmm-jsp-mode nil @ "<%" @ " " _ " " @ "%>" @)
-               (?e mmm-jsp-mode nil @ "<%=" @ " " _ " " @ "%>" @)))
-     (mmm-eruby-mode
-      :submode ruby-mode
-      :front "<%"
-      :back "-?%>"
-      :insert ((?c mmm-eruby-mode nil @ "<%" @ " " _ " " @ "%>" @)
-               (?e mmm-eruby-mode nil @ "<%=" @ " " _ " " @ "%>" @)))))
-  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
-  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  (mmm-add-mode-ext-class nil "\\.html\\.erb\\'" 'mmm-eruby-mode)
-  (mmm-add-mode-ext-class nil "\\.rhtml?\\'" 'mmm-eruby-mode)
-  (mmm-add-mode-ext-class nil "\\.coffee\\.erb\\'" 'mmm-eruby-mode))
+(require 'mmm-mode)
+(setq mmm-global-mode 'maybe)
+(setq mmm-submode-decoration-level 2)
+(setq mmm-parse-when-idle t)
+;; 非 GUI 端末の場合
+(if (not window-system)
+    (progn
+      (set-face-background 'mmm-default-submode-face nil)
+      (set-face-bold-p 'mmm-default-submode-face t)
+      (set-face-background 'mmm-comment-submode-face nil)
+      (set-face-bold-p 'mmm-comment-submode-face t)
+      ))
+(mmm-add-classes
+ '(
+   (mmm-html-css-mode
+    :submode css-mode
+    :front "<style[^>]*>\\([^<]*<!--\\)?\n"
+    :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
+    )
+   (mmm-html-javascript-mode
+    :submode js2-mode
+    :front "<script[^>]*>"
+    :back "</script>")
+   (mmm-jsp-mode
+    :submode java-mode
+    :front "<%[!=]?"
+    :back "%>"
+    :insert ((?% jsp-code nil        @ "<%"  @ " " _ " " @ "%>" @)
+             (?! jsp-declaration nil @ "<%!" @ " " _ " " @ "%>" @)
+             (?= jsp-expression nil  @ "<%=" @ " " _ " " @ "%>" @)))
+   (mmm-eruby-mode
+    :submode ruby-mode
+    :front "<%"
+    :back "-?%>"
+    :insert ((?c eruby nil @ "<%"  @ " " _ " " @ "%>" @)
+             (?e eruby nil @ "<%=" @ " " _ " " @ "%>" @)))
+   (mmm-php-mode
+    :submode php-mode
+    :front "<\\?\\(php\\)?"
+    :back "\\(\\?>\\|\\'\\)")
+   ))
+(mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
+(mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
+(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
+(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
+(mmm-add-mode-ext-class nil "\\.php\\'" 'mmm-php-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; latex-mode
@@ -1048,10 +1074,11 @@ Highlight last expanded string."
                 ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
                 ("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
-                ("\\.rhtml\\'"             . html-mode)     ;; HTML(erb)
+                ("\\.rhtml?\\'"            . html-mode)     ;; HTML(erb)
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
                 ("\\.coffee\\.erb\\'"      . coffee-mode)   ;; CoffeeScript(erb)
+                ("\\.php\\'"               . html-mode)     ;; PHP
                 )
               auto-mode-alist))
 
