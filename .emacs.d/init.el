@@ -98,6 +98,7 @@
     diminish
     dsvn
     elscreen
+    exec-path-from-shell
     flycheck
     flycheck-pyflakes
     gist
@@ -108,6 +109,7 @@
     helm-bm
     helm-c-yasnippet
     helm-descbinds
+    helm-gtags
     helm-ls-git
     helm-migemo
     helm-rails
@@ -168,12 +170,12 @@
 (defvar el-get-installing-package-list
   '(
     dabbrev-highlight
+    emacs-rails
     howm
     moccur-edit
     po-mode
     po-mode+
     visual-basic-mode
-    emacs-rails
     )
   "A list of packages to install by el-get at launch.")
 (el-get 'sync el-get-installing-package-list)
@@ -262,7 +264,6 @@
 (add-hook 'pre-command-hook
           (lambda ()
             (setq abbrev-mode nil)))
-(setq dabbrev-abbrev-skip-leading-regexp "[:@$]")
 
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev-highlight
@@ -283,6 +284,8 @@
         try-complete-file-name-partially
         try-complete-file-name))
 (define-key esc-map  "/" 'hippie-expand) ;; M-/
+(setq dabbrev-case-fold-search t)
+(setq dabbrev-case-replace t)
 
 ;; 光る hippie-expand
 (defvar he-dabbrev-highlight-function "")
@@ -939,19 +942,17 @@ Highlight last expanded string."
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
+
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-;; (setq auto-mode-alist
-;;       (append '(
-;;                 ("\\.php\\'" . web-mode)
-;;                 ) auto-mode-alist))
 (add-hook 'web-mode-hook
           '(lambda()
              (electric-pair-mode t)
              ;; (setq web-mode-markup-indent-offset 2)
              ;; (setq web-mode-css-indent-offset 2)
              ;; (setq web-mode-code-indent-offset 2)
+             (modify-syntax-entry ?% "w" web-mode-syntax-table)
              ))
 
 ;;; ----------------------------------------------------------------------
@@ -1047,7 +1048,7 @@ Highlight last expanded string."
 (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
 (mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
 (mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
-(mmm-add-mode-ext-class nil "\\.php\\'" 'mmm-php-mode)
+(mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; latex-mode
@@ -1078,7 +1079,6 @@ Highlight last expanded string."
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
                 ("\\.coffee\\.erb\\'"      . coffee-mode)   ;; CoffeeScript(erb)
-                ("\\.php\\'"               . html-mode)     ;; PHP
                 )
               auto-mode-alist))
 
@@ -1276,7 +1276,6 @@ Highlight last expanded string."
 (require 'helm-files)
 (require 'helm-ls-git)
 (require 'helm-elscreen)
-(require 'helm-c-yasnippet)
 
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
@@ -1306,9 +1305,25 @@ Highlight last expanded string."
 ;;   ((rails-global-key "g j") 'helm-rails-javascripts)
 ;;   ((rails-global-key "g g") 'helm-rails-migrates))
 
+(require 'helm-c-yasnippet)
 (setq helm-yas-space-match-any-greedy t)
 (global-set-key (kbd "C-c y") 'helm-yas-complete)
 (push '("emacs.+/snippets/" . snippet-mode) auto-mode-alist)
+
+;;(require 'helm-gtags)
+(setq helm-gtags-auto-update t)
+(eval-after-load "helm-gtags"
+  '(progn
+     (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
+     (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+     (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+     (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+     (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+     (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+     (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
+(add-hook 'php-mode-hook 'helm-gtags-mode)
+(add-hook 'ruby-mode-hook 'helm-gtags-mode)
+(add-hook 'python-mode-hook 'helm-gtags-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -1594,5 +1609,6 @@ Highlight last expanded string."
 (put 'downcase-region 'disabled nil)
 
 ;;; ----------------------------------------------------------------------
+(exec-path-from-shell-initialize)
 (cd "~")
 ;;; end of file ;;;
