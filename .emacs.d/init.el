@@ -131,6 +131,7 @@
     scss-mode
     session
     shell-pop
+    smartrep
     snippet
     undo-tree
     vcl-mode
@@ -238,6 +239,11 @@
 ;;; imenu
 ;;; ----------------------------------------------------------------------
 (require 'imenu)
+
+;;; ----------------------------------------------------------------------
+;;; smartrep.el
+;;; ----------------------------------------------------------------------
+(require 'smartrep)
 
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
@@ -1282,6 +1288,8 @@ Highlight last expanded string."
 (setq helm-candidate-number-limit 100)
 (setq helm-buffer-max-length 50)
 (setq helm-truncate-lines t)
+(setq helm-full-frame nil)
+(setq helm-split-window-default-side 'same)
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
 (global-set-key "\M-x" 'helm-M-x)
@@ -1318,8 +1326,11 @@ Highlight last expanded string."
      (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
      (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
      (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-     (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-     (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+     ;; (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+     ;; (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+     (smartrep-define-key
+      helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
+                                  (">" . 'helm-gtags-next-history)))
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 (add-hook 'php-mode-hook 'helm-gtags-mode)
 (add-hook 'ruby-mode-hook 'helm-gtags-mode)
@@ -1344,22 +1355,22 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; popwin.el
 ;;; ----------------------------------------------------------------------
-(when (require 'popwin nil t)
-  (setq display-buffer-function 'popwin:display-buffer)
-  (setq anything-samewindow nil)
-  (setq popwin:special-display-config
-        (append '(("*Backtrace*" :height 20)
-                  ("*Kill Ring*" :height 20 :noselect t)
-                  ("*Apropos*" :height 30)
-                  ("*Help*" :height 30)
-                  ("*sdic*" :height 20)
-                  ("*Google Translate*" :height 20)
-                  ;;("^\\*helm .+\\*$" :regexp t)
-                  ("\\*ag search.*\\*" :height 25 :regexp t)
-                  ("*git-gutter:diff*" :height 25 :stick t)
-                  (dired-mode :height 20 :position top))
-                popwin:special-display-config))
-  (define-key global-map (kbd "C-x p") 'popwin:edisplay-last-buffer))
+(require 'popwin)
+(setq display-buffer-function 'popwin:display-buffer)
+(setq popwin:adjust-other-windows t)
+(setq popwin:special-display-config
+      (append '(("*Backtrace*" :height 20)
+                ("*Kill Ring*" :height 20 :noselect t)
+                ("*Apropos*" :height 30)
+                ("*Help*" :height 30)
+                ("*sdic*" :height 20)
+                ("*Google Translate*" :height 20)
+                ("^\\*helm" :regexp t :height 20)
+                ("\\*ag search.*\\*" :regexp t :height 25)
+                ("*git-gutter:diff*" :height 25 :stick t)
+                (dired-mode :height 20 :position top))
+              popwin:special-display-config))
+(define-key global-map (kbd "C-x p") 'popwin:display-last-buffer)
 
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
@@ -1578,7 +1589,6 @@ Highlight last expanded string."
 (global-set-key "\C-x\C-h" 'help-for-help)
 (global-set-key "\M-g" 'goto-line)
 (global-set-key "\C-xw" 'widen)
-(global-set-key [?\C-=] 'call-last-kbd-macro)
 (global-set-key [(shift tab)] 'indent-region)
 (global-set-key [backtab] 'indent-region)
 (global-set-key "\C-\M-g" 'keyboard-escape-quit)
