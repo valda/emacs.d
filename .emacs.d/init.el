@@ -1162,14 +1162,16 @@ Highlight last expanded string."
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
 ;;(add-hook 'after-init-hook #'global-flycheck-mode)
-(require 'flycheck-pyflakes)
 (add-hook 'cperl-mode-hook 'flycheck-mode)
 (add-hook 'ruby-mode-hook 'flycheck-mode)
-(add-hook 'python-mode-hook 'flycheck-mode)
 (add-hook 'coffee-mode-hook 'flycheck-mode)
 (add-hook 'js2-mode-hook 'flycheck-mode)
 (add-hook 'css-mode-hook 'flycheck-mode)
 (add-hook 'php-mode-hook 'flycheck-mode)
+
+(require 'flycheck-pyflakes)
+(add-hook 'python-mode-hook 'flycheck-mode)
+(add-to-list 'flycheck-disabled-checkers 'python-flake8)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1325,9 +1327,6 @@ Highlight last expanded string."
      (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
      (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
      (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-     (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-     ;; (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-     ;; (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
      (smartrep-define-key
       helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
                                   (">" . 'helm-gtags-next-history)))
@@ -1619,6 +1618,7 @@ Highlight last expanded string."
 (put 'downcase-region 'disabled nil)
 
 ;;; ----------------------------------------------------------------------
-(exec-path-from-shell-initialize)
+(if (not (eq window-system 'w32))
+    (exec-path-from-shell-initialize))
 (cd "~")
 ;;; end of file ;;;
