@@ -820,6 +820,15 @@ Highlight last expanded string."
       (indent-line-to indent)
       (when (> offset 0) (forward-char offset)))))
 
+;; ruby の symbol をいい感じに hippie-expand する
+(defun hippie-expand-ruby-symbols (orig-fun &rest args)
+  (if (eq major-mode 'ruby-mode)
+      (let ((table (make-syntax-table ruby-mode-syntax-table)))
+        (modify-syntax-entry ?: "." table)
+        (with-syntax-table table (apply orig-fun args)))
+    (apply orig-fun args)))
+(advice-add 'hippie-expand :around #'hippie-expand-ruby-symbols)
+
 ;;; rd-mode
 (when (locate-library "rd-mode")
   (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
