@@ -798,6 +798,9 @@ Highlight last expanded string."
              (ruby-end-mode t)
              ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
+             ;; 保存時にマジックコメントを付けない
+             (defadvice ruby-mode-set-encoding
+                 (around ruby-mode-set-encoding-disable activate) nil)
              ))
 
 ;;; ruby-mode のインデントをいい感じにする
@@ -816,30 +819,6 @@ Highlight last expanded string."
     (when indent
       (indent-line-to indent)
       (when (> offset 0) (forward-char offset)))))
-
-(defun ruby-insert-magic-comment-if-needed ()
-  "バッファのcoding-systemをもとにmagic commentをつける。"
-  (when (and
-         (and (eq major-mode 'ruby-mode)
-              (or (not mmm-primary-mode)
-                  (eq mmm-primary-mode 'ruby-mode)))
-         (find-multibyte-characters (point-min) (point-max) 1))
-    (save-excursion
-      (goto-char 1)
-      (when (looking-at "^#!")
-        (forward-line 1))
-      (if (re-search-forward "^#.+coding" (point-at-eol) t)
-          (delete-region (point-at-bol) (point-at-eol))
-        (open-line 1))
-      (let* ((coding-system (symbol-name buffer-file-coding-system))
-             (encoding (cond ((string-match "japanese-iso-8bit\\|euc-j" coding-system)
-                              "euc-jp")
-                             ((string-match "shift.jis\\|sjis\\|cp932" coding-system)
-                              "shift_jis")
-                             ((string-match "utf-8" coding-system)
-                              "utf-8"))))
-        (insert (format "# -*- coding: %s -*-" encoding))))))
-(add-hook 'before-save-hook 'ruby-insert-magic-comment-if-needed)
 
 ;;; rd-mode
 (when (locate-library "rd-mode")
@@ -955,9 +934,11 @@ Highlight last expanded string."
 (add-hook 'web-mode-hook
           '(lambda()
              (electric-pair-mode t)
-             ;; (setq web-mode-markup-indent-offset 2)
-             ;; (setq web-mode-css-indent-offset 2)
-             ;; (setq web-mode-code-indent-offset 2)
+             (electric-indent-local-mode -1)
+             (electric-layout-mode -1)
+             (setq web-mode-markup-indent-offset 2)
+             (setq web-mode-css-indent-offset 2)
+             (setq web-mode-code-indent-offset 2)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
              ))
 
@@ -1290,8 +1271,8 @@ Highlight last expanded string."
 (setq helm-candidate-number-limit 100)
 (setq helm-buffer-max-length 50)
 (setq helm-truncate-lines t)
-(setq helm-full-frame nil)
-(setq helm-split-window-default-side 'same)
+;;(setq helm-full-frame nil)
+;;(setq helm-split-window-default-side 'same)
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
 (global-set-key "\M-x" 'helm-M-x)
@@ -1334,6 +1315,10 @@ Highlight last expanded string."
 (add-hook 'php-mode-hook 'helm-gtags-mode)
 (add-hook 'ruby-mode-hook 'helm-gtags-mode)
 (add-hook 'python-mode-hook 'helm-gtags-mode)
+(add-hook 'html-mode-hook 'helm-gtags-mode)
+(add-hook 'c-mode-hook 'helm-gtags-mode)
+(add-hook 'c++-mode-hook 'helm-gtags-mode)
+(add-hook 'asm-mode-hook 'helm-gtags-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -1364,7 +1349,7 @@ Highlight last expanded string."
                 ("*Help*" :height 30)
                 ("*sdic*" :height 20)
                 ("*Google Translate*" :height 20)
-                ("^\\*helm" :regexp t :height 20)
+                ;;("^\\*helm" :regexp t :height 20)
                 ("\\*ag search.*\\*" :regexp t :height 25)
                 ("*git-gutter:diff*" :height 25 :stick t)
                 (dired-mode :height 20 :position top))
