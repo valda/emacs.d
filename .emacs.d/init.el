@@ -1265,6 +1265,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'helm)
 (require 'helm-config)
+(require 'helm-plugin)
 (require 'helm-descbinds)
 (helm-descbinds-mode)
 (require 'helm-multi-match)
