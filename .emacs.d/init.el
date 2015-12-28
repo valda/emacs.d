@@ -96,6 +96,7 @@
     csharp-mode
     cygwin-mount
     diminish
+    dockerfile-mode
     dsvn
     elscreen
     exec-path-from-shell
@@ -193,6 +194,7 @@
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 ;; (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+(eval-after-load "highlight-symbol" '(diminish 'highlight-symbol-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -931,8 +933,8 @@ Highlight last expanded string."
           '(lambda ()
              (php-enable-psr2-coding-style)
              (electric-pair-mode t)
-             (electric-indent-mode t)
-             (electric-layout-mode t)
+             (electric-indent-mode nil)
+             (electric-layout-mode nil)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
 
