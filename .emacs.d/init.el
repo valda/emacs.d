@@ -117,6 +117,7 @@
     highlight-symbol
     inf-ruby
     js2-mode
+    json-mode
     less-css-mode
     lispxmp
     lua-mode
@@ -957,7 +958,11 @@ Highlight last expanded string."
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-hook 'js-mode-hook 'js2-minor-mode)
+
+;;; ----------------------------------------------------------------------
+;;; json-mode
+;;; ----------------------------------------------------------------------
+(add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; coffee-mode
@@ -1160,6 +1165,7 @@ Highlight last expanded string."
 (add-hook 'js2-mode-hook 'flycheck-mode)
 (add-hook 'css-mode-hook 'flycheck-mode)
 (add-hook 'php-mode-hook 'flycheck-mode)
+(add-hook 'json-mode-hook 'flycheck-mode)
 
 (require 'flycheck-pyflakes)
 (add-hook 'python-mode-hook 'flycheck-mode)

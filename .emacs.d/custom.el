@@ -12,6 +12,16 @@
     (helm-source-elscreen-list helm-source-buffers-list helm-source-ls-git helm-source-recentf)))
  '(js2-basic-offset 2)
  '(php-mode-coding-style (quote psr2))
+ '(safe-local-variable-values
+   (quote
+    ((eval when
+           (fboundp
+            (quote aggressive-indent-mode))
+           (aggressive-indent-mode -1))
+     (eval when
+           (fboundp
+            (quote rainbow-mode))
+           (rainbow-mode 1)))))
  '(session-use-package t nil (session))
  '(vcl-indent-level 2))
 (custom-set-faces
