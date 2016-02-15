@@ -1,0 +1,5 @@
+(:name emacs-php-align
+       :type github
+       :pkgname "tetsujin/emacs-php-align"
+       :description "Emacs's alignment configuration for PHP."
+       :website "https://github.com/tetsujin/emacs-php-align")

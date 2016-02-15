@@ -44,6 +44,7 @@
 (setq line-number-mode t)
 (setq column-number-mode t)
 (setq mode-require-final-newline nil)
+(setq ring-bell-function 'ignore)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -98,6 +99,7 @@
     diminish
     dockerfile-mode
     dsvn
+    editorconfig
     elscreen
     exec-path-from-shell
     flycheck
@@ -123,6 +125,8 @@
     lua-mode
     magit
     mmm-mode
+    mozc
+    mozc-popup
     open-junk-file
     php-mode
     popwin
@@ -174,8 +178,10 @@
   '(
     dabbrev-highlight
     emacs-rails
+    emacs-php-align
     howm
     moccur-edit
+    mozc-el-extensions
     po-mode
     po-mode+
     visual-basic-mode
@@ -201,12 +207,12 @@
 ;;; ibus / uim / mozc
 ;;; ----------------------------------------------------------------------
 (cond ((require 'mozc nil t)
+       (require 'mozc-popup)
+       (require 'mozc-cursor-color)
+       (require 'mozc-mode-line-indicator)
        (setq default-input-method "japanese-mozc")
-       (setq mozc-candidate-style 'overlay)
-       (add-hook 'input-method-activate-hook
-                 (lambda() (set-cursor-color "red")))
-       (add-hook 'input-method-inactivate-hook
-                 (lambda() (set-cursor-color "green"))))
+       (setq mozc-candidate-style 'popup)
+       (add-to-list 'mozc-cursor-color-alist '(direct . "green")))
       ((require 'ibus nil t)
        (add-hook 'after-init-hook 'ibus-mode-on)
        (global-set-key "\C-\\" 'ibus-toggle)
@@ -776,6 +782,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (global-set-key "\C-xg" 'magit-status)
 (setq magit-push-always-verify nil)
+(add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
 
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
@@ -933,12 +940,21 @@ Highlight last expanded string."
 (add-hook 'php-mode-hook
           '(lambda ()
              (php-enable-psr2-coding-style)
+             (setq flycheck-phpcs-standard "PSR2")
              (electric-pair-mode t)
              (electric-indent-mode nil)
              (electric-layout-mode nil)
              (define-key php-mode-map '[(control .)] nil)
-             (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)))
-
+             (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
+             ;;(c-set-offset 'arglist-intro' +)
+             (c-set-offset 'arglist-cont-nonempty' +)
+             ;;(c-set-offset 'arglist-close' 0)
+             (require 'php-align)
+             (php-align-setup)
+             ;;(require 'ac-php)
+             ;;(add-to-list 'ac-sources 'ac-source-php)
+             ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
+             ))
 
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
@@ -1067,6 +1083,11 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.vcl\\'" . vcl-mode))
 
 ;;; ----------------------------------------------------------------------
+;;; editorconfig
+;;; ----------------------------------------------------------------------
+(editorconfig-mode 1)
+
+;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
@@ -1166,10 +1187,11 @@ Highlight last expanded string."
 (add-hook 'css-mode-hook 'flycheck-mode)
 (add-hook 'php-mode-hook 'flycheck-mode)
 (add-hook 'json-mode-hook 'flycheck-mode)
-
 (require 'flycheck-pyflakes)
 (add-hook 'python-mode-hook 'flycheck-mode)
-(add-to-list 'flycheck-disabled-checkers 'python-flake8)
+(setq flycheck-disabled-checkers
+      (append '(python-flake8 ruby-rubylint) flycheck-disabled-checkers))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1337,6 +1359,7 @@ Highlight last expanded string."
 (add-hook 'c-mode-hook 'helm-gtags-mode)
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
 (add-hook 'asm-mode-hook 'helm-gtags-mode)
+(add-hook 'web-mode-hook 'helm-gtags-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu

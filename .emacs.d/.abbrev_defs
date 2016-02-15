@@ -401,6 +401,8 @@ $.
     ("%unless" "" (lambda nil (interactive) (snippet-insert "<% unless $${cond} -%>
 $.
 <% end -%>")) 0)
+    ("<?php ?>" "begin(); ?>
+" nil 0)
     ("body" "" (lambda nil (interactive) (snippet-insert "<body id=\"$${id}\" $${onload}>
 $>$.
 </body>")) 0)
@@ -2032,7 +2034,7 @@ end$>")) 0)
 (define-abbrev-table 'web-mode-abbrev-table
   '(
     ("%" "" (lambda nil (interactive) (snippet-insert "<% $. -%>")) 0)
-    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 0)
+    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 1)
    ))
 
 (define-abbrev-table 'yaml-mode-abbrev-table '())
