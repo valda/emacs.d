@@ -9,7 +9,7 @@
  '(google-translate-default-target-language "ja")
  '(helm-mini-default-sources
    (quote
-    (helm-source-elscreen-list helm-source-buffers-list helm-source-ls-git helm-source-recentf)))
+    (helm-source-buffers-list helm-source-ls-git helm-source-recentf)))
  '(js2-basic-offset 2)
  '(php-mode-coding-style (quote psr2))
  '(safe-local-variable-values

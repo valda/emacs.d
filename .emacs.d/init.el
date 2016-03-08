@@ -402,12 +402,6 @@ Highlight last expanded string."
 (setq-default ac-sources '(ac-source-abbrev
                            ac-source-dictionary
                            ac-source-words-in-same-mode-buffers))
-(set-face-attribute 'ac-completion-face nil
-                    :foreground "yellow" :underline t)
-(set-face-attribute 'ac-candidate-face nil
-                    :background "darkgray" :underline nil)
-(set-face-attribute 'ac-selection-face nil
-                    :background "steelblue")
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;;; ----------------------------------------------------------------------
@@ -949,6 +943,7 @@ Highlight last expanded string."
              ;;(c-set-offset 'arglist-intro' +)
              (c-set-offset 'arglist-cont-nonempty' +)
              ;;(c-set-offset 'arglist-close' 0)
+             (c-set-offset 'case-label 0)
              (require 'php-align)
              (php-align-setup)
              ;;(require 'ac-php)
