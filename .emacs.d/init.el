@@ -697,19 +697,11 @@ Highlight last expanded string."
       (lambda ()
         ;; my-c-stye を登録して有効にする
         (c-add-style "PERSONAL" my-cc-style t)
-        ;; タブ長の設定
-        (setq tab-width 4)
-        ;; タブの代わりにスペースを使う
-        ;(setq indent-tabs-mode nil)
         ;; 自動改行(auto-newline)を有効にする
         (when (fboundp 'c-toggle-auto-newline)
           (c-toggle-auto-newline t))
-        ;; 連続する空白の一括削除(hungry-delete)を有効にする
-        ;(c-toggle-hungry-state t)
         ;; セミコロンで自動改行しない
         (setq c-hanging-semi&comma-criteria nil)
-        ;; カーソルに追従して水平スクロール
-        ;; (setq truncate-lines t)
         ;; コンパイルコマンドの設定
         (setq compile-command "make -k" )     ; Cygwin の make
         ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
@@ -885,7 +877,6 @@ Highlight last expanded string."
 (defalias 'perl-mode 'cperl-mode)
 (add-hook 'cperl-mode-hook
           (lambda ()
-            ;;(setq indent-tabs-mode nil)
             (setq cperl-indent-level 4)
             (setq cperl-indent-tabs-mode nil)
             (setq cperl-continued-statement-offset 4)
@@ -893,7 +884,7 @@ Highlight last expanded string."
             (setq cperl-close-paren-offset -4)
             (setq cperl-indent-parens-as-block t)
             (setq cperl-invalid-face nil)
-            ;(setq cperl-electric-parens t)
+            (setq cperl-electric-parens nil)
             (setq cperl-auto-newline t)
             ;; face の設定
             (set-face-bold-p 'cperl-array-face nil)
