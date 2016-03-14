@@ -707,7 +707,6 @@ Highlight last expanded string."
         ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
         (setq compilation-window-height 16)))
 
-(define-key c-mode-base-map "\r" 'newline-and-indent)
 (define-key c-mode-base-map "\C-cc" 'compile)
 (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
 (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
@@ -898,13 +897,6 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.t\\'" . cperl-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; yaml-mode
-;;; ----------------------------------------------------------------------
-(add-hook 'yaml-mode-hook
-          '(lambda ()
-             (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
-
-;;; ----------------------------------------------------------------------
 ;;; visual-basic-mode
 ;;; ----------------------------------------------------------------------
 (autoload 'visual-basic-mode "visual-basic-mode" "Basic Editing Mode" t)
@@ -953,6 +945,9 @@ Highlight last expanded string."
              (setq web-mode-markup-indent-offset 2)
              (setq web-mode-css-indent-offset 2)
              (setq web-mode-code-indent-offset 2)
+             (setq web-mode-style-padding 0)
+             (setq web-mode-script-padding 0)
+             (setq web-mode-block-padding 0)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
              ))
 
@@ -1592,6 +1587,8 @@ Highlight last expanded string."
 ;;; その他のキーバインド
 ;;; ----------------------------------------------------------------------
 (find-function-setup-keys)
+(global-set-key "\C-m" 'newline-and-indent)
+(global-set-key "\C-j" 'newline)
 (global-set-key [home] 'beginning-of-buffer )
 (global-set-key [end] 'end-of-buffer )
 (global-set-key [C-next] 'scroll-other-window)
