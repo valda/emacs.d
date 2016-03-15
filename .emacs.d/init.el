@@ -950,6 +950,8 @@ Highlight last expanded string."
              (setq web-mode-block-padding 0)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
              ))
+;; views という directory 配下に有る php ファイルは web-mode で開く
+(add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
@@ -1617,6 +1619,11 @@ Highlight last expanded string."
        (global-set-key "\C-h" (quote delete-backward-char))))
 (define-key isearch-mode-map [(control h)] 'isearch-delete-char)
 (define-key isearch-mode-map [backspace] 'isearch-delete-char)
+(smartrep-define-key
+    global-map "C-x" '(("^" . 'enlarge-window)
+                       ("_" . 'shrink-window)
+                       ("{" . 'shrink-window-horizontally)
+                       ("}" . 'enlarge-window-horizontally)))
 
 ;;; ----------------------------------------------------------------------
 ;;; narrowing などの操作を有効化
