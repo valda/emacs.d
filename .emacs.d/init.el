@@ -940,8 +940,8 @@ Highlight last expanded string."
 (add-hook 'web-mode-hook
           '(lambda()
              (electric-pair-mode t)
-             (electric-indent-local-mode -1)
-             (electric-layout-mode -1)
+             ;;(electric-indent-local-mode -1)
+             ;;(electric-layout-mode -1)
              (setq web-mode-markup-indent-offset 2)
              (setq web-mode-css-indent-offset 2)
              (setq web-mode-code-indent-offset 2)
