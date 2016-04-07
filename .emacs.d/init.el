@@ -125,6 +125,7 @@
     lua-mode
     magit
     mmm-mode
+    monokai-theme
     mozc
     mozc-popup
     open-junk-file
@@ -414,26 +415,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hl-line
 ;;; ----------------------------------------------------------------------
-;; (defface hlline-face
-;;   '((((class color)
-;;       (background dark))
-;;      (:background "gray15"))
-;;     (((class color)
-;;       (background light))
-;;      (:background "gray50"))
-;;     (t
-;;      ()))
-;;   "*Face used by hl-line.")
-;; (setq hl-line-face 'hlline-face)
 (global-hl-line-mode t)
-
-;;; ----------------------------------------------------------------------
-;;; theme
-;;; ----------------------------------------------------------------------
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-;;(load-theme 'mytheme t)
-(load-theme 'monokai t)
-;;(load-theme 'atom-dark t)
 
 ;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
@@ -940,6 +922,7 @@ Highlight last expanded string."
 (add-hook 'web-mode-hook
           '(lambda()
              (electric-pair-mode t)
+             (add-to-list 'electric-pair-pairs '(?' . ?'))
              ;;(electric-indent-local-mode -1)
              ;;(electric-layout-mode -1)
              (setq web-mode-markup-indent-offset 2)
@@ -1584,6 +1567,22 @@ Highlight last expanded string."
 (autoload 'wgrep-ag-setup "wgrep-ag")
 (add-hook 'ag-mode-hook 'wgrep-ag-setup)
 (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)
+
+;;; ----------------------------------------------------------------------
+;;; monokai-theme
+;;; ----------------------------------------------------------------------
+(load-theme 'monokai t)
+(set-face-attribute 'region nil
+                    :foreground 'unspecified
+                    :background "DeepSkyBlue4"
+                    :inherit t)
+(set-face-attribute 'whitespace-trailing nil
+                    :background "orange"
+                    :foreground 'unspecified
+                    :inverse-video 'unspecified)
+(set-face-attribute 'mmm-default-submode-face nil
+                    :background "gray25"
+                    :inherit t)
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
