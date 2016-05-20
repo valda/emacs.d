@@ -142,6 +142,8 @@ $>*/")) 0)
 
 (define-abbrev-table 'edit-abbrevs-mode-abbrev-table '())
 
+(define-abbrev-table 'editorconfig-conf-mode-abbrev-table '())
+
 (define-abbrev-table 'el-get-check-mode-abbrev-table '())
 
 (define-abbrev-table 'emacs-lisp-byte-code-mode-abbrev-table '())
@@ -280,6 +282,8 @@ $>*/")) 0)
 (define-abbrev-table 'grep-mode-abbrev-table '())
 
 (define-abbrev-table 'helm-grep-mode-abbrev-table '())
+
+(define-abbrev-table 'helm-major-mode-abbrev-table '())
 
 (define-abbrev-table 'helm-moccur-mode-abbrev-table '())
 
@@ -2034,7 +2038,9 @@ end$>")) 0)
 (define-abbrev-table 'web-mode-abbrev-table
   '(
     ("%" "" (lambda nil (interactive) (snippet-insert "<% $. -%>")) 0)
-    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 1)
+    ("%%" "" (lambda nil (interactive) (snippet-insert "<%= $. %>")) 0)
+    ("?" "" (lambda nil (interactive) (snippet-insert "<?php $. ?>")) 0)
+    ("??" "" (lambda nil (interactive) (snippet-insert "<?= $. ?>")) 0)
    ))
 
 (define-abbrev-table 'yaml-mode-abbrev-table '())

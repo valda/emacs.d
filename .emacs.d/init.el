@@ -112,6 +112,7 @@
     helm-bm
     helm-c-yasnippet
     helm-descbinds
+    helm-flycheck
     helm-gtags
     helm-ls-git
     helm-migemo
@@ -777,8 +778,7 @@ Highlight last expanded string."
              (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              ;; 保存時にマジックコメントを付けない
              (defadvice ruby-mode-set-encoding
-                 (around ruby-mode-set-encoding-disable activate) nil)
-             ))
+                 (around ruby-mode-set-encoding-disable activate) nil)))
 
 ;;; ruby-mode のインデントをいい感じにする
 (setq ruby-deep-indent-paren-style nil)
@@ -898,6 +898,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (add-hook 'php-mode-hook
           '(lambda ()
+             (require 'php-align)
+             (php-align-setup)
              (php-enable-psr2-coding-style)
              (setq flycheck-phpcs-standard "PSR2")
              (electric-pair-mode t)
@@ -908,9 +910,7 @@ Highlight last expanded string."
              ;;(c-set-offset 'arglist-intro' +)
              (c-set-offset 'arglist-cont-nonempty' +)
              ;;(c-set-offset 'arglist-close' 0)
-             (c-set-offset 'case-label 0)
-             (require 'php-align)
-             (php-align-setup)
+             (c-set-offset 'case-label +)
              ;;(require 'ac-php)
              ;;(add-to-list 'ac-sources 'ac-source-php)
              ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
@@ -932,6 +932,7 @@ Highlight last expanded string."
              (setq web-mode-script-padding 0)
              (setq web-mode-block-padding 0)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
+             (modify-syntax-entry ?? "w" web-mode-syntax-table)
              ))
 ;; views という directory 配下に有る php ファイルは web-mode で開く
 (add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
@@ -1158,7 +1159,6 @@ Highlight last expanded string."
 (setq flycheck-disabled-checkers
       (append '(python-flake8 ruby-rubylint) flycheck-disabled-checkers))
 
-
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
 ;;; ----------------------------------------------------------------------
@@ -1327,6 +1327,9 @@ Highlight last expanded string."
 (add-hook 'asm-mode-hook 'helm-gtags-mode)
 (add-hook 'web-mode-hook 'helm-gtags-mode)
 
+(eval-after-load 'flycheck
+  '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
+
 ;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
@@ -1357,7 +1360,7 @@ Highlight last expanded string."
                 ("*sdic*" :height 20)
                 ("*Google Translate*" :height 20)
                 ;;("^\\*helm" :regexp t :height 20)
-                ("\\*ag search.*\\*" :regexp t :height 25)
+                ;;("\\*ag search.*\\*" :regexp t :height 25)
                 ("*git-gutter:diff*" :height 25 :stick t)
                 (dired-mode :height 20 :position top))
               popwin:special-display-config))
@@ -1404,9 +1407,11 @@ Highlight last expanded string."
     (interactive)
     (cond
      ((term-in-line-mode)
-      (term-char-mode))
+      (term-char-mode)
+      (hl-line-mode -1))
      ((term-in-char-mode)
-      (term-line-mode))))
+      (term-line-mode)
+      (hl-line-mode 1))))
 
   (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
     "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
