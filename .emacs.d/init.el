@@ -118,6 +118,7 @@
     helm-migemo
     helm-rails
     highlight-symbol
+    howm
     inf-ruby
     js2-mode
     json-mode
@@ -181,7 +182,6 @@
     dabbrev-highlight
     emacs-rails
     emacs-php-align
-    howm
     moccur-edit
     mozc-el-extensions
     po-mode
@@ -502,7 +502,11 @@ Highlight last expanded string."
 ;;; howm
 ;;; ----------------------------------------------------------------------
 (setq howm-compatible-to-ver1dot3 t)
-(setq howm-directory "~/Dropbox/Documents/howm/")
+(setq howm-directory
+      (cond ((string-equal system-name "SILVER")
+             "D:/Dropbox/Documents/howm/")
+            (t
+             "~/Dropbox/Documents/howm/")))
 (setq howm-menu-lang 'ja)
 (global-set-key "\C-c,," 'howm-menu)
 (mapc
