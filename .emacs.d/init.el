@@ -133,6 +133,7 @@
     open-junk-file
     php-mode
     popwin
+    rainbow-delimiters
     rainbow-mode
     recentf-ext
     ruby-block
@@ -693,7 +694,8 @@ Highlight last expanded string."
         ;; コンパイルコマンドの設定
         (setq compile-command "make -k" )     ; Cygwin の make
         ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
-        (setq compilation-window-height 16)))
+        (setq compilation-window-height 16)
+        (electric-pair-mode t)))
 
 (define-key c-mode-base-map "\C-cc" 'compile)
 (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
@@ -941,6 +943,7 @@ Highlight last expanded string."
              ))
 ;; views という directory 配下に有る php ファイルは web-mode で開く
 (add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("/Smarty/templates/.*\\.\\(php\\|tpl\\)\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
@@ -1067,7 +1070,6 @@ Highlight last expanded string."
                 ("\\.doc\\'"               . text-mode)
                 ("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
                 ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
-                ("\\.[Tt][Pp][Ll]?\\'"     . html-mode)     ;; Smarty Template
                 ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
                 ("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
@@ -1151,18 +1153,36 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-;;(add-hook 'after-init-hook #'global-flycheck-mode)
-(add-hook 'cperl-mode-hook 'flycheck-mode)
-(add-hook 'ruby-mode-hook 'flycheck-mode)
-(add-hook 'coffee-mode-hook 'flycheck-mode)
-(add-hook 'js2-mode-hook 'flycheck-mode)
-(add-hook 'css-mode-hook 'flycheck-mode)
-(add-hook 'php-mode-hook 'flycheck-mode)
-(add-hook 'json-mode-hook 'flycheck-mode)
+;; (add-hook 'c-mode-common-hook
+;;           (lambda ()
+;;             (setq flycheck-gcc-language-standard "c++11")
+;;             (setq flycheck-clang-language-standard "c++11")
+;;             (flycheck-mode)))
+;; (add-hook 'cperl-mode-hook 'flycheck-mode)
+;; (add-hook 'ruby-mode-hook 'flycheck-mode)
+;; (add-hook 'coffee-mode-hook 'flycheck-mode)
+;; (add-hook 'js2-mode-hook 'flycheck-mode)
+;; (add-hook 'css-mode-hook 'flycheck-mode)
+;; (add-hook 'php-mode-hook 'flycheck-mode)
+;; (add-hook 'json-mode-hook 'flycheck-mode)
+;; (add-hook 'python-mode-hook
+;;           (lambda ()
+;;             (require 'flycheck-pyflakes)
+;;             (flycheck-mode)))
+;; (setq flycheck-disabled-checkers
+;;       (append '(python-flake8 ruby-rubylint) flycheck-disabled-checkers))
+
 (require 'flycheck-pyflakes)
-(add-hook 'python-mode-hook 'flycheck-mode)
+(add-hook 'after-init-hook #'global-flycheck-mode)
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (setq flycheck-gcc-language-standard "c++11")
+            (setq flycheck-clang-language-standard "c++11")))
 (setq flycheck-disabled-checkers
-      (append '(python-flake8 ruby-rubylint) flycheck-disabled-checkers))
+      (append '(python-flake8
+                python-pylint
+                ruby-rubylint)
+              flycheck-disabled-checkers))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1562,6 +1582,11 @@ Highlight last expanded string."
 (global-set-key [(shift f3)] 'highlight-symbol-prev)
 (global-set-key [(meta f3)] 'highlight-symbol-query-replace)
 (add-hook 'prog-mode-hook 'highlight-symbol-mode)
+
+;;; ----------------------------------------------------------------------
+;;; rainbow-delimiters
+;;; ----------------------------------------------------------------------
+(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
