@@ -116,7 +116,7 @@
     helm-gtags
     helm-ls-git
     helm-migemo
-    helm-rails
+    ;;helm-rails
     highlight-symbol
     howm
     inf-ruby
@@ -1286,7 +1286,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'helm)
 (require 'helm-config)
-(require 'helm-plugin)
+;;(require 'helm-plugin)
 (require 'helm-descbinds)
 (helm-descbinds-mode)
 (require 'helm-multi-match)
@@ -1314,9 +1314,9 @@ Highlight last expanded string."
 (global-set-key (if window-system (kbd "C-'") "\C-c'") 'helm-ls-git-ls)
 
 ;; helm-rails
-(require 'helm-rails)
-(helm-rails-def-resource 'layouts  "app/views/layouts/" "^app/views/layouts/(.+)$")
-(helm-rails-def-resource 'migrates "db/migrate/" "^db/migrate/(.+)$")
+;;(require 'helm-rails)
+;;(helm-rails-def-resource 'layouts  "app/views/layouts/" "^app/views/layouts/(.+)$")
+;;(helm-rails-def-resource 'migrates "db/migrate/" "^db/migrate/(.+)$")
 ;; (define-keys rails-minor-mode-map
 ;;   ((rails-global-key "g m") 'helm-rails-models)
 ;;   ((rails-global-key "g c") 'helm-rails-controllers)
