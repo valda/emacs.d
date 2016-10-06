@@ -45,6 +45,7 @@
 (setq column-number-mode t)
 (setq mode-require-final-newline nil)
 (setq ring-bell-function 'ignore)
+(setq search-default-regexp-mode nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -1472,6 +1473,7 @@ Highlight last expanded string."
       (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
       (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
       (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
+      (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t]) ; hard tab
       (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
       ))
   (setq whitespace-global-modes '(not dired-mode tar-mode))
@@ -1615,9 +1617,19 @@ Highlight last expanded string."
                     :background "orange"
                     :foreground 'unspecified
                     :inverse-video 'unspecified)
+(set-face-attribute 'whitespace-tab nil
+                    :foreground 'unspecified
+                    :foreground "brown4"
+                    :background 'unspecified
+                    :inverse-video 'unspecified
+                    :weight 'unspecified)
 (set-face-attribute 'mmm-default-submode-face nil
                     :background "gray25"
                     :inherit t)
+(eval-after-load "howm"
+  '(set-face-attribute 'howm-mode-title-face nil
+                         :foreground "RoyalBlue"
+                         :weight 'bold))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
