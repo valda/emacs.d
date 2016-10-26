@@ -116,10 +116,9 @@
     helm-flycheck
     helm-gtags
     helm-ls-git
-    helm-migemo
-    ;;helm-rails
     highlight-symbol
     howm
+    ido-vertical-mode
     inf-ruby
     js2-mode
     json-mode
@@ -127,6 +126,7 @@
     lispxmp
     lua-mode
     magit
+    migemo
     mmm-mode
     monokai-theme
     mozc
@@ -137,6 +137,7 @@
     rainbow-delimiters
     rainbow-mode
     recentf-ext
+    rinari
     ruby-block
     ruby-end
     scss-mode
@@ -182,7 +183,6 @@
 (defvar el-get-installing-package-list
   '(
     dabbrev-highlight
-    emacs-rails
     emacs-php-align
     moccur-edit
     mozc-el-extensions
@@ -206,6 +206,7 @@
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 ;; (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
 (eval-after-load "highlight-symbol" '(diminish 'highlight-symbol-mode))
+(eval-after-load "helm" '(diminish 'helm-migemo-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibus / uim / mozc
@@ -247,6 +248,14 @@
      " undefined"
      ))
   (global-set-key "\C-x\C-b" 'ibuffer))
+
+;;; ----------------------------------------------------------------------
+;;; ido-mode
+;;; ----------------------------------------------------------------------
+(setq ido-enable-flex-matching t)
+(setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
+(ido-mode t)
+(ido-vertical-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; imenu
@@ -782,8 +791,6 @@ Highlight last expanded string."
              (electric-indent-mode t)
              (electric-layout-mode t)
              (ruby-end-mode t)
-             ;; (define-key ruby-mode-map "\C-cd" 'rubydb)
-             (define-key ruby-mode-map (kbd "C-c C-c") nil) ; emacs-rails prefix key
              ;; 保存時にマジックコメントを付けない
              (defadvice ruby-mode-set-encoding
                  (around ruby-mode-set-encoding-disable activate) nil)))
@@ -818,40 +825,6 @@ Highlight last expanded string."
 (when (locate-library "rd-mode")
   (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
   (add-to-list 'auto-mode-alist '("\\.rd\\'" . rd-mode)))
-
-;;; ----------------------------------------------------------------------
-;;; emacs-rails
-;;; ----------------------------------------------------------------------
-(setq rails-minor-mode-local-prefix-key "C-c")
-(setq rails-minor-mode-global-prefix-key "C-c C-c")
-(setq rails-indent-and-complete nil)
-(require 'rails)
-(define-keys rails-minor-mode-map
-  ("\C-c\C-p"            'rails-lib:run-primary-switch)
-  ("\C-c\C-n"            'rails-lib:run-secondary-switch)
-  ([?\C-.]               'redo))
-(define-keys rails-view-minor-mode-map
-  ("\C-c\C-cp"           'rails-view-minor-mode:create-partial-from-selection))
-
-;;; ----------------------------------------------------------------------
-;;; git-commit-mode では rails-minor-mode の C-c C-c を無効にする
-;;; ----------------------------------------------------------------------
-;; (defun local-set-minor-mode-key (mode key def)
-;;   "Overrides a minor mode keybinding for the local
-;;    buffer, by creating or altering keymaps stored in buffer-local
-;;    `minor-mode-overriding-map-alist'."
-;;   (let* ((oldmap (cdr (assoc mode minor-mode-map-alist)))
-;;          (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
-;;                      (let ((map (make-sparse-keymap)))
-;;                        (set-keymap-parent map oldmap)
-;;                        (push `(,mode . ,map) minor-mode-overriding-map-alist)
-;;                        map))))
-;;     (define-key newmap key def)))
-
-;; (require 'git-commit-mode nil t)
-;; (add-hook 'git-commit-mode-hook
-;;           (lambda ()
-;;             (local-set-minor-mode-key 'rails-minor-mode (kbd "C-c C-c") nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
@@ -975,7 +948,7 @@ Highlight last expanded string."
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
 (setq scss-compile-at-save nil)
-(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)) ; emacs-rails が勝手に css-mode に設定しやがるので上書き
+(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode))
 (add-to-list 'ac-modes 'scss-mode)
 (add-hook 'scss-mode-hook 'ac-css-mode-setup)
 
@@ -1059,6 +1032,32 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.vcl\\'" . vcl-mode))
 
 ;;; ----------------------------------------------------------------------
+;;; rinari
+;;; ----------------------------------------------------------------------
+(require 'rinari)
+(global-rinari-mode t)
+
+;; ;; ido を helm に置き換える advice
+;; (defun advice:ido-completing-read--helm (prompt choices &optional _predicate require-match
+;;                                          initial-input hist def _inherit-input-method)
+;;   (helm-comp-read prompt choices :must-match t))
+
+;; (defun helm-rinari-find-model()
+;;   (interactive)
+;;   (advice-add 'ido-completing-read :override 'advice:ido-completing-read--helm)
+;;   (rinari-find-model)
+;;   (advice-remove 'ido-completing-read 'advice:ido-completing-read--helm))
+
+;; (defun helm-rinari-find-controller()
+;;   (interactive)
+;;   (advice-add 'ido-completing-read :override 'advice:ido-completing-read--helm)
+;;   (rinari-find-controller)
+;;   (advice-remove 'ido-completing-read 'advice:ido-completing-read--helm))
+
+;; (define-key rinari-minor-mode-map (kbd "C-c ; f m") 'helm-rinari-find-model)
+;; (define-key rinari-minor-mode-map (kbd "C-c ; f c") 'helm-rinari-find-controller)
+
+;;; ----------------------------------------------------------------------
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (editorconfig-mode 1)
@@ -1121,9 +1120,12 @@ Highlight last expanded string."
 ;;          "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include")))
 
 ;;; ----------------------------------------------------------------------
-;;; recentf-ext
+;;; recentf
 ;;; ----------------------------------------------------------------------
 (setq recentf-max-saved-items 10000)
+(setq recentf-exclude '(".recentf"))
+(setq recentf-auto-cleanup 10)
+(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
 (require 'recentf-ext nil t)
 
 ;;; ----------------------------------------------------------------------
@@ -1131,9 +1133,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq history-length t)
 (setq session-initialize '(de-saveplace session keys menus places)
-      session-globals-include '((kill-ring 100)
-                                (session-file-alist 100 t)
-                                (file-name-history 1000)))
+      session-globals-include '((kill-ring 1000)
+                                (session-file-alist 1000 t)
+                                (file-name-history 10000)))
 (setq session-globals-max-string 10000000)
 (setq session-save-print-spec '(t nil 40000)) ; anything/helmと一緒に使うために必要
 (add-hook 'after-init-hook 'session-initialize)
@@ -1154,25 +1156,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-;; (add-hook 'c-mode-common-hook
-;;           (lambda ()
-;;             (setq flycheck-gcc-language-standard "c++11")
-;;             (setq flycheck-clang-language-standard "c++11")
-;;             (flycheck-mode)))
-;; (add-hook 'cperl-mode-hook 'flycheck-mode)
-;; (add-hook 'ruby-mode-hook 'flycheck-mode)
-;; (add-hook 'coffee-mode-hook 'flycheck-mode)
-;; (add-hook 'js2-mode-hook 'flycheck-mode)
-;; (add-hook 'css-mode-hook 'flycheck-mode)
-;; (add-hook 'php-mode-hook 'flycheck-mode)
-;; (add-hook 'json-mode-hook 'flycheck-mode)
-;; (add-hook 'python-mode-hook
-;;           (lambda ()
-;;             (require 'flycheck-pyflakes)
-;;             (flycheck-mode)))
-;; (setq flycheck-disabled-checkers
-;;       (append '(python-flake8 ruby-rubylint) flycheck-disabled-checkers))
-
 (require 'flycheck-pyflakes)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 (add-hook 'c-mode-common-hook
@@ -1287,12 +1270,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'helm)
 (require 'helm-config)
-;;(require 'helm-plugin)
 (require 'helm-descbinds)
 (helm-descbinds-mode)
 (require 'helm-multi-match)
-;;(require 'helm-migemo)
-;;(setq helm-use-migemo t)
+(helm-migemo-mode +1)
 (require 'helm-buffers)
 (require 'helm-files)
 (require 'helm-ls-git)
@@ -1312,21 +1293,8 @@ Highlight last expanded string."
 (global-set-key "\M-y" 'helm-show-kill-ring)
 (global-set-key "\C-zw" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
-(global-set-key (if window-system (kbd "C-'") "\C-c'") 'helm-ls-git-ls)
-
-;; helm-rails
-;;(require 'helm-rails)
-;;(helm-rails-def-resource 'layouts  "app/views/layouts/" "^app/views/layouts/(.+)$")
-;;(helm-rails-def-resource 'migrates "db/migrate/" "^db/migrate/(.+)$")
-;; (define-keys rails-minor-mode-map
-;;   ((rails-global-key "g m") 'helm-rails-models)
-;;   ((rails-global-key "g c") 'helm-rails-controllers)
-;;   ((rails-global-key "g n") 'helm-rails-mailers)
-;;   ((rails-global-key "g h") 'helm-rails-helpers)
-;;   ((rails-global-key "g l") 'helm-rails-layouts)
-;;   ((rails-global-key "g s") 'helm-rails-stylesheets)
-;;   ((rails-global-key "g j") 'helm-rails-javascripts)
-;;   ((rails-global-key "g g") 'helm-rails-migrates))
+(global-set-key (kbd "C-x C-d") 'helm-browse-project)
+(global-set-key (kbd "C-x C-r") 'helm-recentf)
 
 (require 'helm-c-yasnippet)
 (setq helm-yas-space-match-any-greedy t)
@@ -1396,6 +1364,8 @@ Highlight last expanded string."
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
 (require 'git-gutter-fringe)
+(setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
+(run-with-idle-timer 1 t 'git-gutter)
 (global-git-gutter-mode t)
 
 ;;; ----------------------------------------------------------------------
