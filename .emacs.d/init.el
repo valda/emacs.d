@@ -60,16 +60,10 @@
 (prefer-coding-system 'utf-8-unix)
 (if (not window-system)
     (set-terminal-coding-system 'utf-8-unix))
-(if (eq window-system 'w32)
-    (setq default-file-name-coding-system 'japanese-cp932-dos))
-
-;; Cygwin, IME など環境固有の設定
+;; Windows 固有の設定
 (when (eq window-system 'w32)
-  (setenv "CYGWIN" "nodosfilewarning")
-  (setq default-input-method "W32-IME")
-  (w32-ime-initialize)
-  (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+  (setq default-file-name-coding-system 'japanese-cp932-dos)
+  (setenv "CYGWIN" "nodosfilewarning"))
 
 ;;; ----------------------------------------------------------------------
 ;;; フォント設定
@@ -209,9 +203,14 @@
 (eval-after-load "helm" '(diminish 'helm-migemo-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; ibus / uim / mozc
+;;; W32-IME / mozc / ibus / uim
 ;;; ----------------------------------------------------------------------
-(cond ((require 'mozc nil t)
+(cond ((eq window-system 'w32)
+       (setq default-input-method "W32-IME")
+       (w32-ime-initialize)
+       (setq-default w32-ime-mode-line-state-indicator "[--]")
+       (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+      ((require 'mozc nil t)
        (require 'mozc-popup)
        (require 'mozc-cursor-color)
        (require 'mozc-mode-line-indicator)
