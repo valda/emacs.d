@@ -593,6 +593,7 @@ Highlight last expanded string."
                     (calendar-cursor-to-date t)))
          (exit-calendar)
          (insert day)))))
+(add-to-list 'auto-mode-alist '("\\.howm\\'" . howm-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -922,11 +923,21 @@ Highlight last expanded string."
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-jsx-mode))
+(add-hook 'js2-mode-hook
+          (lambda ()
+            (setq-local electric-layout-rules
+                        '((?\; . after)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
+(add-to-list 'auto-mode-alist '("\\.babelrc\\'" . json-mode))
+;; (add-hook 'json-mode-hook
+;;           (lambda ()
+;;             (make-local-variable 'js-indent-level)
+;;             (setq js-indent-level 2)))
 
 ;;; ----------------------------------------------------------------------
 ;;; coffee-mode
@@ -1121,9 +1132,11 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; recentf
 ;;; ----------------------------------------------------------------------
+(require 'recentf)
+(setq recentf-save-file "~/.emacs.d/.recentf")
 (setq recentf-max-saved-items 10000)
 (setq recentf-exclude '(".recentf"))
-(setq recentf-auto-cleanup 10)
+(setq recentf-auto-cleanup 60)
 (setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
 (require 'recentf-ext nil t)
 
@@ -1166,6 +1179,7 @@ Highlight last expanded string."
                 python-pylint
                 ruby-rubylint)
               flycheck-disabled-checkers))
+(flycheck-add-mode 'javascript-eslint 'js2-jsx-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1593,7 +1607,7 @@ Highlight last expanded string."
                     :inverse-video 'unspecified
                     :weight 'unspecified)
 (set-face-attribute 'mmm-default-submode-face nil
-                    :background "gray25"
+                    :background 'unspecified
                     :inherit t)
 (eval-after-load "howm"
   '(set-face-attribute 'howm-mode-title-face nil
