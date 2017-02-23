@@ -251,10 +251,11 @@
 ;;; ----------------------------------------------------------------------
 ;;; ido-mode
 ;;; ----------------------------------------------------------------------
+(ido-mode 1)
+(ido-vertical-mode 1)
 (setq ido-enable-flex-matching t)
 (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
-(ido-mode t)
-(ido-vertical-mode 1)
+(setq ido-use-filename-at-point 'guess)
 
 ;;; ----------------------------------------------------------------------
 ;;; imenu
@@ -1115,30 +1116,24 @@ Highlight last expanded string."
              (cons "\\.*$" (expand-file-name "~/bak")))
 
 ;;; ----------------------------------------------------------------------
-;;; filecache
+;;; recentf / recentf-ext
 ;;; ----------------------------------------------------------------------
-;; (require 'filecache)
-;; (file-cache-add-directory-list
-;;    (list "~"
-;;          "~/.ssh"
-;;          "~/bin"
-;;          "~/Dropbox"
-;;          "~/chrome/SubScript"))
-;; (when (eq window-system 'w32)
-;;   (file-cache-add-directory-list
-;;    (list "c:/Libraries/WTL80/include"
-;;          "c:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/atlmfc/include")))
+;; http://qiita.com/itiut@github/items/d917eafd6ab255629346
+(defmacro with-suppressed-message (&rest body)
+  "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
+  (declare (indent 0))
+  (let ((message-log-max nil))
+    `(with-temp-message (or (current-message) "") ,@body)))
 
-;;; ----------------------------------------------------------------------
-;;; recentf
-;;; ----------------------------------------------------------------------
 (require 'recentf)
 (setq recentf-save-file "~/.emacs.d/.recentf")
 (setq recentf-max-saved-items 10000)
 (setq recentf-exclude '(".recentf"))
-(setq recentf-auto-cleanup 60)
-(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
-(require 'recentf-ext nil t)
+(setq recentf-auto-cleanup 'never)
+(setq recentf-auto-save-timer
+      (run-with-idle-timer 30 t '(lambda ()
+                                   (with-suppressed-message (recentf-save-list)))))
+(require 'recentf-ext)
 
 ;;; ----------------------------------------------------------------------
 ;;; session.el
