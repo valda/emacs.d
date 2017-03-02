@@ -905,8 +905,6 @@ Highlight last expanded string."
           '(lambda()
              (electric-pair-mode t)
              (add-to-list 'electric-pair-pairs '(?' . ?'))
-             ;;(electric-indent-local-mode -1)
-             ;;(electric-layout-mode -1)
              (setq web-mode-markup-indent-offset 2)
              (setq web-mode-css-indent-offset 2)
              (setq web-mode-code-indent-offset 2)
@@ -915,20 +913,28 @@ Highlight last expanded string."
              (setq web-mode-block-padding 0)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
              (modify-syntax-entry ?? "w" web-mode-syntax-table)
-             ))
+             (when (equal web-mode-content-type "jsx")
+               (flycheck-add-mode 'javascript-eslint 'web-mode)
+               (flycheck-mode))))
+
 ;; views という directory 配下に有る php ファイルは web-mode で開く
 (add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("/Smarty/templates/.*\\.\\(php\\|tpl\\)\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-jsx-mode))
 (add-hook 'js2-mode-hook
           (lambda ()
             (setq-local electric-layout-rules
                         '((?\; . after)))))
+(setq js2-include-browser-externs nil)
+(setq js2-mode-show-parse-errors nil)
+(setq js2-mode-show-strict-warnings nil)
+(setq js2-highlight-external-variables nil)
+(setq js2-include-jslint-globals nil)
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
@@ -1172,9 +1178,10 @@ Highlight last expanded string."
 (setq flycheck-disabled-checkers
       (append '(python-flake8
                 python-pylint
-                ruby-rubylint)
+                ruby-rubylint
+                javascript-jshint
+                javascript-jscs)
               flycheck-disabled-checkers))
-(flycheck-add-mode 'javascript-eslint 'js2-jsx-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
