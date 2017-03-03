@@ -96,6 +96,7 @@
     dsvn
     editorconfig
     elscreen
+    elscreen-persist
     exec-path-from-shell
     flycheck
     flycheck-pyflakes
@@ -266,6 +267,7 @@
 ;;; smartrep.el
 ;;; ----------------------------------------------------------------------
 (require 'smartrep)
+(setq smartrep-mode-line-active-bg "DeepSkyBlue4")
 
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
@@ -445,8 +447,16 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; pc-bufsw
 ;;; ----------------------------------------------------------------------
-(require 'pc-bufsw)
-(pc-bufsw::bind-keys (quote [C-tab]) (quote [C-S-tab]))
+;;(require 'pc-bufsw)
+;;(pc-bufsw::bind-keys (quote [C-tab]) (quote [C-S-tab]))
+
+;;; ----------------------------------------------------------------------
+;;; swbuff
+;;; ----------------------------------------------------------------------
+(require 'swbuff)
+(global-set-key [C-tab] 'swbuff-switch-to-next-buffer)
+(global-set-key [C-iso-lefttab] 'swbuff-switch-to-previous-buffer)
+(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*.*\\*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -1156,15 +1166,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; elscreen
 ;;; ----------------------------------------------------------------------
-(when (require 'elscreen nil t)
-  (setq elscreen-display-tab nil)
-  (cond (window-system
-         (elscreen-set-prefix-key "\C-z")
-         (define-key elscreen-map "\C-z" 'elscreen-toggle)
-         (define-key elscreen-map "z" 'iconify-frame))
-        (t
-         (elscreen-set-prefix-key "\C-t")))
-  (elscreen-start))
+(setq elscreen-display-tab nil)
+(elscreen-start)
+(cond (window-system
+       (elscreen-set-prefix-key "\C-z")
+       (define-key elscreen-map "\C-z" 'elscreen-toggle)
+       (define-key elscreen-map "z" 'iconify-frame))
+      (t
+       (elscreen-set-prefix-key "\C-t")
+       (define-key elscreen-map "\C-t" 'elscreen-toggle)))
+(smartrep-define-key
+    global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
+                                     ("n" . 'elscreen-next)))
+(elscreen-persist-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -1306,7 +1320,7 @@ Highlight last expanded string."
 (global-set-key "\M-x" 'helm-M-x)
 (global-set-key "\C-xb" 'helm-buffers-list)
 (global-set-key "\M-y" 'helm-show-kill-ring)
-(global-set-key "\C-zw" 'helm-elscreen)
+(define-key elscreen-map "w" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
