@@ -111,6 +111,7 @@
     helm-flycheck
     helm-gtags
     helm-ls-git
+    helm-swoop
     highlight-symbol
     howm
     ido-vertical-mode
@@ -758,6 +759,14 @@ Highlight last expanded string."
 (global-set-key "\C-c\C-x\C-o" 'moccur)
 
 ;;; ----------------------------------------------------------------------
+;;; moccur-edit
+;;; ----------------------------------------------------------------------
+(require 'moccur-edit)
+(defadvice moccur-edit-change-file
+    (after save-after-moccur-edit-buffer activate)
+  (save-buffer))
+
+;;; ----------------------------------------------------------------------
 ;;; dsvn
 ;;; ----------------------------------------------------------------------
 (when (locate-library "dsvn")
@@ -1344,6 +1353,15 @@ Highlight last expanded string."
 (eval-after-load 'flycheck
   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 
+(require 'helm-swoop)
+(global-set-key (kbd "M-i") 'helm-swoop)
+(global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
+(global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
+(global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
+(define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+(define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
+(setq helm-multi-swoop-edit-save t)
+
 ;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
@@ -1374,7 +1392,7 @@ Highlight last expanded string."
                 ("*sdic*" :height 20)
                 ("*Google Translate*" :height 20)
                 ;;("^\\*helm" :regexp t :height 20)
-                ;;("\\*ag search.*\\*" :regexp t :height 25)
+                ("\\*ag search.*\\*" :dedicated t :regexp t :height 25)
                 ("*git-gutter:diff*" :height 25 :stick t)
                 (dired-mode :height 20 :position top))
               popwin:special-display-config))
@@ -1581,19 +1599,22 @@ Highlight last expanded string."
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 
 ;;; ----------------------------------------------------------------------
-;;; ag / wgrep-ag
+;;; ag
 ;;; ----------------------------------------------------------------------
 (setq ag-highlight-search t)
 (setq ag-reuse-window t)
 (setq ag-reuse-buffers t)
-(require 'ag)
 (global-set-key "\C-ca" 'ag)
 (global-set-key "\C-cf" 'ag-project)
 
-(require 'wgrep-ag)
-(autoload 'wgrep-ag-setup "wgrep-ag")
-(add-hook 'ag-mode-hook 'wgrep-ag-setup)
-(define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)
+;;; ----------------------------------------------------------------------
+;;; wgrep / wgrep-ag
+;;; ----------------------------------------------------------------------
+(setq wgrep-auto-save-buffer t)
+(eval-after-load "ag"
+    '(progn
+       (add-hook 'ag-mode-hook 'wgrep-ag-setup)
+       (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; monokai-theme
