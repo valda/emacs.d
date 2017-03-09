@@ -445,18 +445,12 @@ Highlight last expanded string."
 (windmove-default-keybindings)
 
 ;;; ----------------------------------------------------------------------
-;;; pc-bufsw
-;;; ----------------------------------------------------------------------
-;;(require 'pc-bufsw)
-;;(pc-bufsw::bind-keys (quote [C-tab]) (quote [C-S-tab]))
-
-;;; ----------------------------------------------------------------------
 ;;; swbuff
 ;;; ----------------------------------------------------------------------
 (require 'swbuff)
 (global-set-key [C-tab] 'swbuff-switch-to-next-buffer)
 (global-set-key [C-iso-lefttab] 'swbuff-switch-to-previous-buffer)
-(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*.*\\*"))
+(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*.*\\*" "^\\*magit.*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -951,10 +945,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
 (add-to-list 'auto-mode-alist '("\\.babelrc\\'" . json-mode))
-;; (add-hook 'json-mode-hook
-;;           (lambda ()
-;;             (make-local-variable 'js-indent-level)
-;;             (setq js-indent-level 2)))
+(add-to-list 'auto-mode-alist '("\\.eslintrc\\'" . json-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; coffee-mode
