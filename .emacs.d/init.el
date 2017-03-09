@@ -1385,16 +1385,17 @@ Highlight last expanded string."
 (setq display-buffer-function 'popwin:display-buffer)
 (setq popwin:adjust-other-windows t)
 (setq popwin:special-display-config
-      (append '(("*Backtrace*" :height 20)
-                ("*Kill Ring*" :height 20 :noselect t)
-                ("*Apropos*" :height 30)
-                ("*Help*" :height 30)
-                ("*sdic*" :height 20)
-                ("*Google Translate*" :height 20)
+      (append '(("*Backtrace*" :height 0.3)
+                ("*Kill Ring*" :height 0.4 :noselect t)
+                ("*Apropos*" :height 0.4)
+                ("*Help*" :height 0.4)
+                ("*sdic*" :height 0.3)
+                ("*Google Translate*" :height 0.3)
                 ;;("^\\*helm" :regexp t :height 20)
-                ("\\*ag search.*\\*" :dedicated t :regexp t :height 25)
-                ("*git-gutter:diff*" :height 25 :stick t)
-                (dired-mode :height 20 :position top))
+                ("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
+                ("*git-gutter:diff*" :height 0.4 :stick t)
+                (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
+                (dired-mode :height 0.3 :position top))
               popwin:special-display-config))
 (define-key global-map (kbd "C-x p") 'popwin:display-last-buffer)
 
@@ -1405,6 +1406,11 @@ Highlight last expanded string."
 (setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
 (run-with-idle-timer 1 t 'git-gutter)
 (global-git-gutter-mode t)
+
+(global-set-key (kbd "C-x v =") 'git-gutter:popup-hunk)
+(smartrep-define-key
+    global-map "C-x v" '(("p" . 'git-gutter:previous-hunk)
+                         ("n" . 'git-gutter:next-hunk)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1681,6 +1687,7 @@ Highlight last expanded string."
                        ("_" . 'shrink-window)
                        ("{" . 'shrink-window-horizontally)
                        ("}" . 'enlarge-window-horizontally)))
+(global-unset-key "\M-t")
 
 ;;; ----------------------------------------------------------------------
 ;;; narrowing などの操作を有効化
