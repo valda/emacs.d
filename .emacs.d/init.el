@@ -782,6 +782,12 @@ Highlight last expanded string."
 (global-set-key "\C-xg" 'magit-status)
 (setq magit-push-always-verify nil)
 (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
+(eval-after-load "magit"
+  '(progn
+     (define-key magit-status-mode-map [C-tab] nil)
+     (define-key magit-status-mode-map [C-iso-lefttab] nil)
+     (define-key magit-diff-mode-map [C-tab] nil)
+     (define-key magit-diff-mode-map [C-iso-lefttab] nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ruby-mode
@@ -924,6 +930,7 @@ Highlight last expanded string."
              (setq web-mode-style-padding 0)
              (setq web-mode-script-padding 0)
              (setq web-mode-block-padding 0)
+             (setq web-mode-enable-auto-indentation nil)
              (modify-syntax-entry ?% "w" web-mode-syntax-table)
              (modify-syntax-entry ?? "w" web-mode-syntax-table)
              (when (equal web-mode-content-type "jsx")
@@ -1168,6 +1175,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq elscreen-display-tab nil)
 (elscreen-start)
+(global-unset-key "\C-z")
+(global-unset-key "\C-t")
 (cond (window-system
        (elscreen-set-prefix-key "\C-z")
        (define-key elscreen-map "\C-z" 'elscreen-toggle)
