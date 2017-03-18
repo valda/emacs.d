@@ -136,6 +136,7 @@
     rinari
     ruby-block
     ruby-end
+    swbuff
     scss-mode
     session
     shell-pop
