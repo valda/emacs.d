@@ -96,7 +96,6 @@
     dsvn
     editorconfig
     elscreen
-    elscreen-persist
     exec-path-from-shell
     flycheck
     flycheck-pyflakes
@@ -1188,7 +1187,6 @@ Highlight last expanded string."
 (smartrep-define-key
     global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
                                      ("n" . 'elscreen-next)))
-(elscreen-persist-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
