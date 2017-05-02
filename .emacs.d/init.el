@@ -1,5 +1,4 @@
 ;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
-(add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv
@@ -798,6 +797,7 @@ Highlight last expanded string."
                 ("\\.rb\\'" . ruby-mode)
                 ("config\\.ru\\'" . ruby-mode)
                 ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode)
+                ("\\.xremap\\'" . ruby-mode)
                 )
               auto-mode-alist))
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
@@ -1314,7 +1314,7 @@ Highlight last expanded string."
 (require 'helm-buffers)
 (require 'helm-files)
 (require 'helm-ls-git)
-(require 'helm-elscreen)
+;;(require 'helm-elscreen)
 
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
@@ -1328,7 +1328,7 @@ Highlight last expanded string."
 (global-set-key "\M-x" 'helm-M-x)
 (global-set-key "\C-xb" 'helm-buffers-list)
 (global-set-key "\M-y" 'helm-show-kill-ring)
-(define-key elscreen-map "w" 'helm-elscreen)
+;;(define-key elscreen-map "w" 'helm-elscreen)
 (global-set-key "\C-cb" 'helm-bm)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
