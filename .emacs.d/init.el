@@ -1191,7 +1191,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-(require 'flycheck-pyflakes)
+(require 'flycheck)
+;;(require 'flycheck-pyflakes)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 (add-hook 'c-mode-common-hook
           (lambda ()
