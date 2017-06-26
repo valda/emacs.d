@@ -132,6 +132,7 @@
     rainbow-mode
     recentf-ext
     rinari
+    rjsx-mode
     ruby-block
     ruby-end
     swbuff
@@ -253,7 +254,7 @@
 ;;; ido-mode
 ;;; ----------------------------------------------------------------------
 (ido-mode 1)
-(ido-vertical-mode 1)
+(ido-vertical-mode t)
 (setq ido-enable-flex-matching t)
 (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
 (setq ido-use-filename-at-point 'guess)
@@ -410,6 +411,7 @@ Highlight last expanded string."
 (global-auto-complete-mode t)
 (add-to-list 'ac-modes 'html-mode)
 (add-to-list 'ac-modes 'web-mode)
+(add-to-list 'ac-modes 'rjsx-mode)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
@@ -940,14 +942,14 @@ Highlight last expanded string."
 ;; views という directory 配下に有る php ファイルは web-mode で開く
 (add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("/Smarty/templates/.*\\.\\(php\\|tpl\\)\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+;;(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 (add-hook 'js2-mode-hook
           (lambda ()
+            (setq js2-basic-offset 2)
             (setq-local electric-layout-rules
                         '((?\; . after)))))
 (setq js2-include-browser-externs nil)
@@ -955,6 +957,11 @@ Highlight last expanded string."
 (setq js2-mode-show-strict-warnings nil)
 (setq js2-highlight-external-variables nil)
 (setq js2-include-jslint-globals nil)
+
+;;; ----------------------------------------------------------------------
+;;; rjsx-mode
+;;; ----------------------------------------------------------------------
+(add-to-list 'auto-mode-alist '(".*\\.js\\'" . rjsx-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
@@ -1070,26 +1077,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'rinari)
 (global-rinari-mode t)
-
-;; ;; ido を helm に置き換える advice
-;; (defun advice:ido-completing-read--helm (prompt choices &optional _predicate require-match
-;;                                          initial-input hist def _inherit-input-method)
-;;   (helm-comp-read prompt choices :must-match t))
-
-;; (defun helm-rinari-find-model()
-;;   (interactive)
-;;   (advice-add 'ido-completing-read :override 'advice:ido-completing-read--helm)
-;;   (rinari-find-model)
-;;   (advice-remove 'ido-completing-read 'advice:ido-completing-read--helm))
-
-;; (defun helm-rinari-find-controller()
-;;   (interactive)
-;;   (advice-add 'ido-completing-read :override 'advice:ido-completing-read--helm)
-;;   (rinari-find-controller)
-;;   (advice-remove 'ido-completing-read 'advice:ido-completing-read--helm))
-
-;; (define-key rinari-minor-mode-map (kbd "C-c ; f m") 'helm-rinari-find-model)
-;; (define-key rinari-minor-mode-map (kbd "C-c ; f c") 'helm-rinari-find-controller)
+(setq rinari-exclude-major-modes
+      '(magit-status-mode
+        magit-log-edit-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -1478,16 +1468,6 @@ Highlight last expanded string."
     '(face
       tabs spaces newline trailing space-before-tab space-after-tab
       space-mark tab-mark newline-mark))
-  ;; (let ((dark (eq 'dark (frame-parameter nil 'background-mode))))
-  ;;   (set-face-attribute 'whitespace-space nil
-  ;;           :foreground (if dark "pink4" "azure3")
-  ;;           :background 'unspecified)
-  ;;   (set-face-attribute 'whitespace-tab nil
-  ;;           :foreground (if dark "gray20" "gray80")
-  ;;           :background 'unspecified
-  ;;           :strike-through t)
-  ;;   (set-face-attribute 'whitespace-newline nil
-  ;;           :foreground (if dark "darkcyan" "darkseagreen")))
   (setq whitespace-space-regexp "\\(　+\\)")
   (setq whitespace-display-mappings
     '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
@@ -1635,23 +1615,23 @@ Highlight last expanded string."
 ;;; monokai-theme
 ;;; ----------------------------------------------------------------------
 (load-theme 'monokai t)
-(set-face-attribute 'region nil
-                    :foreground 'unspecified
-                    :background "DeepSkyBlue4"
-                    :inherit t)
-(set-face-attribute 'whitespace-trailing nil
-                    :background "orange"
-                    :foreground 'unspecified
-                    :inverse-video 'unspecified)
-(set-face-attribute 'whitespace-tab nil
-                    :foreground 'unspecified
-                    :foreground "brown4"
-                    :background 'unspecified
-                    :inverse-video 'unspecified
-                    :weight 'unspecified)
-(set-face-attribute 'mmm-default-submode-face nil
-                    :background 'unspecified
-                    :inherit t)
+;; (set-face-attribute 'region nil
+;;                     :foreground 'unspecified
+;;                     :background "DeepSkyBlue4"
+;;                     :inherit t)
+;; (set-face-attribute 'whitespace-trailing nil
+;;                     :background "darkorange"
+;;                     :foreground 'unspecified
+;;                     :inverse-video 'unspecified)
+;; (set-face-attribute 'whitespace-tab nil
+;;                     :foreground 'unspecified
+;;                     :foreground "brown10"
+;;                     :background 'unspecified
+;;                     :inverse-video 'unspecified
+;;                     :weight 'unspecified)
+;; (set-face-attribute 'mmm-default-submode-face nil
+;;                     :background 'unspecified
+;;                     :inherit t)
 (eval-after-load "howm"
   '(set-face-attribute 'howm-mode-title-face nil
                          :foreground "RoyalBlue"
