@@ -1348,6 +1348,7 @@ Highlight last expanded string."
 (add-hook 'c++-mode-hook 'helm-gtags-mode)
 (add-hook 'asm-mode-hook 'helm-gtags-mode)
 (add-hook 'web-mode-hook 'helm-gtags-mode)
+(add-hook 'rjsx-mode-hook 'helm-gtags-mode)
 
 (eval-after-load 'flycheck
   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
