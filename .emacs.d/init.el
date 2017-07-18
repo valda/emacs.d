@@ -1486,8 +1486,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; google-translate.el
 ;;; ----------------------------------------------------------------------
-(global-set-key "\C-xt" 'google-translate-at-point)
-(global-set-key "\C-xT" 'google-translate-query-translate)
 (global-set-key "\C-ct" 'google-translate-smooth-translate)
 
 ;;; ----------------------------------------------------------------------
@@ -1633,10 +1631,6 @@ Highlight last expanded string."
 ;; (set-face-attribute 'mmm-default-submode-face nil
 ;;                     :background 'unspecified
 ;;                     :inherit t)
-(eval-after-load "howm"
-  '(set-face-attribute 'howm-mode-title-face nil
-                         :foreground "RoyalBlue"
-                         :weight 'bold))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
