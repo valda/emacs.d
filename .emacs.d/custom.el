@@ -22,4 +22,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(howm-mode-title-face ((t (:foreground "deep sky blue")))))
+ '(howm-mode-title-face ((t (:foreground "deep sky blue" :weight bold))))
+ '(howm-reminder-normal-face ((t (:foreground "deep sky blue"))))
+ '(wgrep-delete-face ((t (:background "SlateGray4" :foreground "pink"))))
+ '(wgrep-face ((t (:background "SlateGray4" :foreground "Black")))))
