@@ -1392,7 +1392,7 @@ Highlight last expanded string."
                 ("*sdic*" :height 0.3)
                 ("*Google Translate*" :height 0.3)
                 ;;("^\\*helm" :regexp t :height 20)
-                ("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
+                ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
                 ("*git-gutter:diff*" :height 0.4 :stick t)
                 (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
                 (dired-mode :height 0.3 :position top))
