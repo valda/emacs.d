@@ -114,6 +114,7 @@
     howm
     ido-vertical-mode
     inf-ruby
+    ini-mode
     js2-mode
     json-mode
     less-css-mode
@@ -135,12 +136,12 @@
     rjsx-mode
     ruby-block
     ruby-end
-    swbuff
     scss-mode
     session
     shell-pop
     smartrep
     snippet
+    swbuff
     undo-tree
     vcl-mode
     web-mode
@@ -412,6 +413,7 @@ Highlight last expanded string."
 (add-to-list 'ac-modes 'html-mode)
 (add-to-list 'ac-modes 'web-mode)
 (add-to-list 'ac-modes 'rjsx-mode)
+(add-to-list 'ac-modes 'csharp-mode)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
@@ -1512,6 +1514,36 @@ Highlight last expanded string."
                  ?づ ?で ?ど ?ば ?び ?ぶ ?べ ?ぼ ?ぱ ?ぴ ?ぷ ?ぺ ?ぽ ?ぁ ?ぃ
                  ?ぅ ?ぇ ?ぉ ?っ ?ゃ ?ゅ ?ょ ?ゎ ?ヮ ?ヶ ?ヵ))
   (put-char-code-property c 'jisx0201 nil))
+
+;;; ----------------------------------------------------------------------
+;;; delete-trailing-whitespace の hook の状態をモードラインに表示する
+;;; http://syohex.hatenablog.com/entry/20130617/1371480584
+;;; ----------------------------------------------------------------------
+(defvar my/current-cleanup-state "")
+;; 行末のスペース + ファイル末尾の連続する改行の除去を行う
+(defun my/cleanup-for-spaces ()
+  (interactive)
+  (delete-trailing-whitespace)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-max))
+      (delete-blank-lines))))
+(add-hook 'before-save-hook 'my/cleanup-for-spaces)
+(setq-default mode-line-format
+              (cons '(:eval my/current-cleanup-state)
+                    mode-line-format))
+(defun toggle-cleanup-spaces ()
+  (interactive)
+  (cond ((memq 'my/cleanup-for-spaces before-save-hook)
+         (setq my/current-cleanup-state
+               (propertize "[DT-]" 'face '((:foreground "turquoise1" :weight bold))))
+         (remove-hook 'before-save-hook 'my/cleanup-for-spaces))
+        (t
+         (setq my/current-cleanup-state "")
+         (add-hook 'before-save-hook 'my/cleanup-for-spaces)))
+  (force-mode-line-update))
+(global-set-key (kbd "C-c M-d") 'toggle-cleanup-spaces)
 
 ;;; ----------------------------------------------------------------------
 ;;; ファイルをシステムの関連付けで開く
