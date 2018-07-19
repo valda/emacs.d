@@ -16,7 +16,7 @@
 (setq scroll-step 2)
 (setq next-line-add-newlines nil)
 (setq kill-whole-line t)
-(setq case-replace nil)
+(setq case-replace t)
 ;;(setq major-mode 'text-mode)
 (setq-default transient-mark-mode t)
 (setq indent-line-function 'indent-relative-maybe)
@@ -219,7 +219,31 @@
        (require 'mozc-mode-line-indicator)
        (setq default-input-method "japanese-mozc")
        (setq mozc-candidate-style 'popup)
-       (add-to-list 'mozc-cursor-color-alist '(direct . "green")))
+       (add-to-list 'mozc-cursor-color-alist '(direct . "green"))
+       (progn ;toggle input method
+         (define-key global-map [henkan]
+           (lambda ()
+             (interactive)
+             (if current-input-method (inactivate-input-method))
+             (toggle-input-method)))
+         (define-key global-map [muhenkan]
+           (lambda ()
+             (interactive)
+             (inactivate-input-method)))
+         ;; (define-key global-map [zenkaku-hankaku]
+         ;;   (lambda ()
+         ;;     (interactive)
+         ;;     (toggle-input-method)))
+         (defadvice mozc-handle-event (around intercept-keys (event))
+           "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
+           (if (member event (list 'zenkaku-hankaku 'muhenkan))
+               (progn
+                 (mozc-clean-up-session)
+                 (toggle-input-method))
+             (progn ;(message "%s" event) ;debug
+               ad-do-it)))
+         (ad-activate 'mozc-handle-event))
+       (global-set-key (kbd "M-`") 'toggle-input-method))
       ((require 'ibus nil t)
        (add-hook 'after-init-hook 'ibus-mode-on)
        (global-set-key "\C-\\" 'ibus-toggle)
@@ -454,7 +478,7 @@ Highlight last expanded string."
 (require 'swbuff)
 (global-set-key [C-tab] 'swbuff-switch-to-next-buffer)
 (global-set-key [C-iso-lefttab] 'swbuff-switch-to-previous-buffer)
-(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*.*\\*" "^\\*magit.*"))
+(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*helm.*\\*" "^\\*magit.*" "^magit-process.*" "^\\*ansi-term.*\\*" "^\\*Messages\\*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -610,8 +634,8 @@ Highlight last expanded string."
 (require 'cc-mode)
 (defconst my-cc-style
   '(
-    ;; インデント幅を空白4コ分にする
-    (c-basic-offset . 4)
+    ;; インデント幅を空白2コ分にする
+    (c-basic-offset . 2)
     ;; tab キーでインデントを実行
     (c-tab-always-indent        . t)
     ;; コメントだけの行のインデント幅
@@ -714,7 +738,8 @@ Highlight last expanded string."
         (setq compile-command "make -k" )     ; Cygwin の make
         ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
         (setq compilation-window-height 16)
-        (electric-pair-mode t)))
+        ;;(electric-pair-mode t)
+        ))
 
 (define-key c-mode-base-map "\C-cc" 'compile)
 (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
@@ -736,7 +761,7 @@ Highlight last expanded string."
   (add-hook 'lisp-mode-hook       'hs-minor-mode)
   (add-hook 'perl-mode-hook       'hs-minor-mode)
   (add-hook 'sh-mode-hook         'hs-minor-mode)
-  (defun ruby-custom-setup ()
+  (defun hs-ruby-custom-setup ()
     (add-to-list 'hs-special-modes-alist
                  '(ruby-mode
                    "\\(def\\|do\\)"
@@ -744,7 +769,8 @@ Highlight last expanded string."
                    "#"
                    (lambda (arg) (ruby-end-of-block)) nil ))
     (hs-minor-mode t))
-  (add-hook 'ruby-mode-hook 'ruby-custom-setup))
+  (add-hook 'ruby-mode-hook 'hs-ruby-custom-setup)
+  (add-hook 'enh-ruby-mode-hook 'hs-ruby-custom-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -793,48 +819,37 @@ Highlight last expanded string."
      (define-key magit-diff-mode-map [C-iso-lefttab] nil)))
 
 ;;; ----------------------------------------------------------------------
-;;; ruby-mode
+;;; enhanced-ruby-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
 (setq auto-mode-alist
       (append '(
-                ("\\.rb\\'" . ruby-mode)
-                ("config\\.ru\\'" . ruby-mode)
-                ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-mode)
-                ("\\.xremap\\'" . ruby-mode)
+                ("\\.rb\\'" . enh-ruby-mode)
+                ("config\\.ru\\'" . enh-ruby-mode)
+                ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . enh-ruby-mode)
+                ("\\.xremap\\'" . enh-ruby-mode)
                 )
               auto-mode-alist))
-(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
+(add-to-list 'interpreter-mode-alist '("ruby" . enh-ruby-mode))
 
-;; (autoload 'rubydb "rubydb3x" "Run rubydb on program FILE in buffer *gud-FILE*.
-;; The directory containing FILE becomes the initial working directory
-;; and source-file directory for your debugger.")
-(add-hook 'ruby-mode-hook
-          '(lambda ()
-             (electric-pair-mode t)
-             (electric-indent-mode t)
-             (electric-layout-mode t)
-             (ruby-end-mode t)
-             ;; 保存時にマジックコメントを付けない
-             (defadvice ruby-mode-set-encoding
-                 (around ruby-mode-set-encoding-disable activate) nil)))
-
-;;; ruby-mode のインデントをいい感じにする
-(setq ruby-deep-indent-paren-style nil)
-(defadvice ruby-indent-line (after unindent-closing-paren activate)
-  (let ((column (current-column))
-        indent offset)
+(defun ruby-mode-set-frozen-string-literal-true ()
+  (when (and
+         (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
+         (buffer-file-name (current-buffer))
+         (string-match "\\.rb" (buffer-file-name (current-buffer))))
     (save-excursion
-      (back-to-indentation)
-      (let ((state (syntax-ppss)))
-        (setq offset (- column (current-column)))
-        (when (and (eq (char-after) ?\))
-                   (not (zerop (car state))))
-          (goto-char (cadr state))
-          (setq indent (current-indentation)))))
-    (when indent
-      (indent-line-to indent)
-      (when (> offset 0) (forward-char offset)))))
+      (widen)
+      (goto-char (point-min))
+      (unless (looking-at "^# frozen_string_literal: true")
+        (insert "# frozen_string_literal: true\n\n")))))
+
+(defun my-ruby-mode-hook ()
+  "Hooks for Ruby mode."
+  ;;(electric-pair-mode t)
+  (electric-indent-mode t)
+  (electric-layout-mode t)
+  (ruby-end-mode t)
+  (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
+(add-hook 'enh-ruby-mode-hook 'my-ruby-mode-hook)
 
 ;; ruby の symbol をいい感じに hippie-expand する
 (defun hippie-expand-ruby-symbols (orig-fun &rest args)
@@ -907,9 +922,9 @@ Highlight last expanded string."
              (php-align-setup)
              (php-enable-psr2-coding-style)
              (setq flycheck-phpcs-standard "PSR2")
-             (electric-pair-mode t)
-             (electric-indent-mode nil)
-             (electric-layout-mode nil)
+             ;;(electric-pair-mode t)
+             (electric-indent-mode t)
+             (electric-layout-mode t)
              (define-key php-mode-map '[(control .)] nil)
              (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
              ;;(c-set-offset 'arglist-intro' +)
@@ -924,27 +939,20 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'web-mode-hook
-          '(lambda()
-             (electric-pair-mode t)
-             (add-to-list 'electric-pair-pairs '(?' . ?'))
-             (setq web-mode-markup-indent-offset 2)
-             (setq web-mode-css-indent-offset 2)
-             (setq web-mode-code-indent-offset 2)
-             (setq web-mode-style-padding 0)
-             (setq web-mode-script-padding 0)
-             (setq web-mode-block-padding 0)
-             (setq web-mode-enable-auto-indentation nil)
-             (modify-syntax-entry ?% "w" web-mode-syntax-table)
-             (modify-syntax-entry ?? "w" web-mode-syntax-table)
-             (when (equal web-mode-content-type "jsx")
-               (flycheck-add-mode 'javascript-eslint 'web-mode)
-               (flycheck-mode))))
+(defun my-web-mode-hook ()
+  "Hooks for Web mode."
+  (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
+    (modify-syntax-entry ?% "w" web-mode-syntax-table))
+  (when (string-match "\\.php" (buffer-file-name (current-buffer)))
+    (modify-syntax-entry ?? "w" web-mode-syntax-table)))
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+
+(add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.rhtml?\\'" . web-mode))
 
 ;; views という directory 配下に有る php ファイルは web-mode で開く
 (add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("/Smarty/templates/.*\\.\\(php\\|tpl\\)\\'" . web-mode))
-;;(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
@@ -979,6 +987,7 @@ Highlight last expanded string."
           '(lambda()
              (set (make-local-variable 'tab-width) 2)
              (setq coffee-tab-width 2)))
+(add-to-list 'auto-mode-alist '("\\.coffee\\.erb\\'" . coffee-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; less-css-mode
@@ -1057,8 +1066,8 @@ Highlight last expanded string."
    ))
 (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
 (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
-(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
+;;(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
+;;(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
 (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode)
 
 ;;; ----------------------------------------------------------------------
@@ -1098,18 +1107,12 @@ Highlight last expanded string."
                 ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
                 ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
-                ("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
-                ("\\.rhtml?\\'"            . html-mode)     ;; HTML(erb)
+                ;;("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
+                ;;("\\.rhtml?\\'"            . html-mode)     ;; HTML(erb)
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
-                ("\\.coffee\\.erb\\'"      . coffee-mode)   ;; CoffeeScript(erb)
                 )
               auto-mode-alist))
-
-;;; ----------------------------------------------------------------------
-;;; #!shebang に対応する編集モードを設定
-;;; ----------------------------------------------------------------------
-(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ChangeLog 用の設定
@@ -1191,8 +1194,8 @@ Highlight last expanded string."
             (setq flycheck-gcc-language-standard "c++11")
             (setq flycheck-clang-language-standard "c++11")))
 (setq flycheck-disabled-checkers
-      (append '(python-flake8
-                python-pylint
+      (append '(;;python-flake8
+                ;;python-pylint
                 ruby-rubylint
                 javascript-jshint
                 javascript-jscs)
@@ -1325,6 +1328,7 @@ Highlight last expanded string."
 (global-set-key "\C-cb" 'helm-bm)
 (global-set-key (kbd "C-x C-d") 'helm-browse-project)
 (global-set-key (kbd "C-x C-r") 'helm-recentf)
+(global-set-key (kbd "C-x C-g") 'helm-grep-do-git-grep)
 
 (require 'helm-c-yasnippet)
 (setq helm-yas-space-match-any-greedy t)
@@ -1344,6 +1348,7 @@ Highlight last expanded string."
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 (add-hook 'php-mode-hook 'helm-gtags-mode)
 (add-hook 'ruby-mode-hook 'helm-gtags-mode)
+(add-hook 'enh-ruby-mode-hook 'helm-gtags-mode)
 (add-hook 'python-mode-hook 'helm-gtags-mode)
 (add-hook 'html-mode-hook 'helm-gtags-mode)
 (add-hook 'c-mode-hook 'helm-gtags-mode)
@@ -1663,6 +1668,20 @@ Highlight last expanded string."
 ;; (set-face-attribute 'mmm-default-submode-face nil
 ;;                     :background 'unspecified
 ;;                     :inherit t)
+
+;;; ----------------------------------------------------------------------
+;;; 終了前に確認する
+;;; ----------------------------------------------------------------------
+(defun ask-before-closing ()
+  "Ask whether or not to close, and then close if y was pressed"
+  (interactive)
+  (if (y-or-n-p (format "Are you sure you want to exit Emacs? "))
+      (if (< emacs-major-version 22)
+          (save-buffers-kill-terminal)
+        (save-buffers-kill-emacs))
+    (message "Canceled exit")))
+(when window-system
+  (global-set-key (kbd "C-x C-c") 'ask-before-closing))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他のキーバインド
