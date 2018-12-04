@@ -134,6 +134,8 @@
     recentf-ext
     rinari
     rjsx-mode
+    rspec-mode
+    rubocop
     ruby-block
     ruby-end
     scss-mode
@@ -457,8 +459,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hl-line
 ;;; ----------------------------------------------------------------------
-(when (window-system)
-  (global-hl-line-mode t))
+;; (when (window-system)
+;;   (global-hl-line-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
@@ -821,6 +823,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; enhanced-ruby-mode
 ;;; ----------------------------------------------------------------------
+(setq ruby-insert-encoding-magic-comment nil)
+(setq enh-ruby-add-encoding-comment-on-save nil)
+(setq enh-ruby-deep-indent-paren nil)
 (setq auto-mode-alist
       (append '(
                 ("\\.rb\\'" . enh-ruby-mode)
@@ -848,6 +853,7 @@ Highlight last expanded string."
   (electric-indent-mode t)
   (electric-layout-mode t)
   (ruby-end-mode t)
+  (rubocop-mode t)
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
 (add-hook 'enh-ruby-mode-hook 'my-ruby-mode-hook)
 
@@ -960,8 +966,14 @@ Highlight last expanded string."
 (add-hook 'js2-mode-hook
           (lambda ()
             (setq js2-basic-offset 2)
+            (electric-indent-mode t)
+            (electric-layout-mode t)
             (setq-local electric-layout-rules
-                        '((?\; . after)))))
+                        '(
+                          (?\{ . after)
+                          (?\} . before)
+                          ;;(?\; . after)
+                          ))))
 (setq js2-include-browser-externs nil)
 (setq js2-mode-show-parse-errors nil)
 (setq js2-mode-show-strict-warnings nil)
@@ -999,10 +1011,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
+(add-hook 'scss-mode-hook
+          (lambda ()
+            (ac-css-mode-setup)
+            (electric-indent-mode t)
+            (electric-layout-mode t)
+            (setq-local electric-layout-rules
+                        '((?\{ . after) (?\} . before)))))
 (setq scss-compile-at-save nil)
 (add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode))
 (add-to-list 'ac-modes 'scss-mode)
-(add-hook 'scss-mode-hook 'ac-css-mode-setup)
+;;(add-hook 'scss-mode-hook 'ac-css-mode-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1136,18 +1155,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; recentf / recentf-ext
 ;;; ----------------------------------------------------------------------
+(require 'recentf)
+(setq recentf-save-file "~/.emacs.d/.recentf")
+(setq recentf-max-saved-items 10000)
+(setq recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "/\\.emacs\\.d/elpa/"))
+(setq recentf-auto-cleanup 'never)
 ;; http://qiita.com/itiut@github/items/d917eafd6ab255629346
 (defmacro with-suppressed-message (&rest body)
   "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
   (declare (indent 0))
   (let ((message-log-max nil))
     `(with-temp-message (or (current-message) "") ,@body)))
-
-(require 'recentf)
-(setq recentf-save-file "~/.emacs.d/.recentf")
-(setq recentf-max-saved-items 10000)
-(setq recentf-exclude '(".recentf"))
-(setq recentf-auto-cleanup 'never)
 (setq recentf-auto-save-timer
       (run-with-idle-timer 30 t '(lambda ()
                                    (with-suppressed-message (recentf-save-list)))))
@@ -1397,11 +1415,13 @@ Highlight last expanded string."
                 ("*Apropos*" :height 0.4)
                 ("*Help*" :height 0.4)
                 ("*sdic*" :height 0.3)
+                ("*Warnings*" :height 0.3)
                 ("*Google Translate*" :height 0.3)
                 ;;("^\\*helm" :regexp t :height 20)
                 ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
                 ("*git-gutter:diff*" :height 0.4 :stick t)
                 (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
+                ;;("*rspec-compilation*" :height 0.4 :stick t :regexp t)
                 (dired-mode :height 0.3 :position top))
               popwin:special-display-config))
 (define-key global-map (kbd "C-x p") 'popwin:display-last-buffer)
@@ -1455,10 +1475,12 @@ Highlight last expanded string."
     (cond
      ((term-in-line-mode)
       (term-char-mode)
-      (hl-line-mode -1))
+      ;; (hl-line-mode -1)
+      )
      ((term-in-char-mode)
       (term-line-mode)
-      (hl-line-mode 1))))
+      ;; (hl-line-mode 1)
+      )))
 
   (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
     "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
