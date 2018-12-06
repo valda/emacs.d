@@ -945,13 +945,12 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(defun my-web-mode-hook ()
-  "Hooks for Web mode."
-  (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?% "w" web-mode-syntax-table))
-  (when (string-match "\\.php" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?? "w" web-mode-syntax-table)))
-(add-hook 'web-mode-hook  'my-web-mode-hook)
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
+              (modify-syntax-entry ?% "w" web-mode-syntax-table))
+            (when (string-match "\\.php" (buffer-file-name (current-buffer)))
+              (modify-syntax-entry ?? "w" web-mode-syntax-table))))
 
 (add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.rhtml?\\'" . web-mode))
