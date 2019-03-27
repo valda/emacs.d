@@ -549,6 +549,7 @@ Highlight last expanded string."
 (require 'jka-compr)
 (when (require 'wdired nil t)
   (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode))
+(setq dired-dwim-target t)
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -735,7 +736,7 @@ Highlight last expanded string."
 
 (add-hook 'c-mode-common-hook
       (lambda ()
-        ;; my-c-stye を登録して有効にする
+        ;; my-cc-stye を登録して有効にする
         (c-add-style "PERSONAL" my-cc-style t)
         ;; 自動改行(auto-newline)を有効にする
         (when (fboundp 'c-toggle-auto-newline)
@@ -831,7 +832,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq ruby-insert-encoding-magic-comment nil)
 (setq enh-ruby-add-encoding-comment-on-save nil)
-(setq enh-ruby-deep-indent-paren nil)
+;;(setq enh-ruby-deep-indent-paren nil)
 (setq auto-mode-alist
       (append '(
                 ("\\.rb\\'" . enh-ruby-mode)
@@ -928,62 +929,68 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'php-mode-hook
-          '(lambda ()
-             (require 'php-align)
-             (php-align-setup)
-             (php-enable-psr2-coding-style)
-             (setq flycheck-phpcs-standard "PSR2")
-             ;;(electric-pair-mode t)
-             (electric-indent-mode t)
-             (electric-layout-mode t)
-             (define-key php-mode-map '[(control .)] nil)
-             (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
-             ;;(c-set-offset 'arglist-intro' +)
-             (c-set-offset 'arglist-cont-nonempty' +)
-             ;;(c-set-offset 'arglist-close' 0)
-             (c-set-offset 'case-label +)
-             ;;(require 'ac-php)
-             ;;(add-to-list 'ac-sources 'ac-source-php)
-             ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
-             ))
+(defun my-php-mode-hook ()
+  (require 'php-align)
+  (php-align-setup)
+  (php-enable-psr2-coding-style)
+  (setq flycheck-phpcs-standard "PSR2")
+  ;;(electric-pair-mode t)
+  (electric-indent-mode t)
+  (electric-layout-mode t)
+  (define-key php-mode-map '[(control .)] nil)
+  (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
+  (setq tab-width 4)
+  (setq c-basic-offset 4)
+  (setq indent-tabs-mode nil)
+  ;;(c-set-offset 'arglist-intro' +)
+  (c-set-offset 'arglist-cont-nonempty' +)
+  ;;(c-set-offset 'arglist-close' 0)
+  (c-set-offset 'case-label +)
+  ;;(require 'ac-php)
+  ;;(add-to-list 'ac-sources 'ac-source-php)
+  ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
+  )
+(add-hook 'php-mode-hook 'my-php-mode-hook)
+;; バッファ先頭行が `<?php' なら php-mode で開く
+(add-to-list 'magic-mode-alist '("\\`<\\?php$" . php-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'web-mode-hook
-          (lambda ()
-            (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
-              (modify-syntax-entry ?% "w" web-mode-syntax-table))
-            (when (string-match "\\.php" (buffer-file-name (current-buffer)))
-              (modify-syntax-entry ?? "w" web-mode-syntax-table))))
+(setq web-mode-enable-current-element-highlight t)
+(setq web-mode-enable-current-column-highlight t)
+
+(defun my-web-mode-hook ()
+  (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
+    (modify-syntax-entry ?% "w" web-mode-syntax-table))
+  (when (string-match "\\.php" (buffer-file-name (current-buffer)))
+    (modify-syntax-entry ?? "w" web-mode-syntax-table)))
+(add-hook 'web-mode-hook 'my-web-mode-hook)
 
 (add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.rhtml?\\'" . web-mode))
-
-;; views という directory 配下に有る php ファイルは web-mode で開く
-(add-to-list 'auto-mode-alist '("/views/.*\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("/Smarty/templates/.*\\.\\(php\\|tpl\\)\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode (javascript)
 ;;; ----------------------------------------------------------------------
-(add-hook 'js2-mode-hook
-          (lambda ()
-            (setq js2-basic-offset 2)
-            (electric-indent-mode t)
-            (electric-layout-mode t)
-            (setq-local electric-layout-rules
-                        '(
-                          (?\{ . after)
-                          (?\} . before)
-                          ;;(?\; . after)
-                          ))))
 (setq js2-include-browser-externs nil)
 (setq js2-mode-show-parse-errors nil)
 (setq js2-mode-show-strict-warnings nil)
 (setq js2-highlight-external-variables nil)
 (setq js2-include-jslint-globals nil)
+
+(defun my-js2-mode-hook ()
+  (setq js2-basic-offset 2)
+  (electric-indent-mode t)
+  (electric-layout-mode t)
+  (setq-local electric-layout-rules
+              '(
+                (?\{ . after)
+                (?\} . before)
+                ;;(?\; . after)
+                )))
+(add-hook 'js2-mode-hook 'my-js2-mode-hook)
 
 ;;; ----------------------------------------------------------------------
 ;;; rjsx-mode
@@ -1016,17 +1023,16 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'scss-mode-hook
-          (lambda ()
-            (ac-css-mode-setup)
-            (electric-indent-mode t)
-            (electric-layout-mode t)
-            (setq-local electric-layout-rules
-                        '((?\{ . after) (?\} . before)))))
 (setq scss-compile-at-save nil)
-(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode))
 (add-to-list 'ac-modes 'scss-mode)
-;;(add-hook 'scss-mode-hook 'ac-css-mode-setup)
+(defun my-scss-mode-hook ()
+  (ac-css-mode-setup)
+  (electric-indent-mode t)
+  (electric-layout-mode t)
+  (setq-local electric-layout-rules
+              '((?\{ . after) (?\} . before))))
+(add-hook 'scss-mode-hook 'my-scss-mode-hook)
+(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1210,19 +1216,21 @@ Highlight last expanded string."
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
 (require 'flycheck)
-;;(require 'flycheck-pyflakes)
 (add-hook 'after-init-hook #'global-flycheck-mode)
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (setq flycheck-gcc-language-standard "c++11")
-            (setq flycheck-clang-language-standard "c++11")))
+;;(require 'flycheck-pyflakes)
 (setq flycheck-disabled-checkers
-      (append '(;;python-flake8
+      (append '(
+                ;;python-flake8
                 ;;python-pylint
                 ruby-rubylint
                 javascript-jshint
-                javascript-jscs)
+                javascript-jscs
+                )
               flycheck-disabled-checkers))
+(defun my-c++-mode-flycheck-setup ()
+  (setq flycheck-gcc-language-standard "c++11")
+  (setq flycheck-clang-language-standard "c++11"))
+(add-hook 'c++-mode-hook 'my-c++-mode-flycheck-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1289,6 +1297,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; sdic
 ;;; ----------------------------------------------------------------------
+(if (not (boundp 'default-fill-column))
+    (setq default-fill-column (default-value 'fill-column)))
 (when (require 'sdic nil t)
   (global-set-key "\C-cw" 'sdic-describe-word)
   (global-set-key "\C-cW" 'sdic-describe-word-at-point)
@@ -1412,7 +1422,9 @@ Highlight last expanded string."
 ;;; popwin.el
 ;;; ----------------------------------------------------------------------
 (require 'popwin)
-(setq display-buffer-function 'popwin:display-buffer)
+(popwin-mode 1)
+(setq pop-up-windows nil)
+;;(setq display-buffer-function 'popwin:display-buffer)
 (setq popwin:adjust-other-windows t)
 (setq popwin:special-display-config
       (append '(("*Backtrace*" :height 0.3)
@@ -1422,12 +1434,13 @@ Highlight last expanded string."
                 ("*sdic*" :height 0.3)
                 ("*Warnings*" :height 0.3)
                 ("*Google Translate*" :height 0.3)
-                ;;("^\\*helm" :regexp t :height 20)
+                ("^\\*helm" :regexp t :height 0.4)
                 ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
                 ("*git-gutter:diff*" :height 0.4 :stick t)
                 (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
                 ;;("*rspec-compilation*" :height 0.4 :stick t :regexp t)
-                (dired-mode :height 0.3 :position top))
+                ;;(dired-mode :height 0.4 :position top)
+                )
               popwin:special-display-config))
 (define-key global-map (kbd "C-x p") 'popwin:display-last-buffer)
 
@@ -1470,7 +1483,7 @@ Highlight last expanded string."
   (setq shell-pop-shell-type '("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell))))
   (setq shell-pop-term-shell "/bin/zsh")
   (setq shell-pop-universal-key "<f12>")
-  (setq shell-pop-window-height 40)
+  (setq shell-pop-window-size 40)
   (setq shell-pop-window-position "bottom")
   (require 'shell-pop)
 
@@ -1581,7 +1594,7 @@ Highlight last expanded string."
 ;;; ファイルをシステムの関連付けで開く
 ;;; ----------------------------------------------------------------------
 (defun my-file-open-by-windows (file)
-  "ファイルをウィンドウズの関連付けで開く"
+  "ファイルをシステムの関連付けで開く"
   (interactive "fOpen File: ")
   (message "Opening %s..." file)
   (cond ((not window-system)
