@@ -95,6 +95,7 @@
     dsvn
     editorconfig
     elscreen
+    enh-ruby-mode
     exec-path-from-shell
     flycheck
     flycheck-pyflakes
@@ -473,6 +474,11 @@ Highlight last expanded string."
 ;;; windmove
 ;;; ----------------------------------------------------------------------
 (windmove-default-keybindings)
+
+;;; ----------------------------------------------------------------------
+;;; winner-mode
+;;; ----------------------------------------------------------------------
+(winner-mode t)
 
 ;;; ----------------------------------------------------------------------
 ;;; swbuff
