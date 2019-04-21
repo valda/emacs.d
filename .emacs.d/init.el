@@ -31,7 +31,7 @@
 (blink-cursor-mode 0)
 (delete-selection-mode t)
 (setq line-move-visual nil)
-(setq mode-require-final-newline t)
+(setq require-final-newline -1)
 (setq-default tab-width 4 indent-tabs-mode nil)
 (show-paren-mode t)
 (setq blink-matching-paren nil)
@@ -188,6 +188,7 @@
     mozc-el-extensions
     po-mode
     po-mode+
+    tempbuf
     visual-basic-mode
     )
   "A list of packages to install by el-get at launch.")
@@ -479,6 +480,11 @@ Highlight last expanded string."
 ;;; winner-mode
 ;;; ----------------------------------------------------------------------
 (winner-mode t)
+(smartrep-define-key
+    winner-mode-map "C-c" '(("p" . 'winner-undo)
+                            ("n" . 'winner-redo)
+                            ("<left>" . 'winner-undo)
+                            ("<right>" . 'winner-redo)))
 
 ;;; ----------------------------------------------------------------------
 ;;; swbuff
@@ -486,7 +492,22 @@ Highlight last expanded string."
 (require 'swbuff)
 (global-set-key [C-tab] 'swbuff-switch-to-next-buffer)
 (global-set-key [C-iso-lefttab] 'swbuff-switch-to-previous-buffer)
-(setq swbuff-exclude-buffer-regexps '("^ .*" "^\\*helm.*\\*" "^\\*magit.*" "^magit-process.*" "^\\*ansi-term.*\\*" "^\\*Messages\\*"))
+(smartrep-define-key
+    global-map "C-x" '(("<left>" . 'swbuff-switch-to-previous-buffer)
+                       ("<right>" . 'swbuff-switch-to-next-buffer)))
+
+(setq swbuff-exclude-buffer-regexps
+      '("^ .*"
+        "^\\*Backtrace\\*"
+        "^\\*Flycheck.*\\*"
+        "^\\*Ibuffer\\*"
+        "^\\*Messages\\*"
+        "^\\*Moccur\\*"
+        "^\\*ansi-term.*\\*"
+        "^\\*helm.*\\*"
+        "^\\*magit.*"
+        "^\\*rspec-compilation\\*"
+        "^magit-process.*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -562,6 +583,7 @@ Highlight last expanded string."
              "~/Dropbox/Documents/howm/")))
 (setq howm-menu-lang 'ja)
 (global-set-key "\C-c,," 'howm-menu)
+(global-set-key "\C-c,c" 'howm-create)
 (mapc
  (lambda (f)
    (autoload f
@@ -1210,7 +1232,9 @@ Highlight last expanded string."
        (define-key elscreen-map "\C-t" 'elscreen-toggle)))
 (smartrep-define-key
     global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
-                                     ("n" . 'elscreen-next)))
+                                     ("n" . 'elscreen-next)
+                                     ("<left>" . 'elscreen-previous)
+                                     ("<right>" . 'elscreen-next)))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -1688,6 +1712,28 @@ Highlight last expanded string."
        (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)))
 
 ;;; ----------------------------------------------------------------------
+;;; tempbuf-mode
+;;; ----------------------------------------------------------------------
+(require 'tempbuf)
+(add-hook 'dired-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'magit-mode-hook 'turn-on-tempbuf-mode)
+;; (add-hook 'magit-revision-mode-hook 'turn-on-tempbuf-mode)
+;; (add-hook 'magit-diff-mode-hook 'turn-on-tempbuf-mode)
+;; (add-hook 'magit-log-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'custom-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'w3-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'Man-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'view-mode-hook 'turn-on-tempbuf-mode)
+
+;;; ----------------------------------------------------------------------
+;;; buffer-move
+;;; ----------------------------------------------------------------------
+(global-set-key (kbd "<C-S-up>")     'buf-move-up)
+(global-set-key (kbd "<C-S-down>")   'buf-move-down)
+(global-set-key (kbd "<C-S-left>")   'buf-move-left)
+(global-set-key (kbd "<C-S-right>")  'buf-move-right)
+
+;;; ---------------------------------------------------------------------
 ;;; monokai-theme
 ;;; ----------------------------------------------------------------------
 (load-theme 'monokai t)
@@ -1777,3 +1823,4 @@ Highlight last expanded string."
     (exec-path-from-shell-initialize))
 (cd "~")
 ;;; end of file ;;;
+(put 'dired-find-alternate-file 'disabled nil)
