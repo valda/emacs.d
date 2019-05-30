@@ -31,7 +31,6 @@
 (blink-cursor-mode 0)
 (delete-selection-mode t)
 (setq line-move-visual nil)
-(setq require-final-newline -1)
 (setq-default tab-width 4 indent-tabs-mode nil)
 (show-paren-mode t)
 (setq blink-matching-paren nil)
@@ -42,7 +41,8 @@
 (setq mode-line-frame-identification " ")
 (setq line-number-mode t)
 (setq column-number-mode t)
-(setq mode-require-final-newline nil)
+(setq require-final-newline -1)
+(setq mode-require-final-newline -1)
 (setq ring-bell-function 'ignore)
 (setq search-default-regexp-mode nil)
 
@@ -127,6 +127,7 @@
     monokai-theme
     mozc
     mozc-popup
+    nginx-mode
     open-junk-file
     php-mode
     popwin
@@ -876,6 +877,7 @@ Highlight last expanded string."
     (save-excursion
       (widen)
       (goto-char (point-min))
+      (if (looking-at "^#!") (beginning-of-line 2))
       (unless (looking-at "^# frozen_string_literal: true")
         (insert "# frozen_string_literal: true\n\n")))))
 
@@ -1166,6 +1168,7 @@ Highlight last expanded string."
                 ;;("\\.rhtml?\\'"            . html-mode)     ;; HTML(erb)
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
+                ("nginx\\(.*\\).conf[^/]*$" . nginx-mode)
                 )
               auto-mode-alist))
 
@@ -1727,6 +1730,10 @@ Highlight last expanded string."
 (add-hook 'w3-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'Man-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'view-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'compilation-mode-hook
+          (lambda ()
+            (when (string-match "*RuboCop " (buffer-name))
+              'turn-on-tempbuf-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; buffer-move
