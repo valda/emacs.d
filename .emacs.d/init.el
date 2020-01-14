@@ -41,8 +41,8 @@
 (setq mode-line-frame-identification " ")
 (setq line-number-mode t)
 (setq column-number-mode t)
-(setq require-final-newline -1)
-(setq mode-require-final-newline -1)
+(setq require-final-newline t)
+(setq mode-require-final-newline t)
 (setq ring-bell-function 'ignore)
 (setq search-default-regexp-mode nil)
 
@@ -75,8 +75,11 @@
 ;;; ----------------------------------------------------------------------
 (setq package-user-dir "~/.emacs.d/elpa")
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
-;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+(setq package-archives '(("gnu" .       "http://mirrors.163.com/elpa/gnu/")
+                         ("melpa" .     "https://melpa.org/packages/")
+                         ("org" .       "http://orgmode.org/elpa/")))
 (package-initialize)
 
 ;; install packages by package.el
@@ -984,16 +987,18 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(setq web-mode-enable-current-element-highlight t)
-(setq web-mode-enable-current-column-highlight t)
-
 (defun my-web-mode-hook ()
+  (setq web-mode-enable-current-element-highlight t)
+  (setq web-mode-enable-current-column-highlight t)
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-enable-auto-indentation nil)
   (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
     (modify-syntax-entry ?% "w" web-mode-syntax-table))
   (when (string-match "\\.php" (buffer-file-name (current-buffer)))
     (modify-syntax-entry ?? "w" web-mode-syntax-table)))
 (add-hook 'web-mode-hook 'my-web-mode-hook)
 
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.rhtml?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
@@ -1030,6 +1035,13 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
 (add-to-list 'auto-mode-alist '("\\.babelrc\\'" . json-mode))
 (add-to-list 'auto-mode-alist '("\\.eslintrc\\'" . json-mode))
+
+;;; ----------------------------------------------------------------------
+;;; for json format
+;;; ----------------------------------------------------------------------
+(defun jq-format (beg end)
+  (interactive "r")
+  (shell-command-on-region beg end "jq ." nil t))
 
 ;;; ----------------------------------------------------------------------
 ;;; coffee-mode
@@ -1160,7 +1172,7 @@ Highlight last expanded string."
 (setq auto-mode-alist
       (append '(
                 ("\\.doc\\'"               . text-mode)
-                ("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
+                ;;("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
                 ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
                 ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
