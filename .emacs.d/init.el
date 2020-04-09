@@ -45,6 +45,7 @@
 (setq mode-require-final-newline t)
 (setq ring-bell-function 'ignore)
 (setq search-default-regexp-mode nil)
+(desktop-save-mode 1)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -155,6 +156,7 @@
     wgrep-ag
     yaml-mode
     yasnippet
+    logstash-conf
     )
   "A list of packages to install by package.el at launch.")
 
@@ -1015,13 +1017,14 @@ Highlight last expanded string."
 (defun my-js2-mode-hook ()
   (setq js2-basic-offset 2)
   (electric-indent-mode t)
-  (electric-layout-mode t)
+  (electric-layout-mode nil)
   (setq-local electric-layout-rules
-              '(
-                (?\{ . after)
-                (?\} . before)
-                ;;(?\; . after)
-                )))
+               '(
+                ;; (?\{ . after)
+                ;; (?\} . before)
+                ;; (?\; . after)
+                ))
+  )
 (add-hook 'js2-mode-hook 'my-js2-mode-hook)
 
 ;;; ----------------------------------------------------------------------
@@ -1165,6 +1168,10 @@ Highlight last expanded string."
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (editorconfig-mode 1)
+
+;;; ----------------------------------------------------------------------
+;;; logstash-conf
+;;; ----------------------------------------------------------------------
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
