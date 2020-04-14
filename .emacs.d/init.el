@@ -66,6 +66,18 @@
   (setenv "CYGWIN" "nodosfilewarning"))
 
 ;;; ----------------------------------------------------------------------
+;;; WSL
+;;; ----------------------------------------------------------------------
+(defun my-wsl-p ()
+  (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop"))
+
+(when (my-wsl-p)
+  (defun reset-frame-parameter (frame)
+    (sleep-for 0.1)
+    (set-frame-parameter frame 'height 32))
+  (add-hook 'after-make-frame-functions #'reset-frame-parameter))
+
+;;; ----------------------------------------------------------------------
 ;;; フォント設定
 ;;; ----------------------------------------------------------------------
 (add-to-list 'initial-frame-alist '(font . "Ricty-13.5"))
@@ -91,9 +103,10 @@
     auto-async-byte-compile
     auto-complete
     bm
+    buffer-move
     coffee-mode
     csharp-mode
-    cygwin-mount
+    ;;cygwin-mount
     diminish
     dockerfile-mode
     dsvn
@@ -130,8 +143,10 @@
     mmm-mode
     monokai-theme
     mozc
+    mozc-im
     mozc-popup
     nginx-mode
+    nswbuff
     open-junk-file
     php-mode
     popwin
@@ -142,14 +157,14 @@
     rjsx-mode
     rspec-mode
     rubocop
-    ruby-block
+    ;;ruby-block
     ruby-end
     scss-mode
     session
     shell-pop
     smartrep
     snippet
-    swbuff
+    ;;swbuff
     undo-tree
     vcl-mode
     web-mode
@@ -196,6 +211,7 @@
     po-mode+
     tempbuf
     visual-basic-mode
+    cygwin-mount
     )
   "A list of packages to install by el-get at launch.")
 (el-get 'sync el-get-installing-package-list)
@@ -218,52 +234,104 @@
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
 ;;; ----------------------------------------------------------------------
+(defun my-w32-ime-init()
+  (setq default-input-method "W32-IME")
+  (w32-ime-initialize)
+  (setq-default w32-ime-mode-line-state-indicator "[--]")
+  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+
+(defun my-wsl-mozc-init()
+  (require 'mozc)
+  (require 'mozc-im)
+  (require 'mozc-popup)
+  (require 'mozc-cursor-color)
+  (require 'wdired)
+
+  (setq default-input-method "japanese-mozc-im")
+  ;;(setq mozc-helper-program-name "mozc_emacs_helper.sh")
+  (setq mozc-candidate-style 'popup)
+  (setq mozc-cursor-color-alist '((direct        . "green")
+                                  (read-only     . "yellow")
+                                  (hiragana      . "red")
+                                  (full-katakana . "goldenrod")
+                                  (half-ascii    . "dark orchid")
+                                  (full-ascii    . "orchid")
+                                  (half-katakana . "dark goldenrod")))
+
+  ;; C-o で IME をトグルする
+  (global-set-key (kbd "C-o") 'toggle-input-method)
+  (define-key isearch-mode-map (kbd "C-o") 'isearch-toggle-input-method)
+  (define-key wdired-mode-map (kbd "C-o") 'toggle-input-method)
+
+  ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
+  (advice-add 'mozc-session-execute-command
+            :after (lambda (&rest args)
+                     (when (eq (nth 0 args) 'CreateSession)
+                       ;; (mozc-session-sendkey '(hiragana)))))
+                       (mozc-session-sendkey '(Hankaku/Zenkaku)))))
+
+  ;; mozc-cursor-color を利用するための対策
+  (defvar-local mozc-im-mode nil)
+  (add-hook 'mozc-im-activate-hook (lambda () (setq mozc-im-mode t)))
+  (add-hook 'mozc-im-deactivate-hook (lambda () (setq mozc-im-mode nil)))
+  (advice-add 'mozc-cursor-color-update
+              :around (lambda (orig-fun &rest args)
+                        (let ((mozc-mode mozc-im-mode))
+                          (apply orig-fun args))))
+
+  ;; isearch を利用する前後で IME の状態を維持するための対策
+  (add-hook 'isearch-mode-hook (lambda () (setq im-state mozc-im-mode)))
+  (add-hook 'isearch-mode-end-hook
+            (lambda ()
+              (unless (eq im-state mozc-im-mode)
+                (if im-state
+                    (activate-input-method default-input-method)
+                  (deactivate-input-method)))))
+
+  ;; wdired 終了時に IME を OFF にする
+  (advice-add 'wdired-finish-edit
+              :after (lambda (&rest args)
+                     (deactivate-input-method))))
+
+(defun my-mozc-init()
+  (require 'mozc)
+  (require 'mozc-popup)
+  (require 'mozc-cursor-color)
+  (require 'mozc-mode-line-indicator)
+  (setq default-input-method "japanese-mozc")
+  (setq mozc-candidate-style 'popup)
+  (add-to-list 'mozc-cursor-color-alist '(direct . "green"))
+  (progn ;toggle input method
+    (define-key global-map [henkan]
+      (lambda ()
+        (interactive)
+        (if current-input-method (inactivate-input-method))
+        (toggle-input-method)))
+    (define-key global-map [muhenkan]
+      (lambda ()
+        (interactive)
+        (inactivate-input-method)))
+    ;; (define-key global-map [zenkaku-hankaku]
+    ;;   (lambda ()
+    ;;     (interactive)
+    ;;     (toggle-input-method)))
+    (defadvice mozc-handle-event (around intercept-keys (event))
+      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
+      (if (member event (list 'zenkaku-hankaku 'muhenkan))
+          (progn
+            (mozc-clean-up-session)
+            (toggle-input-method))
+        (progn ;(message "%s" event) ;debug
+          ad-do-it)))
+    (ad-activate 'mozc-handle-event))
+  (global-set-key (kbd "M-`") 'toggle-input-method))
+
 (cond ((eq window-system 'w32)
-       (setq default-input-method "W32-IME")
-       (w32-ime-initialize)
-       (setq-default w32-ime-mode-line-state-indicator "[--]")
-       (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
-      ((require 'mozc nil t)
-       (require 'mozc-popup)
-       (require 'mozc-cursor-color)
-       (require 'mozc-mode-line-indicator)
-       (setq default-input-method "japanese-mozc")
-       (setq mozc-candidate-style 'popup)
-       (add-to-list 'mozc-cursor-color-alist '(direct . "green"))
-       (progn ;toggle input method
-         (define-key global-map [henkan]
-           (lambda ()
-             (interactive)
-             (if current-input-method (inactivate-input-method))
-             (toggle-input-method)))
-         (define-key global-map [muhenkan]
-           (lambda ()
-             (interactive)
-             (inactivate-input-method)))
-         ;; (define-key global-map [zenkaku-hankaku]
-         ;;   (lambda ()
-         ;;     (interactive)
-         ;;     (toggle-input-method)))
-         (defadvice mozc-handle-event (around intercept-keys (event))
-           "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
-           (if (member event (list 'zenkaku-hankaku 'muhenkan))
-               (progn
-                 (mozc-clean-up-session)
-                 (toggle-input-method))
-             (progn ;(message "%s" event) ;debug
-               ad-do-it)))
-         (ad-activate 'mozc-handle-event))
-       (global-set-key (kbd "M-`") 'toggle-input-method))
-      ((require 'ibus nil t)
-       (add-hook 'after-init-hook 'ibus-mode-on)
-       (global-set-key "\C-\\" 'ibus-toggle)
-       (setq ibus-cursor-color '("red" "green" "cyan"))
-       (ibus-define-common-key [?\C-\  ?\C-/]  nil)
-       (add-hook 'minibuffer-setup-hook 'ibus-disable)
-       (ibus-disable-isearch))
-      ((require 'uim nil t)
-       (setq uim-candidate-display-inline t)
-       (global-set-key "\C-\\" 'uim-mode)))
+       (w32-ime-init))
+      ((my-wsl-p)
+       (my-wsl-mozc-init))
+      (t
+       (my-mozc-init)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
@@ -274,15 +342,15 @@
                 " " (size 6 -1) " " (mode 16 16) " " (coding 15 15) " " filename)
           (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
   (define-ibuffer-column
-   ;; ibuffer-formats に追加した文字
-   coding
-   ;; 一行目の文字
-   (:name " coding ")
-   ;; 以下に文字コードを返す関数を書く
-   (if (coding-system-get buffer-file-coding-system 'mime-charset)
-       (format " %s" (coding-system-get buffer-file-coding-system 'mime-charset))
-     " undefined"
-     ))
+    ;; ibuffer-formats に追加した文字
+    coding
+    ;; 一行目の文字
+    (:name " coding ")
+    ;; 以下に文字コードを返す関数を書く
+    (if (coding-system-get buffer-file-coding-system 'mime-charset)
+        (format " %s" (coding-system-get buffer-file-coding-system 'mime-charset))
+      " undefined"
+      ))
   (global-set-key "\C-x\C-b" 'ibuffer))
 
 ;;; ----------------------------------------------------------------------
@@ -357,21 +425,21 @@
 (defvar he-dabbrev-highlight-function "")
 (let (current-load-list)
   (defadvice try-expand-dabbrev
-    (after dabbrev-expand-highlight activate)
+      (after dabbrev-expand-highlight activate)
     "Advised by he-dabbrev-highlight.
 Highlight last expanded string."
     (setq he-dabbrev-highlight-function "dabbrev")
     (he-dabbrev-highlight))
 
   (defadvice try-expand-dabbrev-all-buffers
-    (after dabbrev-expand-highlight activate)
-      "Advised by he-dabbrev-highlight.
+      (after dabbrev-expand-highlight activate)
+    "Advised by he-dabbrev-highlight.
 Highlight last expanded string."
-      (setq he-dabbrev-highlight-function "dabbrev-all-buffers")
-      (he-dabbrev-highlight))
+    (setq he-dabbrev-highlight-function "dabbrev-all-buffers")
+    (he-dabbrev-highlight))
 
   (defadvice try-expand-migemo
-    (after dabbrev-expand-highlight activate)
+      (after dabbrev-expand-highlight activate)
     "Advised by he-dabbrev-highlight.
 Highlight last expanded string."
     (setq he-dabbrev-highlight-function "migemo")
@@ -403,9 +471,9 @@ Highlight last expanded string."
                 (if dabbrev-highlight-overlay
                     (move-overlay dabbrev-highlight-overlay start end)
                   (setq dabbrev-highlight-overlay (make-overlay start end)))
-                  (overlay-put dabbrev-highlight-overlay
-                               'face dabbrev-highlight-face)
-                  (add-hook 'pre-command-hook 'dabbrev-highlight-done))
+                (overlay-put dabbrev-highlight-overlay
+                             'face dabbrev-highlight-face)
+                (add-hook 'pre-command-hook 'dabbrev-highlight-done))
             (unless (minibufferp cbuf)
               ;; Display one-line summary in minibuffer.
               (save-excursion
@@ -413,15 +481,15 @@ Highlight last expanded string."
                   (widen)
                   (goto-char start)
                   (let ((str (buffer-substring-no-properties start end))
-                          (bol (progn (forward-line 0) (point)))
-                          (eol (progn (end-of-line) (point))))
+                        (bol (progn (forward-line 0) (point)))
+                        (eol (progn (end-of-line) (point))))
                     (if (or (featurep 'xemacs)
                             (<= emacs-major-version 20))
                         (setq str (concat " *" str "* "))
-                        (put-text-property 0 (length str)
-                                           'face dabbrev-highlight-face str)
-                        (put-text-property 0 (length he-dabbrev-highlight-function)
-                                           'face 'bold he-dabbrev-highlight-function))
+                      (put-text-property 0 (length str)
+                                         'face dabbrev-highlight-face str)
+                      (put-text-property 0 (length he-dabbrev-highlight-function)
+                                         'face 'bold he-dabbrev-highlight-function))
                     (message "%s: %s(%d): %s%s%s"
                              (format "Using %s" he-dabbrev-highlight-function)
                              (buffer-name buf)
@@ -493,16 +561,15 @@ Highlight last expanded string."
                             ("<right>" . 'winner-redo)))
 
 ;;; ----------------------------------------------------------------------
-;;; swbuff
+;;; nswbuff
 ;;; ----------------------------------------------------------------------
-(require 'swbuff)
-(global-set-key [C-tab] 'swbuff-switch-to-next-buffer)
-(global-set-key [C-iso-lefttab] 'swbuff-switch-to-previous-buffer)
+(require 'nswbuff)
+(global-set-key [C-tab] 'nswbuff-switch-to-next-buffer)
+(global-set-key [C-iso-lefttab] 'nswbuff-switch-to-previous-buffer)
 (smartrep-define-key
-    global-map "C-x" '(("<left>" . 'swbuff-switch-to-previous-buffer)
-                       ("<right>" . 'swbuff-switch-to-next-buffer)))
-
-(setq swbuff-exclude-buffer-regexps
+    global-map "C-x" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
+                       ("<right>" . 'nswbuff-switch-to-next-buffer)))
+(setq nswbuff-exclude-buffer-regexps
       '("^ .*"
         "^\\*Backtrace\\*"
         "^\\*[Ee]diff.*\\*"
@@ -577,8 +644,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'dired-x)
 (require 'jka-compr)
-(when (require 'wdired nil t)
-  (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode))
+(require 'wdired)
+(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 (setq dired-dwim-target t)
 
 ;;; ----------------------------------------------------------------------
@@ -660,8 +727,8 @@ Highlight last expanded string."
        (interactive)
        (let ((day nil)
              (calendar-date-display-form
-         '("[" year "-" (format "%02d" (string-to-int month))
-           "-" (format "%02d" (string-to-int day)) "]")))
+              '("[" year "-" (format "%02d" (string-to-int month))
+                "-" (format "%02d" (string-to-int day)) "]")))
          (setq day (calendar-date-string
                     (calendar-cursor-to-date t)))
          (exit-calendar)
@@ -766,20 +833,20 @@ Highlight last expanded string."
   "My C/C++ Programming Style")
 
 (add-hook 'c-mode-common-hook
-      (lambda ()
-        ;; my-cc-stye を登録して有効にする
-        (c-add-style "PERSONAL" my-cc-style t)
-        ;; 自動改行(auto-newline)を有効にする
-        (when (fboundp 'c-toggle-auto-newline)
-          (c-toggle-auto-newline t))
-        ;; セミコロンで自動改行しない
-        (setq c-hanging-semi&comma-criteria nil)
-        ;; コンパイルコマンドの設定
-        (setq compile-command "make -k" )     ; Cygwin の make
-        ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
-        (setq compilation-window-height 16)
-        ;;(electric-pair-mode t)
-        ))
+          (lambda ()
+            ;; my-cc-stye を登録して有効にする
+            (c-add-style "PERSONAL" my-cc-style t)
+            ;; 自動改行(auto-newline)を有効にする
+            (when (fboundp 'c-toggle-auto-newline)
+              (c-toggle-auto-newline t))
+            ;; セミコロンで自動改行しない
+            (setq c-hanging-semi&comma-criteria nil)
+            ;; コンパイルコマンドの設定
+            (setq compile-command "make -k" )     ; Cygwin の make
+            ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
+            (setq compilation-window-height 16)
+            ;;(electric-pair-mode t)
+            ))
 
 (define-key c-mode-base-map "\C-cc" 'compile)
 (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
@@ -951,11 +1018,11 @@ Highlight last expanded string."
 (setq visual-basic-mode-indent 4)
 (setq auto-mode-alist
       (append '(("\\.[Ff][Rr][Mm]\\'" . visual-basic-mode)  ;;Form Module
-        ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
-        ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
-        ("\\.[Vv][Bb][Ss]?\\'" . visual-basic-mode) ;;VBScript file
-        ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
-        ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
+                ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
+                ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
+                ("\\.[Vv][Bb][Ss]?\\'" . visual-basic-mode) ;;VBScript file
+                ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
+                ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
@@ -1019,7 +1086,7 @@ Highlight last expanded string."
   (electric-indent-mode t)
   (electric-layout-mode nil)
   (setq-local electric-layout-rules
-               '(
+              '(
                 ;; (?\{ . after)
                 ;; (?\} . before)
                 ;; (?\; . after)
@@ -1340,8 +1407,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; uniquify
 ;;; ----------------------------------------------------------------------
-;(require 'uniquify)
-;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+                                        ;(require 'uniquify)
+                                        ;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;;; ----------------------------------------------------------------------
 ;;; sdic
@@ -1365,8 +1432,8 @@ Highlight last expanded string."
     (let ((p (or (ad-get-arg 0)
                  (point))))
       (and sdic-warning-hidden-entry
-              (> p (point-min))
-              (message "この前にもエントリがあります。"))
+           (> p (point-min))
+           (message "この前にもエントリがあります。"))
       (goto-char p)
       (display-buffer (get-buffer sdic-buffer-name))
       (set-window-start (get-buffer-window sdic-buffer-name) p)))
@@ -1401,6 +1468,7 @@ Highlight last expanded string."
 (setq helm-truncate-lines t)
 ;;(setq helm-full-frame nil)
 ;;(setq helm-split-window-default-side 'same)
+(setq helm-inherit-input-method nil)
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
 (global-set-key "\M-x" 'helm-M-x)
@@ -1425,8 +1493,8 @@ Highlight last expanded string."
      (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
      (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
      (smartrep-define-key
-      helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
-                                  (">" . 'helm-gtags-next-history)))
+         helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
+                                     (">" . 'helm-gtags-next-history)))
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 (add-hook 'php-mode-hook 'helm-gtags-mode)
 (add-hook 'ruby-mode-hook 'helm-gtags-mode)
@@ -1560,22 +1628,22 @@ Highlight last expanded string."
 ;;; whitespace-mode like jaspace.el
 ;;; ----------------------------------------------------------------------
 (when (and (>= emacs-major-version 23)
-       (require 'whitespace nil t))
+           (require 'whitespace nil t))
   (setq whitespace-style
-    '(face
-      tabs spaces newline trailing space-before-tab space-after-tab
-      space-mark tab-mark newline-mark))
+        '(face
+          tabs spaces newline trailing space-before-tab space-after-tab
+          space-mark tab-mark newline-mark))
   (setq whitespace-space-regexp "\\(　+\\)")
   (setq whitespace-display-mappings
-    '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
-      (space-mark   ?\x8A0 [?\x8A4] [?_]) ; hard space - currency
-      (space-mark   ?\x920 [?\x924] [?_]) ; hard space - currency
-      (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
-      (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
-      (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
-      (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t]) ; hard tab
-      (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
-      ))
+        '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
+          (space-mark   ?\x8A0 [?\x8A4] [?_]) ; hard space - currency
+          (space-mark   ?\x920 [?\x924] [?_]) ; hard space - currency
+          (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
+          (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
+          (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
+          (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t]) ; hard tab
+          (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
+          ))
   (setq whitespace-global-modes '(not dired-mode tar-mode))
   (global-whitespace-mode 1))
 
@@ -1647,18 +1715,18 @@ Highlight last expanded string."
   (interactive "fOpen File: ")
   (message "Opening %s..." file)
   (cond ((not window-system)
-          ; window-system⇒w32と表示される
-        )
+                                        ; window-system⇒w32と表示される
+         )
         ((eq system-type 'windows-nt)
-          ; XPではwindows-ntと表示される
-          ; infile:      標準入力
-          ; destination: プロセスの出力先
-          ; display:     ?
-          (call-process "cmd.exe" nil 0 nil "/c" "start" "" (convert-standard-filename file)))
+                                        ; XPではwindows-ntと表示される
+                                        ; infile:      標準入力
+                                        ; destination: プロセスの出力先
+                                        ; display:     ?
+         (call-process "cmd.exe" nil 0 nil "/c" "start" "" (convert-standard-filename file)))
         ((eq system-type 'darwin)
-          (call-process "open" nil 0 nil file))
+         (call-process "open" nil 0 nil file))
         (t
-          (call-process "xdg-open" nil 0 nil file)))
+         (call-process "xdg-open" nil 0 nil file)))
   (recentf-add-file file)
   (message "Opening %s...done" file))
 
@@ -1732,9 +1800,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (setq wgrep-auto-save-buffer t)
 (eval-after-load "ag"
-    '(progn
-       (add-hook 'ag-mode-hook 'wgrep-ag-setup)
-       (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)))
+  '(progn
+     (add-hook 'ag-mode-hook 'wgrep-ag-setup)
+     (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; tempbuf-mode
