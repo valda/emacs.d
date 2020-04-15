@@ -593,16 +593,21 @@ Highlight last expanded string."
 (setq w3m-accept-japanese-characters t)
 (autoload 'w3m "w3m" "Interface for w3m on Emacs." t)
 (autoload 'w3m-browse-url "w3m" "Ask emacs-w3m to show a URL." t)
+
 (require 'browse-url)
-(cond ((eq window-system 'x)
-       (setq browse-url-browser-function 'browse-url-xdg-open)
-       (global-set-key [mouse-3] 'browse-url-at-mouse))
+(cond ((my-wsl-p)
+       (setq browse-url-browser-function 'browse-url-generic)
+       (setq browse-url-generic-program  "/init")
+       (setq browse-url-generic-args '("/mnt/c/Windows/System32/rundll32.exe" "url.dll,FileProtocolHandler")))
+      ((eq window-system 'x)
+       (setq browse-url-browser-function 'browse-url-xdg-open))
       ((eq window-system 'w32)
-       (setq browse-url-browser-function 'browse-url-default-windows-browser)
-       (global-set-key [mouse-3] 'browse-url-at-mouse))
+       (setq browse-url-browser-function 'browse-url-default-windows-browser))
       (t
        (setq browse-url-browser-function 'w3m-browse-url)))
 (global-set-key "\C-xm" 'browse-url-at-point)
+(when (window-system)
+  (global-set-key [mouse-3] 'browse-url-at-mouse))
 
 ;;; ----------------------------------------------------------------------
 ;; browse-kill-ring
