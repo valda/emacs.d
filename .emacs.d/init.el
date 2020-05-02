@@ -240,7 +240,7 @@
   (setq-default w32-ime-mode-line-state-indicator "[--]")
   (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
 
-(defun my-wsl-mozc-init()
+(defun my-mozc-init()
   (require 'mozc)
   (require 'mozc-im)
   (require 'mozc-popup)
@@ -258,17 +258,34 @@
                                   (full-ascii    . "orchid")
                                   (half-katakana . "dark goldenrod")))
 
-  ;; C-o で IME をトグルする
-  (global-set-key (kbd "C-o") 'toggle-input-method)
-  (define-key isearch-mode-map (kbd "C-o") 'isearch-toggle-input-method)
-  (define-key wdired-mode-map (kbd "C-o") 'toggle-input-method)
-
   ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
-  (advice-add 'mozc-session-execute-command
-            :after (lambda (&rest args)
-                     (when (eq (nth 0 args) 'CreateSession)
-                       ;; (mozc-session-sendkey '(hiragana)))))
-                       (mozc-session-sendkey '(Hankaku/Zenkaku)))))
+  (when (my-wsl-p)
+    (advice-add 'mozc-session-execute-command
+                :after (lambda (&rest args)
+                         (when (eq (nth 0 args) 'CreateSession)
+                           ;; (mozc-session-sendkey '(hiragana)))))
+                           (mozc-session-sendkey '(Hankaku/Zenkaku))))))
+
+  (define-key global-map [henkan]
+    (lambda () (interactive)
+      (activate-input-method default-input-method)))
+  (define-key global-map [muhenkan]
+    (lambda () (interactive)
+      (deactivate-input-method)))
+  (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
+
+  (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
+  (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
+
+  (defadvice mozc-handle-event (around intercept-keys (event))
+    "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
+    (if (member event (list 'zenkaku-hankaku 'muhenkan))
+        (progn
+          (mozc-clean-up-session)
+          (toggle-input-method))
+      (progn ;(message "%s" event) ;debug
+        ad-do-it)))
+  (ad-activate 'mozc-handle-event)
 
   ;; mozc-cursor-color を利用するための対策
   (defvar-local mozc-im-mode nil)
@@ -291,45 +308,10 @@
   ;; wdired 終了時に IME を OFF にする
   (advice-add 'wdired-finish-edit
               :after (lambda (&rest args)
-                     (deactivate-input-method))))
-
-(defun my-mozc-init()
-  (require 'mozc)
-  (require 'mozc-popup)
-  (require 'mozc-cursor-color)
-  (require 'mozc-mode-line-indicator)
-  (setq default-input-method "japanese-mozc")
-  (setq mozc-candidate-style 'popup)
-  (add-to-list 'mozc-cursor-color-alist '(direct . "green"))
-  (progn ;toggle input method
-    (define-key global-map [henkan]
-      (lambda ()
-        (interactive)
-        (if current-input-method (inactivate-input-method))
-        (toggle-input-method)))
-    (define-key global-map [muhenkan]
-      (lambda ()
-        (interactive)
-        (inactivate-input-method)))
-    ;; (define-key global-map [zenkaku-hankaku]
-    ;;   (lambda ()
-    ;;     (interactive)
-    ;;     (toggle-input-method)))
-    (defadvice mozc-handle-event (around intercept-keys (event))
-      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
-      (if (member event (list 'zenkaku-hankaku 'muhenkan))
-          (progn
-            (mozc-clean-up-session)
-            (toggle-input-method))
-        (progn ;(message "%s" event) ;debug
-          ad-do-it)))
-    (ad-activate 'mozc-handle-event))
-  (global-set-key (kbd "M-`") 'toggle-input-method))
+                       (deactivate-input-method))))
 
 (cond ((eq window-system 'w32)
        (w32-ime-init))
-      ((my-wsl-p)
-       (my-wsl-mozc-init))
       (t
        (my-mozc-init)))
 
