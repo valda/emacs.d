@@ -80,7 +80,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; フォント設定
 ;;; ----------------------------------------------------------------------
-(add-to-list 'initial-frame-alist '(font . "MyricaM M-13.5"))
+(add-to-list 'initial-frame-alist '(font . "Ricty Discord-13"))
 (setq default-frame-alist initial-frame-alist)
 
 ;;; ----------------------------------------------------------------------
@@ -105,6 +105,9 @@
     bm
     buffer-move
     coffee-mode
+    company
+    company-quickhelp
+    company-statistics
     csharp-mode
     ;;cygwin-mount
     diminish
@@ -165,6 +168,8 @@
     smartrep
     snippet
     ;;swbuff
+    tide
+    typescript-mode
     undo-tree
     vcl-mode
     web-mode
@@ -220,7 +225,7 @@
 ;;; diminish
 ;;; ----------------------------------------------------------------------
 ;; (require 'diminish)
-(eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
+;;(eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
@@ -493,11 +498,11 @@ Highlight last expanded string."
 (require 'auto-complete)
 (require 'auto-complete-config)
 (ac-config-default)
-(global-auto-complete-mode t)
-(add-to-list 'ac-modes 'html-mode)
-(add-to-list 'ac-modes 'web-mode)
-(add-to-list 'ac-modes 'rjsx-mode)
-(add-to-list 'ac-modes 'csharp-mode)
+;;(global-auto-complete-mode t)
+;;(add-to-list 'ac-modes 'html-mode)
+;;(add-to-list 'ac-modes 'web-mode)
+;;(add-to-list 'ac-modes 'rjsx-mode)
+;;(add-to-list 'ac-modes 'csharp-mode)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (setq ac-auto-start 2)
 (setq ac-dwim t)
@@ -506,6 +511,37 @@ Highlight last expanded string."
                            ac-source-dictionary
                            ac-source-words-in-same-mode-buffers))
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+
+;;; ----------------------------------------------------------------------
+;;; company-mode
+;;; ----------------------------------------------------------------------
+(with-eval-after-load 'company
+  (global-company-mode +1)
+  (company-statistics-mode)
+  (company-quickhelp-mode)
+  ;;(diminish 'company-mode)
+
+  (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
+  (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
+  (define-key company-active-map (kbd "S-TAB") 'company-select-previous)
+  (define-key company-active-map (kbd "<backtab>") 'company-select-previous)
+  (define-key company-mode-map (kbd "M-TAB") 'company-complete)
+
+  (setq company-frontends
+        '(company-pseudo-tooltip-unless-just-one-frontend
+          company-preview-frontend
+          company-echo-metadata-frontend))
+  (setq company-transformers
+        '(company-sort-by-statistics
+          company-sort-by-backend-importance))
+  (setq company-require-match 'never)
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 2)
+  (setq company-selection-wrap-around t)
+  (setq completion-ignore-case t)
+  (setq company-dabbrev-downcase nil)
+  (setq company-auto-expand t)
+  )
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -1068,18 +1104,18 @@ Highlight last expanded string."
 (setq js2-highlight-external-variables nil)
 (setq js2-include-jslint-globals nil)
 
-(defun my-js2-mode-hook ()
-  (setq js2-basic-offset 2)
-  (electric-indent-mode t)
-  (electric-layout-mode nil)
-  (setq-local electric-layout-rules
-              '(
-                ;; (?\{ . after)
-                ;; (?\} . before)
-                ;; (?\; . after)
-                ))
-  )
-(add-hook 'js2-mode-hook 'my-js2-mode-hook)
+(add-hook 'js2-mode-hook
+          '(lambda()
+             (setq js2-basic-offset 2)
+             (electric-indent-mode t)
+             (electric-layout-mode nil)
+             (setq-local electric-layout-rules
+                         '(
+                           ;; (?\{ . after)
+                           ;; (?\} . before)
+                           ;; (?\; . after)
+                           ))
+             ))
 
 ;;; ----------------------------------------------------------------------
 ;;; rjsx-mode
@@ -1108,6 +1144,27 @@ Highlight last expanded string."
              (set (make-local-variable 'tab-width) 2)
              (setq coffee-tab-width 2)))
 (add-to-list 'auto-mode-alist '("\\.coffee\\.erb\\'" . coffee-mode))
+
+;;; ----------------------------------------------------------------------
+;;; typescript-mode
+;;; ----------------------------------------------------------------------
+(add-hook 'typescript-mode-hook
+          (lambda ()
+            (tide-setup)
+            (flycheck-mode t)
+            (setq flycheck-check-syntax-automatically '(save mode-enabled))
+            (eldoc-mode t)
+            (tide-hl-identifier-mode t)
+            (company-mode t)
+            (setq typescript-indent-level 2)
+            (electric-indent-mode t)
+            (setq-local electric-layout-rules
+                        '(
+                          ;; (?\{ . after)
+                          ;; (?\} . before)
+                          ;; (?\; . after)
+                          ))
+            ))
 
 ;;; ----------------------------------------------------------------------
 ;;; less-css-mode
@@ -1476,6 +1533,7 @@ Highlight last expanded string."
 (setq helm-gtags-auto-update t)
 (eval-after-load "helm-gtags"
   '(progn
+     (diminish 'helm-gtags-mode)
      (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
      (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
      (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
