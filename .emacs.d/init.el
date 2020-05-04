@@ -101,7 +101,7 @@
     ag
     anzu
     auto-async-byte-compile
-    auto-complete
+    ;;auto-complete
     bm
     buffer-move
     coffee-mode
@@ -316,7 +316,7 @@
                        (deactivate-input-method))))
 
 (cond ((eq window-system 'w32)
-       (w32-ime-init))
+       (my-w32-ime-init))
       (t
        (my-mozc-init)))
 
@@ -495,28 +495,29 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; auto-complete
 ;;; ----------------------------------------------------------------------
-(require 'auto-complete)
-(require 'auto-complete-config)
-(ac-config-default)
-;;(global-auto-complete-mode t)
-;;(add-to-list 'ac-modes 'html-mode)
-;;(add-to-list 'ac-modes 'web-mode)
-;;(add-to-list 'ac-modes 'rjsx-mode)
-;;(add-to-list 'ac-modes 'csharp-mode)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-(setq ac-auto-start 2)
-(setq ac-dwim t)
-(setq ac-ignore-case t)
-(setq-default ac-sources '(ac-source-abbrev
-                           ac-source-dictionary
-                           ac-source-words-in-same-mode-buffers))
-(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+;; (require 'auto-complete)
+;; (require 'auto-complete-config)
+;; (ac-config-default)
+;; (global-auto-complete-mode t)
+;; (add-to-list 'ac-modes 'html-mode)
+;; (add-to-list 'ac-modes 'web-mode)
+;; (add-to-list 'ac-modes 'rjsx-mode)
+;; (add-to-list 'ac-modes 'csharp-mode)
+;; (add-to-list 'ac-modes 'less-css-mode)
+;; (add-to-list 'ac-modes 'scss-mode)
+;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+;; (setq ac-auto-start 2)
+;; (setq ac-dwim t)
+;; (setq ac-ignore-case t)
+;; (setq-default ac-sources '(ac-source-abbrev
+;;                            ac-source-dictionary
+;;                            ac-source-words-in-same-mode-buffers))
+;; (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;;; ----------------------------------------------------------------------
 ;;; company-mode
 ;;; ----------------------------------------------------------------------
 (with-eval-after-load 'company
-  (global-company-mode +1)
   (company-statistics-mode)
   (company-quickhelp-mode)
   ;;(diminish 'company-mode)
@@ -540,8 +541,8 @@ Highlight last expanded string."
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case t)
   (setq company-dabbrev-downcase nil)
-  (setq company-auto-expand t)
-  )
+  (setq company-auto-expand t))
+(global-company-mode +1)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -1170,14 +1171,12 @@ Highlight last expanded string."
 ;;; less-css-mode
 ;;; ----------------------------------------------------------------------
 (setq less-css-compile-at-save nil)
-(add-to-list 'ac-modes 'less-css-mode)
 (add-hook 'less-css-mode-hook 'ac-css-mode-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
 (setq scss-compile-at-save nil)
-(add-to-list 'ac-modes 'scss-mode)
 (defun my-scss-mode-hook ()
   (ac-css-mode-setup)
   (electric-indent-mode t)
