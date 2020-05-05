@@ -222,6 +222,29 @@
   "A list of packages to install by el-get at launch.")
 (el-get 'sync el-get-installing-package-list)
 
+
+;;; ---------------------------------------------------------------------
+;;; monokai-theme
+;;; ----------------------------------------------------------------------
+(load-theme 'monokai t)
+;; (set-face-attribute 'region nil
+;;                     :foreground 'unspecified
+;;                     :background "DeepSkyBlue4"
+;;                     :inherit t)
+;; (set-face-attribute 'whitespace-trailing nil
+;;                     :background "darkorange"
+;;                     :foreground 'unspecified
+;;                     :inverse-video 'unspecified)
+;; (set-face-attribute 'whitespace-tab nil
+;;                     :foreground 'unspecified
+;;                     :foreground "brown10"
+;;                     :background 'unspecified
+;;                     :inverse-video 'unspecified
+;;                     :weight 'unspecified)
+;; (set-face-attribute 'mmm-default-submode-face nil
+;;                     :background 'unspecified
+;;                     :inherit t)
+
 ;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
@@ -1676,27 +1699,24 @@ Highlight last expanded string."
       ad-do-it)))
 
 ;;; ----------------------------------------------------------------------
-;;; whitespace-mode like jaspace.el
+;;; whitespace-mode
 ;;; ----------------------------------------------------------------------
-(when (and (>= emacs-major-version 23)
-           (require 'whitespace nil t))
-  (setq whitespace-style
-        '(face
-          tabs spaces newline trailing space-before-tab space-after-tab
-          space-mark tab-mark newline-mark))
-  (setq whitespace-space-regexp "\\(　+\\)")
-  (setq whitespace-display-mappings
-        '((space-mark   ?\xA0  [?\xA4]  [?_]) ; hard space - currency
-          (space-mark   ?\x8A0 [?\x8A4] [?_]) ; hard space - currency
-          (space-mark   ?\x920 [?\x924] [?_]) ; hard space - currency
-          (space-mark   ?\xE20 [?\xE24] [?_]) ; hard space - currency
-          (space-mark   ?\xF20 [?\xF24] [?_]) ; hard space - currency
-          (space-mark   ?　    [?□]    [?＿]) ; full-width space - square
-          (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t]) ; hard tab
-          (newline-mark ?\n    [?\xAB ?\n])   ; eol - right quote mark
-          ))
-  (setq whitespace-global-modes '(not dired-mode tar-mode))
-  (global-whitespace-mode 1))
+(require 'whitespace)
+(setq whitespace-style
+      '(face
+        tabs spaces newline trailing space-before-tab space-after-tab
+        space-mark tab-mark newline-mark))
+(setq whitespace-space-regexp "\\(\u3000+\\)")
+(setq whitespace-display-mappings
+      '(
+        ;; (space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
+        (newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
+        ;; (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+        (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
+        ))
+(set-face-italic-p 'whitespace-space nil)
+(setq whitespace-global-modes '(not dired-mode tar-mode))
+(global-whitespace-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; google-translate.el
@@ -1881,28 +1901,6 @@ Highlight last expanded string."
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
 
-;;; ---------------------------------------------------------------------
-;;; monokai-theme
-;;; ----------------------------------------------------------------------
-(load-theme 'monokai t)
-;; (set-face-attribute 'region nil
-;;                     :foreground 'unspecified
-;;                     :background "DeepSkyBlue4"
-;;                     :inherit t)
-;; (set-face-attribute 'whitespace-trailing nil
-;;                     :background "darkorange"
-;;                     :foreground 'unspecified
-;;                     :inverse-video 'unspecified)
-;; (set-face-attribute 'whitespace-tab nil
-;;                     :foreground 'unspecified
-;;                     :foreground "brown10"
-;;                     :background 'unspecified
-;;                     :inverse-video 'unspecified
-;;                     :weight 'unspecified)
-;; (set-face-attribute 'mmm-default-submode-face nil
-;;                     :background 'unspecified
-;;                     :inherit t)
-
 ;;; ----------------------------------------------------------------------
 ;;; 終了前に確認する
 ;;; ----------------------------------------------------------------------
@@ -1965,10 +1963,11 @@ Highlight last expanded string."
 (put 'narrow-to-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
 ;;; ----------------------------------------------------------------------
 (if (not (eq window-system 'w32))
     (exec-path-from-shell-initialize))
 (cd "~")
+
 ;;; end of file ;;;
-(put 'dired-find-alternate-file 'disabled nil)
