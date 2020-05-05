@@ -80,7 +80,8 @@
 ;;; ----------------------------------------------------------------------
 ;;; フォント設定
 ;;; ----------------------------------------------------------------------
-(add-to-list 'initial-frame-alist '(font . "Ricty Discord-13"))
+;;(add-to-list 'initial-frame-alist '(font . "Ricty Discord-14"))
+(add-to-list 'initial-frame-alist '(font . "Cica-14"))
 (setq default-frame-alist initial-frame-alist)
 
 ;;; ----------------------------------------------------------------------
@@ -603,6 +604,8 @@ Highlight last expanded string."
         "^\\*magit.*"
         "^\\*rspec-compilation\\*"
         "^magit-process.*"))
+(setq nswbuff-clear-delay 1)
+(setq nswbuff-display-intermediate-buffers t)
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -669,8 +672,14 @@ Highlight last expanded string."
 (require 'dired-x)
 (require 'jka-compr)
 (require 'wdired)
-(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+
 (setq dired-dwim-target t)
+(setq dired-recursive-copies 'always)
+(setq dired-isearch-filenames t)
+(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (dired-omit-mode 1)))
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -762,7 +771,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
 ;;; ----------------------------------------------------------------------
-(require 'cc-mode)
+;;(require 'cc-mode)
 (defconst my-cc-style
   '(
     ;; インデント幅を空白2コ分にする
@@ -869,13 +878,12 @@ Highlight last expanded string."
             (setq compile-command "make -k" )     ; Cygwin の make
             ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
             (setq compilation-window-height 16)
-            ;;(electric-pair-mode t)
-            ))
+            ;; (electric-pair-mode t)
+            (define-key c-mode-base-map "\C-cc" 'compile)
+            (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
+            (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
+            (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)))
 
-(define-key c-mode-base-map "\C-cc" 'compile)
-(define-key c-mode-base-map "\C-h" 'c-electric-backspace)
-(define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
-(define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)
 (setq auto-mode-alist
       (append '(("\\.C\\'"            . c-mode)
                 ("\\.[Hh]\\'"         . c++-mode)
@@ -885,23 +893,22 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hideshow
 ;;; ----------------------------------------------------------------------
-(when (require 'hideshow nil t)
-  (add-hook 'c-mode-common-hook   'hs-minor-mode)
-  (add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
-  (add-hook 'java-mode-hook       'hs-minor-mode)
-  (add-hook 'lisp-mode-hook       'hs-minor-mode)
-  (add-hook 'perl-mode-hook       'hs-minor-mode)
-  (add-hook 'sh-mode-hook         'hs-minor-mode)
-  (defun hs-ruby-custom-setup ()
-    (add-to-list 'hs-special-modes-alist
-                 '(ruby-mode
-                   "\\(def\\|do\\)"
-                   "end"
-                   "#"
-                   (lambda (arg) (ruby-end-of-block)) nil ))
-    (hs-minor-mode t))
-  (add-hook 'ruby-mode-hook 'hs-ruby-custom-setup)
-  (add-hook 'enh-ruby-mode-hook 'hs-ruby-custom-setup))
+(add-hook 'c-mode-common-hook   'hs-minor-mode)
+(add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
+(add-hook 'java-mode-hook       'hs-minor-mode)
+(add-hook 'lisp-mode-hook       'hs-minor-mode)
+(add-hook 'perl-mode-hook       'hs-minor-mode)
+(add-hook 'sh-mode-hook         'hs-minor-mode)
+(defun hs-ruby-custom-setup ()
+  (add-to-list 'hs-special-modes-alist
+               '(ruby-mode
+                 "\\(def\\|do\\)"
+                 "end"
+                 "#"
+                 (lambda (arg) (ruby-end-of-block)) nil ))
+  (hs-minor-mode t))
+(add-hook 'ruby-mode-hook 'hs-ruby-custom-setup)
+(add-hook 'enh-ruby-mode-hook 'hs-ruby-custom-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -1450,8 +1457,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; uniquify
 ;;; ----------------------------------------------------------------------
-                                        ;(require 'uniquify)
-                                        ;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+;;(require 'uniquify)
+;;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;;; ----------------------------------------------------------------------
 ;;; sdic
@@ -1637,7 +1644,7 @@ Highlight last expanded string."
               (define-key term-raw-map (kbd "C-k")
                 (lambda (&optional arg) (interactive "P") (funcall 'kill-line arg) (term-send-raw)))
               (define-key term-raw-map (kbd "C-y") 'term-paste)
-              (define-key term-raw-map (kbd "M-y") 'anything-show-kill-ring)
+              (define-key term-raw-map (kbd "M-y") 'helm-show-kill-ring)
               (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
               (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
 
