@@ -102,7 +102,6 @@
     ag
     anzu
     auto-async-byte-compile
-    ;;auto-complete
     bm
     buffer-move
     coffee-mode
@@ -110,7 +109,6 @@
     company-quickhelp
     company-statistics
     csharp-mode
-    ;;cygwin-mount
     diminish
     dockerfile-mode
     dsvn
@@ -161,14 +159,12 @@
     rjsx-mode
     rspec-mode
     rubocop
-    ;;ruby-block
     ruby-end
     scss-mode
     session
     shell-pop
     smartrep
     snippet
-    ;;swbuff
     tide
     typescript-mode
     undo-tree
@@ -249,14 +245,11 @@
 ;;; diminish
 ;;; ----------------------------------------------------------------------
 ;; (require 'diminish)
-;;(eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
-;; (eval-after-load "ibus" '(diminish 'ibus-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
-;; (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
 (eval-after-load "highlight-symbol" '(diminish 'highlight-symbol-mode))
 (eval-after-load "helm" '(diminish 'helm-migemo-mode))
 
@@ -565,6 +558,7 @@ Highlight last expanded string."
   (company-statistics-mode)
   (company-quickhelp-mode)
   ;;(diminish 'company-mode)
+  (add-to-list 'company-backends 'company-emoji)
 
   (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
   (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
@@ -594,12 +588,6 @@ Highlight last expanded string."
 (setq font-lock-support-mode
       (if (fboundp 'jit-lock-mode) 'jit-lock-mode 'lazy-lock-mode))
 (global-font-lock-mode t)
-
-;;; ----------------------------------------------------------------------
-;;; hl-line
-;;; ----------------------------------------------------------------------
-;; (when (window-system)
-;;   (global-hl-line-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; diff-mode で文字単位での強調表示を行う
@@ -673,18 +661,6 @@ Highlight last expanded string."
 (global-set-key "\C-xm" 'browse-url-at-point)
 (when (window-system)
   (global-set-key [mouse-3] 'browse-url-at-mouse))
-
-;;; ----------------------------------------------------------------------
-;; browse-kill-ring
-;;; ----------------------------------------------------------------------
-;; (require 'browse-kill-ring)
-;;  (browse-kill-ring-default-keybindings)
-;;  (setq browse-kill-ring-no-duplicates t)
-;;  (browse setq-kill-ring-separator "--ヽ(´ー｀)ノ--------------------")
-;;  (setq browse-kill-ring-separator-face 'browse-kill-ring-separator-face)
-;;  (make-face 'browse-kill-ring-separator-face)
-;;  (set-face-attribute 'browse-kill-ring-separator-face nil
-;;              :foreground "light steel blue" :bold t)
 
 ;;; ----------------------------------------------------------------------
 ;;; undo-tree.el
@@ -936,22 +912,25 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hideshow
 ;;; ----------------------------------------------------------------------
-(add-hook 'c-mode-common-hook   'hs-minor-mode)
-(add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
-(add-hook 'java-mode-hook       'hs-minor-mode)
-(add-hook 'lisp-mode-hook       'hs-minor-mode)
-(add-hook 'perl-mode-hook       'hs-minor-mode)
-(add-hook 'sh-mode-hook         'hs-minor-mode)
-(defun hs-ruby-custom-setup ()
-  (add-to-list 'hs-special-modes-alist
-               '(ruby-mode
-                 "\\(def\\|do\\)"
-                 "end"
-                 "#"
-                 (lambda (arg) (ruby-end-of-block)) nil ))
-  (hs-minor-mode t))
-(add-hook 'ruby-mode-hook 'hs-ruby-custom-setup)
-(add-hook 'enh-ruby-mode-hook 'hs-ruby-custom-setup)
+(dolist (hook '(
+                c-mode-common-hook
+                emacs-lisp-mode-hook
+                lisp-mode-hook
+                perl-mode-hook
+                sh-mode-hook
+                ))
+  (add-hook hook 'hs-minor-mode))
+
+(let ((ruby-mode-hs-info
+       '(enh-ruby-mode
+          "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
+          "end"
+          "#"
+          ruby-move-to-block
+          nil)))
+  (if (not (member ruby-mode-hs-info hs-special-modes-alist))
+      (setq hs-special-modes-alist
+            (cons ruby-mode-hs-info hs-special-modes-alist))))
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -1029,6 +1008,7 @@ Highlight last expanded string."
 
 (defun my-ruby-mode-hook ()
   "Hooks for Ruby mode."
+  (inf-ruby-minor-mode t)
   ;;(electric-pair-mode t)
   (electric-indent-mode t)
   (electric-layout-mode t)
@@ -1036,6 +1016,7 @@ Highlight last expanded string."
   (rubocop-mode t)
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
 (add-hook 'enh-ruby-mode-hook 'my-ruby-mode-hook)
+(add-hook 'inf-ruby-mode-hook (lambda () (require 'inf-ruby-company)))
 
 ;; ruby の symbol をいい感じに hippie-expand する
 (defun hippie-expand-ruby-symbols (orig-fun &rest args)
@@ -1590,16 +1571,20 @@ Highlight last expanded string."
          helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
                                      (">" . 'helm-gtags-next-history)))
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
-(add-hook 'php-mode-hook 'helm-gtags-mode)
-(add-hook 'ruby-mode-hook 'helm-gtags-mode)
-(add-hook 'enh-ruby-mode-hook 'helm-gtags-mode)
-(add-hook 'python-mode-hook 'helm-gtags-mode)
-(add-hook 'html-mode-hook 'helm-gtags-mode)
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
-(add-hook 'asm-mode-hook 'helm-gtags-mode)
-(add-hook 'web-mode-hook 'helm-gtags-mode)
-(add-hook 'rjsx-mode-hook 'helm-gtags-mode)
+
+(dolist (hook '(
+                php-mode-hook
+                ruby-mode-hook
+                enh-ruby-mode-hook
+                python-mode-hook
+                html-mode-hook
+                c-mode-hook
+                c++-mode-hook
+                asm-mode-hook
+                web-mode-hook
+                rjsx-mode-hook
+                ))
+  (add-hook hook 'helm-gtags-mode))
 
 (eval-after-load 'flycheck
   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
@@ -1622,7 +1607,7 @@ Highlight last expanded string."
 (setq anzu-use-migemo t)
 (global-anzu-mode t)
 (global-set-key (kbd "M-%") 'anzu-query-replace)
-(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+(global-set-key (kbd "C-x M-%") 'anzu-query-replace-regexp)
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
