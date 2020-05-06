@@ -265,9 +265,29 @@
 ;;; ----------------------------------------------------------------------
 (defun my-w32-ime-init()
   (setq default-input-method "W32-IME")
-  (w32-ime-initialize)
   (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]")))
+  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  (w32-ime-initialize)
+
+  ;; 日本語入力時にカーソルの色を変える設定
+  (add-hook 'w32-ime-on-hook '(lambda () (set-cursor-color "red")))
+  (add-hook 'w32-ime-off-hook '(lambda () (set-cursor-color "green")))
+
+  ;; ミニバッファに移動した際は最初に日本語入力が無効な状態にする
+  (add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
+  ;; isearch に移行した際に日本語入力を無効にする
+  (add-hook 'isearch-mode-hook '(lambda ()
+                                  (deactivate-input-method)
+                                  (setq w32-ime-composition-window (minibuffer-window))))
+  (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil)))
+
+  ;; helm 使用中に日本語入力を無効にする
+  (advice-add 'helm :around '(lambda (orig-fun &rest args)
+                               (let ((select-window-functions nil)
+                                     (w32-ime-composition-window (minibuffer-window)))
+                                 (deactivate-input-method)
+                                 (apply orig-fun args)))))
 
 (defun my-mozc-init()
   (require 'mozc)
@@ -1709,12 +1729,14 @@ Highlight last expanded string."
 (setq whitespace-space-regexp "\\(\u3000+\\)")
 (setq whitespace-display-mappings
       '(
-        ;; (space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
-        (newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-        ;; (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+        ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
+        ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
+        (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
         (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
         ))
 (set-face-italic-p 'whitespace-space nil)
+(set-face-foreground 'whitespace-newline "#335544")
+(set-face-bold-p 'whitespace-newline t)
 (setq whitespace-global-modes '(not dired-mode tar-mode))
 (global-whitespace-mode 1)
 
