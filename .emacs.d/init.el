@@ -108,6 +108,7 @@
     company
     company-quickhelp
     company-statistics
+    company-web
     csharp-mode
     diminish
     dockerfile-mode
@@ -582,6 +583,15 @@ Highlight last expanded string."
   (setq company-auto-expand t))
 (global-company-mode +1)
 
+(with-eval-after-load 'web-mode
+  (define-key web-mode-map (kbd "C-'") 'company-web-html))
+
+(defun my-company-web-mode-setup ()
+  (setq-local company-backends (append '(company-web-html) company-backends)))
+
+(defun my-company-css-mode-setup ()
+  (setq-local company-backends (append '(company-css) company-backends)))
+
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
 ;;; ----------------------------------------------------------------------
@@ -970,6 +980,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (global-set-key "\C-xg" 'magit-status)
 (setq magit-push-always-verify nil)
+(setq magit-log-margin '(t "%Y-%m-%d" magit-log-margin-width t 18))
 (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
 (eval-after-load "magit"
   '(progn
@@ -1112,6 +1123,7 @@ Highlight last expanded string."
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
 (defun my-web-mode-hook ()
+  (my-company-web-mode-setup)
   (setq web-mode-enable-current-element-highlight t)
   (setq web-mode-enable-current-column-highlight t)
   (setq web-mode-markup-indent-offset 2)
@@ -1202,14 +1214,14 @@ Highlight last expanded string."
 ;;; less-css-mode
 ;;; ----------------------------------------------------------------------
 (setq less-css-compile-at-save nil)
-(add-hook 'less-css-mode-hook 'ac-css-mode-setup)
+(add-hook 'less-css-mode-hook 'my-company-css-mode-setup)
 
 ;;; ----------------------------------------------------------------------
 ;;; scss-mode
 ;;; ----------------------------------------------------------------------
 (setq scss-compile-at-save nil)
 (defun my-scss-mode-hook ()
-  (ac-css-mode-setup)
+  (my-company-css-mode-setup)
   (electric-indent-mode t)
   (electric-layout-mode t)
   (setq-local electric-layout-rules
@@ -1885,12 +1897,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; tempbuf-mode
 ;;; ----------------------------------------------------------------------
-(require 'tempbuf)
+(setq tempbuf-kill-message nil)
+(autoload 'turn-on-tempbuf-mode "tempbuf" "kill unused buffers in the background." t)
 (add-hook 'dired-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'magit-mode-hook 'turn-on-tempbuf-mode)
-;; (add-hook 'magit-revision-mode-hook 'turn-on-tempbuf-mode)
-;; (add-hook 'magit-diff-mode-hook 'turn-on-tempbuf-mode)
-;; (add-hook 'magit-log-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'custom-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'w3-mode-hook 'turn-on-tempbuf-mode)
 (add-hook 'Man-mode-hook 'turn-on-tempbuf-mode)
@@ -1898,6 +1908,11 @@ Highlight last expanded string."
 (add-hook 'compilation-mode-hook
           (lambda ()
             (when (string-match "*RuboCop " (buffer-name))
+              'turn-on-tempbuf-mode)))
+(add-hook 'helm-major-mode-hook 'turn-on-tempbuf-mode)
+(add-hook 'fundamental-mode-hook
+          (lambda ()
+            (when (string-match "*Flycheck error messages*" (buffer-name))
               'turn-on-tempbuf-mode)))
 
 ;;; ----------------------------------------------------------------------
