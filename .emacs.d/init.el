@@ -99,6 +99,7 @@
 ;; install packages by package.el
 (defvar package-el-installing-package-list
   '(
+    add-node-modules-path
     ag
     anzu
     auto-async-byte-compile
@@ -347,6 +348,15 @@
                 (if im-state
                     (activate-input-method default-input-method)
                   (deactivate-input-method)))))
+
+  ;; mozc 使用中は company-mode を OFF にする
+  (add-hook 'mozc-im-activate-hook
+            (lambda ()
+              (setq-local company-mode-state company-mode)
+              (company-mode 0)))
+  (add-hook 'mozc-im-deactivate-hook
+            (lambda ()
+              (company-mode company-mode-state)))
 
   ;; wdired 終了時に IME を OFF にする
   (advice-add 'wdired-finish-edit
@@ -1167,6 +1177,14 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '(".*\\.js\\'" . rjsx-mode))
 
 ;;; ----------------------------------------------------------------------
+;;; add-node-module-path
+;;; ----------------------------------------------------------------------
+(eval-after-load 'js2-mode
+  '(add-hook 'js2-mode-hook #'add-node-modules-path))
+(eval-after-load 'rjsx-mode
+  '(add-hook 'rjsx-mode-hook #'add-node-modules-path))
+
+;;; ----------------------------------------------------------------------
 ;;; json-mode
 ;;; ----------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
@@ -1555,6 +1573,13 @@ Highlight last expanded string."
 ;;(setq helm-full-frame nil)
 ;;(setq helm-split-window-default-side 'same)
 (setq helm-inherit-input-method nil)
+(setq helm-mini-default-sources
+      '(helm-source-buffers-list
+        helm-source-ls-git
+        helm-source-files-in-current-dir
+        helm-source-recentf
+        helm-source-buffer-not-found
+        ))
 
 (global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
 (global-set-key "\M-x" 'helm-M-x)
