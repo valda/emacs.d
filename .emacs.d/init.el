@@ -107,6 +107,7 @@
     buffer-move
     coffee-mode
     company
+    company-box
     company-quickhelp
     company-statistics
     company-web
@@ -120,6 +121,7 @@
     exec-path-from-shell
     flycheck
     flycheck-pyflakes
+    flycheck-posframe
     gist
     git-gutter
     git-gutter-fringe
@@ -148,9 +150,11 @@
     monokai-theme
     mozc
     mozc-im
-    mozc-popup
+    ;;mozc-popup
+    mozc-cand-posframe
     nginx-mode
     nswbuff
+    nyan-mode
     open-junk-file
     php-mode
     popwin
@@ -287,13 +291,21 @@
 (defun my-mozc-init()
   (require 'mozc)
   (require 'mozc-im)
-  (require 'mozc-popup)
+  ;;(require 'mozc-popup)
+  (require 'mozc-cand-posframe)
   (require 'mozc-cursor-color)
-  (require 'wdired)
 
   (setq default-input-method "japanese-mozc-im")
-  ;;(setq mozc-helper-program-name "mozc_emacs_helper.sh")
-  (setq mozc-candidate-style 'popup)
+  ;;(setq mozc-candidate-style 'popup)
+  (set-face-attribute 'mozc-cand-posframe-normal-face nil
+                      :background "#3C3D37"
+                      :foreground "#F8F8F0")
+  (set-face-attribute 'mozc-cand-posframe-focused-face nil
+                      :background "#66D9EF"
+                      :foreground "#272822")
+  (set-face-attribute 'mozc-cand-posframe-footer-face nil
+                      :foreground "#F8F8F0")
+  (setq mozc-candidate-style 'posframe)
   (setq mozc-cursor-color-alist '((direct        . "green")
                                   (read-only     . "yellow")
                                   (hiragana      . "red")
@@ -359,6 +371,7 @@
               (company-mode company-mode-state)))
 
   ;; wdired 終了時に IME を OFF にする
+  (require 'wdired)
   (advice-add 'wdired-finish-edit
               :after (lambda (&rest args)
                        (deactivate-input-method))))
@@ -590,8 +603,14 @@ Highlight last expanded string."
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case t)
   (setq company-dabbrev-downcase nil)
-  (setq company-auto-expand t))
+  (setq company-auto-expand t)
+
+  (require 'company-box)
+  (add-hook 'company-mode-hook 'company-box-mode)
+
+  )
 (global-company-mode +1)
+
 
 (with-eval-after-load 'web-mode
   (define-key web-mode-map (kbd "C-'") 'company-web-html))
@@ -1435,10 +1454,12 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-(require 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
-;;(require 'flycheck-pyflakes)
-(setq flycheck-disabled-checkers
+(with-eval-after-load 'flycheck
+  (require 'flycheck-posframe)
+  (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
+  (set-face-background 'flycheck-posframe-background-face "#3C3D37")
+  ;;(require 'flycheck-pyflakes)
+  (setq flycheck-disabled-checkers
       (append '(
                 ;;python-flake8
                 ;;python-pylint
@@ -1446,7 +1467,10 @@ Highlight last expanded string."
                 javascript-jshint
                 javascript-jscs
                 )
-              flycheck-disabled-checkers))
+              flycheck-disabled-checkers)))
+
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
 (defun my-c++-mode-flycheck-setup ()
   (setq flycheck-gcc-language-standard "c++11")
   (setq flycheck-clang-language-standard "c++11"))
@@ -1897,6 +1921,11 @@ Highlight last expanded string."
 (add-hook 'prog-mode-hook 'highlight-symbol-mode)
 
 ;;; ----------------------------------------------------------------------
+;;; rainbow-mode
+;;; ----------------------------------------------------------------------
+(add-hook 'emacs-lisp-mode-hook #'rainbow-mode)
+
+;;; ----------------------------------------------------------------------
 ;;; rainbow-delimiters
 ;;; ----------------------------------------------------------------------
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
@@ -1947,6 +1976,15 @@ Highlight last expanded string."
 (global-set-key (kbd "<C-S-down>")   'buf-move-down)
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
+
+;;; ----------------------------------------------------------------------
+;;; nyan-mode
+;;; ----------------------------------------------------------------------
+(setq nyan-bar-length 16)
+(add-hook 'after-init-hook
+          (lambda()
+            (nyan-mode)
+            (nyan-start-animation)))
 
 ;;; ----------------------------------------------------------------------
 ;;; 終了前に確認する
