@@ -340,6 +340,8 @@
           (mozc-clean-up-session)
           (toggle-input-method))
       (progn ;(message "%s" event) ;debug
+        (if (company--active-p)
+            (company-abort))
         ad-do-it)))
   (ad-activate 'mozc-handle-event)
 
@@ -362,13 +364,13 @@
                   (deactivate-input-method)))))
 
   ;; mozc 使用中は company-mode を OFF にする
-  (add-hook 'mozc-im-activate-hook
-            (lambda ()
-              (setq-local company-mode-state company-mode)
-              (company-mode 0)))
-  (add-hook 'mozc-im-deactivate-hook
-            (lambda ()
-              (company-mode company-mode-state)))
+  ;; (add-hook 'mozc-im-activate-hook
+  ;;           (lambda ()
+  ;;             (setq-local company-mode-state company-mode)
+  ;;             (company-mode 0)))
+  ;; (add-hook 'mozc-im-deactivate-hook
+  ;;           (lambda ()
+  ;;             (company-mode company-mode-state)))
 
   ;; wdired 終了時に IME を OFF にする
   (require 'wdired)
