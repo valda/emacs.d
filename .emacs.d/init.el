@@ -246,24 +246,24 @@
   (w32-ime-initialize)
 
   ;; 日本語入力時にカーソルの色を変える設定
-  (add-hook 'w32-ime-on-hook '(lambda () (set-cursor-color "red")))
-  (add-hook 'w32-ime-off-hook '(lambda () (set-cursor-color "green")))
+  (add-hook 'w32-ime-on-hook (lambda () (set-cursor-color "red")))
+  (add-hook 'w32-ime-off-hook (lambda () (set-cursor-color "green")))
 
   ;; ミニバッファに移動した際は最初に日本語入力が無効な状態にする
   (add-hook 'minibuffer-setup-hook 'deactivate-input-method)
 
   ;; isearch に移行した際に日本語入力を無効にする
-  (add-hook 'isearch-mode-hook '(lambda ()
+  (add-hook 'isearch-mode-hook (lambda ()
                                   (deactivate-input-method)
                                   (setq w32-ime-composition-window (minibuffer-window))))
   (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil)))
 
   ;; helm 使用中に日本語入力を無効にする
-  (advice-add 'helm :around '(lambda (orig-fun &rest args)
-                               (let ((select-window-functions nil)
-                                     (w32-ime-composition-window (minibuffer-window)))
-                                 (deactivate-input-method)
-                                 (apply orig-fun args)))))
+  (advice-add 'helm :around (lambda (orig-fun &rest args)
+                              (let ((select-window-functions nil)
+                                    (w32-ime-composition-window (minibuffer-window)))
+                                (deactivate-input-method)
+                                (apply orig-fun args)))))
 
 (defun my-mozc-init()
   (require 'mozc)
