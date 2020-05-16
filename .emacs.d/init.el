@@ -135,6 +135,7 @@
     helm-ls-git
     helm-swoop
     highlight-symbol
+    highlight-indent-guides
     howm
     ido-vertical-mode
     inf-ruby
@@ -174,6 +175,7 @@
     tide
     typescript-mode
     undo-tree
+    use-package
     vcl-mode
     web-mode
     wgrep-ag
@@ -183,10 +185,10 @@
     )
   "A list of packages to install by package.el at launch.")
 
-(require 'cl)
-(let ((not-installed (loop for x in package-el-installing-package-list
-                           when (not (package-installed-p x))
-                           collect x)))
+(require 'cl-macs)
+(let ((not-installed (cl-loop for x in package-el-installing-package-list
+                              when (not (package-installed-p x))
+                              collect x)))
   (when not-installed
     (package-refresh-contents)
     (dolist (pkg not-installed)
@@ -224,40 +226,15 @@
   "A list of packages to install by el-get at launch.")
 (el-get 'sync el-get-installing-package-list)
 
-
-;;; ---------------------------------------------------------------------
-;;; monokai-theme
-;;; ----------------------------------------------------------------------
-(load-theme 'monokai t)
-;; (set-face-attribute 'region nil
-;;                     :foreground 'unspecified
-;;                     :background "DeepSkyBlue4"
-;;                     :inherit t)
-;; (set-face-attribute 'whitespace-trailing nil
-;;                     :background "darkorange"
-;;                     :foreground 'unspecified
-;;                     :inverse-video 'unspecified)
-;; (set-face-attribute 'whitespace-tab nil
-;;                     :foreground 'unspecified
-;;                     :foreground "brown10"
-;;                     :background 'unspecified
-;;                     :inverse-video 'unspecified
-;;                     :weight 'unspecified)
-;; (set-face-attribute 'mmm-default-submode-face nil
-;;                     :background 'unspecified
-;;                     :inherit t)
-
 ;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
-;; (require 'diminish)
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
 (eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
 (eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
 (eval-after-load "highlight-symbol" '(diminish 'highlight-symbol-mode))
-(eval-after-load "helm" '(diminish 'helm-migemo-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
@@ -291,20 +268,10 @@
 (defun my-mozc-init()
   (require 'mozc)
   (require 'mozc-im)
-  ;;(require 'mozc-popup)
   (require 'mozc-cand-posframe)
   (require 'mozc-cursor-color)
 
   (setq default-input-method "japanese-mozc-im")
-  ;;(setq mozc-candidate-style 'popup)
-  (set-face-attribute 'mozc-cand-posframe-normal-face nil
-                      :background "#3C3D37"
-                      :foreground "#F8F8F0")
-  (set-face-attribute 'mozc-cand-posframe-focused-face nil
-                      :background "#66D9EF"
-                      :foreground "#272822")
-  (set-face-attribute 'mozc-cand-posframe-footer-face nil
-                      :foreground "#F8F8F0")
   (setq mozc-candidate-style 'posframe)
   (setq mozc-cursor-color-alist '((direct        . "green")
                                   (read-only     . "yellow")
@@ -434,6 +401,7 @@
 (require 'yasnippet)
 (add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
 (yas-global-mode 1)
+(diminish 'yas-minor-mode)
 
 ;; Remove Yasnippet's default tab key binding
 (define-key yas-minor-mode-map (kbd "<tab>") nil)
@@ -583,7 +551,7 @@ Highlight last expanded string."
 (with-eval-after-load 'company
   (company-statistics-mode)
   (company-quickhelp-mode)
-  ;;(diminish 'company-mode)
+  (diminish 'company-mode)
   (add-to-list 'company-backends 'company-emoji)
 
   (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
@@ -609,10 +577,8 @@ Highlight last expanded string."
 
   (require 'company-box)
   (add-hook 'company-mode-hook 'company-box-mode)
-
-  )
+  (diminish 'company-box-mode))
 (global-company-mode +1)
-
 
 (with-eval-after-load 'web-mode
   (define-key web-mode-map (kbd "C-'") 'company-web-html))
@@ -1360,6 +1326,7 @@ Highlight last expanded string."
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (editorconfig-mode 1)
+(diminish 'editorconfig-mode)
 
 ;;; ----------------------------------------------------------------------
 ;;; logstash-conf
@@ -1459,7 +1426,9 @@ Highlight last expanded string."
 (with-eval-after-load 'flycheck
   (require 'flycheck-posframe)
   (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
-  (set-face-background 'flycheck-posframe-background-face "#3C3D37")
+  (setq flycheck-posframe-warning-prefix "\u26a0 ")
+  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)
+
   ;;(require 'flycheck-pyflakes)
   (setq flycheck-disabled-checkers
       (append '(
@@ -1586,10 +1555,12 @@ Highlight last expanded string."
 (helm-descbinds-mode)
 (require 'helm-multi-match)
 (helm-migemo-mode +1)
+(diminish 'helm-migemo-mode)
 (require 'helm-buffers)
 (require 'helm-files)
 (require 'helm-ls-git)
 ;;(require 'helm-elscreen)
+
 
 (setq helm-idle-delay 0.3)
 (setq helm-input-idle-delay 0.2)
@@ -1602,8 +1573,8 @@ Highlight last expanded string."
 (setq helm-mini-default-sources
       '(helm-source-buffers-list
         helm-source-ls-git
-        helm-source-files-in-current-dir
         helm-source-recentf
+        helm-source-files-in-current-dir
         helm-source-buffer-not-found
         ))
 
@@ -1622,18 +1593,16 @@ Highlight last expanded string."
 (global-set-key (kbd "C-c y") 'helm-yas-complete)
 (push '("emacs.+/snippets/" . snippet-mode) auto-mode-alist)
 
-;;(require 'helm-gtags)
-(setq helm-gtags-auto-update t)
-(eval-after-load "helm-gtags"
-  '(progn
-     (diminish 'helm-gtags-mode)
-     (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
-     (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-     (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-     (smartrep-define-key
-         helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
-                                     (">" . 'helm-gtags-next-history)))
-     (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
+(with-eval-after-load "helm-gtags"
+  (diminish 'helm-gtags-mode)
+  (setq helm-gtags-auto-update t)
+  (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
+  (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+  (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+  (smartrep-define-key
+      helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
+                                  (">" . 'helm-gtags-next-history)))
+  (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))
 
 (dolist (hook '(
                 php-mode-hook
@@ -1923,9 +1892,20 @@ Highlight last expanded string."
 (add-hook 'prog-mode-hook 'highlight-symbol-mode)
 
 ;;; ----------------------------------------------------------------------
+;;; highlight-indent-guides
+;;; ----------------------------------------------------------------------
+(add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
+(add-hook 'python-mode-hook 'highlight-indent-guides-mode)
+(setq highlight-indent-guides-auto-enabled t)
+(setq highlight-indent-guides-responsive t)
+(setq highlight-indent-guides-method 'character)
+
+;;; ----------------------------------------------------------------------
 ;;; rainbow-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'emacs-lisp-mode-hook #'rainbow-mode)
+(add-hook 'prog-mode-hook #'rainbow-mode)
+(add-hook 'text-mode-hook #'rainbow-mode)
+(eval-after-load "rainbow-mode" '(diminish 'rainbow-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-delimiters
@@ -1979,6 +1959,37 @@ Highlight last expanded string."
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
 
+;;; ---------------------------------------------------------------------
+;;; monokai-theme
+;;; ----------------------------------------------------------------------
+(load-theme 'monokai t)
+(set-face-attribute 'mozc-cand-posframe-normal-face nil
+                    :background monokai-highlight-line
+                    :foreground monokai-emphasis)
+(set-face-attribute 'mozc-cand-posframe-focused-face nil
+                    :background monokai-blue
+                    :foreground monokai-background)
+(set-face-attribute 'mozc-cand-posframe-footer-face nil
+                    :foreground monokai-foreground)
+
+;;; ---------------------------------------------------------------------
+;;; doom-theme
+;;; ----------------------------------------------------------------------
+;; (load-theme 'doom-one t)
+;; (load-theme 'doom-vibrant t)
+;; (set-face-attribute 'mozc-cand-posframe-normal-face nil
+;;                     :background (face-background 'tooltip)
+;;                     :foreground (face-foreground 'tooltip))
+;; (set-face-attribute 'mozc-cand-posframe-focused-face nil
+;;                     :background (face-background 'company-tooltip-selection)
+;;                     :foreground (face-foreground 'tooltip)
+;;                     :weight (face-attribute 'company-tooltip-selection :weight))
+;; (set-face-attribute 'mozc-cand-posframe-footer-face nil
+;;                     :foreground (face-foreground 'tooltip))
+
+;;(require 'doom-modeline)
+;;(doom-modeline-mode t)
+
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
@@ -2008,8 +2019,8 @@ Highlight last expanded string."
 (find-function-setup-keys)
 (global-set-key "\C-m" 'newline-and-indent)
 (global-set-key "\C-j" 'newline)
-(global-set-key [home] 'beginning-of-buffer )
-(global-set-key [end] 'end-of-buffer )
+(global-set-key [home] 'beginning-of-buffer)
+(global-set-key [end] 'end-of-buffer)
 (global-set-key [C-next] 'scroll-other-window)
 (global-set-key [C-prior] 'scroll-other-window-down)
 (global-set-key "\M-s" 'isearch-forward-regexp)
