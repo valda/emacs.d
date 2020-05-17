@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: use-package
+# key: up
+# --
+(use-package $1
+  :ensure t
+  :defer t
+  :config
+  $2)

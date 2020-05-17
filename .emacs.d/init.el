@@ -89,99 +89,17 @@
 ;;; ----------------------------------------------------------------------
 (setq package-user-dir "~/.emacs.d/elpa")
 (require 'package)
-;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
-(setq package-archives '(("gnu" .       "http://mirrors.163.com/elpa/gnu/")
-                         ("melpa" .     "https://melpa.org/packages/")
-                         ("org" .       "http://orgmode.org/elpa/")))
+(setq package-archives '(("gnu" .          "http://mirrors.163.com/elpa/gnu/")
+                         ("melpa" .        "https://melpa.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("org" .          "http://orgmode.org/elpa/")))
 (package-initialize)
 
 ;; install packages by package.el
 (defvar package-el-installing-package-list
   '(
-    add-node-modules-path
-    ag
-    anzu
-    auto-async-byte-compile
-    bm
-    buffer-move
-    coffee-mode
-    company
-    company-box
-    company-quickhelp
-    company-statistics
-    company-web
-    csharp-mode
     diminish
-    dockerfile-mode
-    dsvn
-    editorconfig
-    elscreen
-    enh-ruby-mode
-    exec-path-from-shell
-    flycheck
-    flycheck-pyflakes
-    flycheck-posframe
-    gist
-    git-gutter
-    git-gutter-fringe
-    google-translate
-    helm
-    helm-bm
-    helm-c-yasnippet
-    helm-descbinds
-    helm-flycheck
-    helm-gtags
-    helm-ls-git
-    helm-swoop
-    highlight-symbol
-    highlight-indent-guides
-    howm
-    ido-vertical-mode
-    inf-ruby
-    ini-mode
-    js2-mode
-    json-mode
-    less-css-mode
-    lispxmp
-    lua-mode
-    magit
-    migemo
-    mmm-mode
-    monokai-theme
-    mozc
-    mozc-im
-    ;;mozc-popup
-    mozc-cand-posframe
-    nginx-mode
-    nswbuff
-    nyan-mode
-    open-junk-file
-    php-mode
-    popwin
-    rainbow-delimiters
-    rainbow-mode
-    recentf-ext
-    rinari
-    rjsx-mode
-    rspec-mode
-    rubocop
-    ruby-end
-    scss-mode
-    session
-    shell-pop
-    smartrep
-    snippet
-    tide
-    typescript-mode
-    undo-tree
     use-package
-    vcl-mode
-    web-mode
-    wgrep-ag
-    yaml-mode
-    yasnippet
-    logstash-conf
     )
   "A list of packages to install by package.el at launch.")
 
@@ -227,14 +145,67 @@
 (el-get 'sync el-get-installing-package-list)
 
 ;;; ----------------------------------------------------------------------
+;;; use-package
+;;; ----------------------------------------------------------------------
+(defvar use-package-enable-imenu-support t)
+(eval-when-compile
+  (require 'use-package))
+(require 'diminish)
+(require 'bind-key)
+(setq use-package-verbose t)
+(setq use-package-minimum-reported-time 0.001)
+
+;;; ----------------------------------------------------------------------
+;;; paradox
+;;; ----------------------------------------------------------------------
+(use-package paradox
+  :ensure t
+  :defer t
+  :init
+  (setq paradox-github-token t)
+  (setq paradox-execute-asynchronously t)
+  (setq paradox-automatically-star t))
+
+;;; ---------------------------------------------------------------------
+;;; monokai-theme
+;;; ----------------------------------------------------------------------
+(use-package monokai-theme
+  :ensure t
+  :config
+  (load-theme 'monokai t)
+  (with-eval-after-load 'mozc-cand-posframe
+    (set-face-attribute 'mozc-cand-posframe-normal-face nil
+                        :background monokai-highlight-line
+                        :foreground monokai-emphasis)
+    (set-face-attribute 'mozc-cand-posframe-focused-face nil
+                        :background monokai-blue
+                        :foreground monokai-background)
+    (set-face-attribute 'mozc-cand-posframe-footer-face nil
+                        :foreground monokai-foreground)))
+
+;;; ---------------------------------------------------------------------
+;;; doom-theme
+;;; ----------------------------------------------------------------------
+;; (load-theme 'doom-one t)
+;; (load-theme 'doom-vibrant t)
+;; (with-eval-after-load 'mozc-cand-posframe
+;;   (set-face-attribute 'mozc-cand-posframe-normal-face nil
+;;                       :background (face-background 'tooltip)
+;;                       :foreground (face-foreground 'tooltip))
+;;   (set-face-attribute 'mozc-cand-posframe-focused-face nil
+;;                       :background (face-background 'company-tooltip-selection)
+;;                       :foreground (face-foreground 'tooltip)
+;;                       :weight (face-attribute 'company-tooltip-selection :weight))
+;;   (set-face-attribute 'mozc-cand-posframe-footer-face nil
+;;                       :foreground (face-foreground 'tooltip)))
+
+;;(require 'doom-modeline)
+;;(doom-modeline-mode t)
+
+;;; ----------------------------------------------------------------------
 ;;; diminish
 ;;; ----------------------------------------------------------------------
-(eval-after-load "hideshow" '(diminish 'hs-minor-mode))
-(eval-after-load "git-gutter" '(diminish 'git-gutter-mode))
-(eval-after-load "undo-tree" '(diminish 'undo-tree-mode))
 (eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
-(eval-after-load "whitespace" '(diminish 'global-whitespace-mode))
-(eval-after-load "highlight-symbol" '(diminish 'highlight-symbol-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
@@ -242,7 +213,7 @@
 (defun my-w32-ime-init()
   (setq default-input-method "W32-IME")
   (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
   (w32-ime-initialize)
 
   ;; 日本語入力時にカーソルの色を変える設定
@@ -266,84 +237,78 @@
                                 (apply orig-fun args)))))
 
 (defun my-mozc-init()
-  (require 'mozc)
-  (require 'mozc-im)
-  (require 'mozc-cand-posframe)
-  (require 'mozc-cursor-color)
+  (use-package mozc
+    :ensure t
+    :config
+    ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
+    (when (my-wsl-p)
+      (advice-add 'mozc-session-execute-command
+                  :after (lambda (&rest args)
+                           (when (eq (nth 0 args) 'CreateSession)
+                             ;; (mozc-session-sendkey '(hiragana)))))
+                             (mozc-session-sendkey '(Hankaku/Zenkaku))))))
+    (define-key global-map [henkan]
+      (lambda () (interactive)
+        (activate-input-method default-input-method)))
+    (define-key global-map [muhenkan]
+      (lambda () (interactive)
+        (deactivate-input-method)))
+    (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
+    (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
+    (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
+    (defadvice mozc-handle-event (around intercept-keys (event))
+      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
+      (if (member event (list 'zenkaku-hankaku 'muhenkan))
+          (progn
+            (mozc-clean-up-session)
+            (toggle-input-method))
+        (progn ;(message "%s" event) ;debug
+          (if (company--active-p)
+              (company-abort))
+          ad-do-it)))
+    (ad-activate 'mozc-handle-event))
 
-  (setq default-input-method "japanese-mozc-im")
-  (setq mozc-candidate-style 'posframe)
-  (setq mozc-cursor-color-alist '((direct        . "green")
-                                  (read-only     . "yellow")
-                                  (hiragana      . "red")
-                                  (full-katakana . "goldenrod")
-                                  (half-ascii    . "dark orchid")
-                                  (full-ascii    . "orchid")
-                                  (half-katakana . "dark goldenrod")))
+  (use-package mozc-im
+    :ensure t
+    :config
+    (setq default-input-method "japanese-mozc-im")
+    ;; mozc-cursor-color を利用するための対策
+    (defvar-local mozc-im-mode nil)
+    (add-hook 'mozc-im-activate-hook (lambda () (setq mozc-im-mode t)))
+    (add-hook 'mozc-im-deactivate-hook (lambda () (setq mozc-im-mode nil)))
+    (advice-add 'mozc-cursor-color-update
+                :around (lambda (orig-fun &rest args)
+                          (let ((mozc-mode mozc-im-mode))
+                            (apply orig-fun args))))
+    ;; isearch を利用する前後で IME の状態を維持するための対策
+    (defvar-local mozc-im-state nil)
+    (add-hook 'isearch-mode-hook
+              (lambda () (setq mozc-im-state mozc-im-mode)))
+    (add-hook 'isearch-mode-end-hook
+              (lambda ()
+                (unless (eq mozc-im-state mozc-im-mode)
+                  (if mozc-im-state
+                      (activate-input-method default-input-method)
+                    (deactivate-input-method))))))
 
-  ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
-  (when (my-wsl-p)
-    (advice-add 'mozc-session-execute-command
-                :after (lambda (&rest args)
-                         (when (eq (nth 0 args) 'CreateSession)
-                           ;; (mozc-session-sendkey '(hiragana)))))
-                           (mozc-session-sendkey '(Hankaku/Zenkaku))))))
+  (use-package mozc-cand-posframe
+    :ensure t
+    :after mozc
+    :config
+    (setq mozc-candidate-style 'posframe))
 
-  (define-key global-map [henkan]
-    (lambda () (interactive)
-      (activate-input-method default-input-method)))
-  (define-key global-map [muhenkan]
-    (lambda () (interactive)
-      (deactivate-input-method)))
-  (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
-
-  (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
-  (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
-
-  (defadvice mozc-handle-event (around intercept-keys (event))
-    "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
-    (if (member event (list 'zenkaku-hankaku 'muhenkan))
-        (progn
-          (mozc-clean-up-session)
-          (toggle-input-method))
-      (progn ;(message "%s" event) ;debug
-        (if (company--active-p)
-            (company-abort))
-        ad-do-it)))
-  (ad-activate 'mozc-handle-event)
-
-  ;; mozc-cursor-color を利用するための対策
-  (defvar-local mozc-im-mode nil)
-  (add-hook 'mozc-im-activate-hook (lambda () (setq mozc-im-mode t)))
-  (add-hook 'mozc-im-deactivate-hook (lambda () (setq mozc-im-mode nil)))
-  (advice-add 'mozc-cursor-color-update
-              :around (lambda (orig-fun &rest args)
-                        (let ((mozc-mode mozc-im-mode))
-                          (apply orig-fun args))))
-
-  ;; isearch を利用する前後で IME の状態を維持するための対策
-  (add-hook 'isearch-mode-hook (lambda () (setq im-state mozc-im-mode)))
-  (add-hook 'isearch-mode-end-hook
-            (lambda ()
-              (unless (eq im-state mozc-im-mode)
-                (if im-state
-                    (activate-input-method default-input-method)
-                  (deactivate-input-method)))))
-
-  ;; mozc 使用中は company-mode を OFF にする
-  ;; (add-hook 'mozc-im-activate-hook
-  ;;           (lambda ()
-  ;;             (setq-local company-mode-state company-mode)
-  ;;             (company-mode 0)))
-  ;; (add-hook 'mozc-im-deactivate-hook
-  ;;           (lambda ()
-  ;;             (company-mode company-mode-state)))
-
-  ;; wdired 終了時に IME を OFF にする
-  (require 'wdired)
-  (advice-add 'wdired-finish-edit
-              :after (lambda (&rest args)
-                       (deactivate-input-method))))
+  (use-package mozc-cursor-color
+    ;; :ensure t ; el-get
+    :after mozc
+    :config
+    (setq mozc-cursor-color-alist '((direct        . "green")
+                                    (read-only     . "yellow")
+                                    (hiragana      . "red")
+                                    (full-katakana . "goldenrod")
+                                    (half-ascii    . "dark orchid")
+                                    (full-ascii    . "orchid")
+                                    (half-katakana . "dark goldenrod"))))
+  )
 
 (cond ((eq window-system 'w32)
        (my-w32-ime-init))
@@ -371,41 +336,52 @@
   (global-set-key "\C-x\C-b" 'ibuffer))
 
 ;;; ----------------------------------------------------------------------
-;;; ido-mode
+;;; ido
 ;;; ----------------------------------------------------------------------
-(ido-mode 1)
-(ido-vertical-mode t)
-(setq ido-enable-flex-matching t)
-(setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
-(setq ido-use-filename-at-point 'guess)
+(use-package ido
+  :config
+  (setq ido-enable-flex-matching t)
+  (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
+  (setq ido-use-filename-at-point 'guess)
+  (ido-mode 1))
 
-;;; ----------------------------------------------------------------------
-;;; imenu
-;;; ----------------------------------------------------------------------
-(require 'imenu)
+(use-package ido-vertical-mode
+  :ensure t
+  :after ido
+  :config
+  (ido-vertical-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; smartrep.el
 ;;; ----------------------------------------------------------------------
-(require 'smartrep)
-(setq smartrep-mode-line-active-bg "DeepSkyBlue4")
+(use-package smartrep
+  :ensure t
+  :commands smartrep-define-key
+  :config
+  (setq smartrep-mode-line-active-bg "DeepSkyBlue4"))
 
 ;;; ----------------------------------------------------------------------
 ;;; snippet.el
 ;;; ----------------------------------------------------------------------
-(require 'snippet)
+(use-package snippet
+  :ensure t
+  :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
 ;;; ----------------------------------------------------------------------
-(require 'yasnippet)
-(add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
-(yas-global-mode 1)
-(diminish 'yas-minor-mode)
-
-;; Remove Yasnippet's default tab key binding
-(define-key yas-minor-mode-map (kbd "<tab>") nil)
-(define-key yas-minor-mode-map (kbd "TAB") nil)
+(use-package yasnippet
+  :ensure t
+  :defer t
+  :diminish yas-minor-mode
+  :init
+  (yas-global-mode 1)
+  (add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
+  (add-to-list 'auto-mode-alist '("emacs\\.d/snippets/" . snippet-mode))
+  :config
+  ;; Remove Yasnippet's default tab key binding
+  (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  (define-key yas-minor-mode-map (kbd "TAB") nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; abbrev/dabbrev
@@ -548,46 +524,61 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; company-mode
 ;;; ----------------------------------------------------------------------
-(with-eval-after-load 'company
-  (company-statistics-mode)
-  (company-quickhelp-mode)
-  (diminish 'company-mode)
-  (add-to-list 'company-backends 'company-emoji)
-
+(use-package company
+  :ensure t
+  :diminish company-mode
+  :config
+  (global-company-mode +1)
   (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
   (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
   (define-key company-active-map (kbd "S-TAB") 'company-select-previous)
   (define-key company-active-map (kbd "<backtab>") 'company-select-previous)
   (define-key company-mode-map (kbd "M-TAB") 'company-complete)
-
   (setq company-frontends
         '(company-pseudo-tooltip-unless-just-one-frontend
           company-preview-frontend
           company-echo-metadata-frontend))
-  (setq company-transformers
-        '(company-sort-by-statistics
-          company-sort-by-backend-importance))
   (setq company-require-match 'never)
   (setq company-idle-delay 0)
   (setq company-minimum-prefix-length 2)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case t)
   (setq company-dabbrev-downcase nil)
-  (setq company-auto-expand t)
+  (setq company-auto-expand t))
 
-  (require 'company-box)
-  (add-hook 'company-mode-hook 'company-box-mode)
-  (diminish 'company-box-mode))
-(global-company-mode +1)
+(use-package company-statistics
+  :ensure t
+  :config
+  (company-statistics-mode)
+  (setq company-transformers
+        '(company-sort-by-statistics
+          company-sort-by-backend-importance))
+  :after company)
 
-(with-eval-after-load 'web-mode
-  (define-key web-mode-map (kbd "C-'") 'company-web-html))
+(use-package company-quickhelp
+  :ensure t
+  :config
+  (company-quickhelp-mode)
+  :after company)
 
-(defun my-company-web-mode-setup ()
-  (setq-local company-backends (append '(company-web-html) company-backends)))
 
-(defun my-company-css-mode-setup ()
-  (setq-local company-backends (append '(company-css) company-backends)))
+(use-package company-emoji
+  :disabled t
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-emoji)
+  :after company)
+
+(use-package company-box
+  :ensure t
+  :diminish company-box-mode
+  :hook (company-mode . company-box-mode)
+  :after company)
+
+(use-package company-web
+  :ensure t
+  :defer t
+  :after company)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -613,37 +604,40 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (winner-mode t)
 (smartrep-define-key
-    winner-mode-map "C-c" '(("p" . 'winner-undo)
-                            ("n" . 'winner-redo)
-                            ("<left>" . 'winner-undo)
+    winner-mode-map "C-c" '(("<left>" . 'winner-undo)
                             ("<right>" . 'winner-redo)))
 
 ;;; ----------------------------------------------------------------------
 ;;; nswbuff
 ;;; ----------------------------------------------------------------------
-(require 'nswbuff)
-(global-set-key [C-tab] 'nswbuff-switch-to-next-buffer)
-(global-set-key [C-iso-lefttab] 'nswbuff-switch-to-previous-buffer)
-(smartrep-define-key
-    global-map "C-x" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
-                       ("<right>" . 'nswbuff-switch-to-next-buffer)))
-(setq nswbuff-exclude-buffer-regexps
-      '("^ .*"
-        "^\\*Backtrace\\*"
-        "^\\*[Ee]diff.*\\*"
-        "^\\*Flycheck.*\\*"
-        "^\\*Help\\*"
-        "^\\*Ibuffer\\*"
-        "^\\*Messages\\*"
-        "^\\*Moccur\\*"
-        "^\\*Rubocop.*\\*"
-        "^\\*ansi-term.*\\*"
-        "^\\*helm.*\\*"
-        "^\\*magit.*"
-        "^\\*rspec-compilation\\*"
-        "^magit-process.*"))
-(setq nswbuff-clear-delay 1)
-(setq nswbuff-display-intermediate-buffers t)
+(use-package nswbuff
+  :ensure t
+  :commands
+  (nswbuff-switch-to-next-buffer nswbuff-switch-to-previous-buffer)
+  :bind
+  ([C-tab] . nswbuff-switch-to-next-buffer)
+  ([C-iso-lefttab] . nswbuff-switch-to-previous-buffer)
+  :init
+  (setq nswbuff-exclude-buffer-regexps
+        '("^ .*"
+          "^\\*Backtrace\\*"
+          "^\\*[Ee]diff.*\\*"
+          "^\\*Flycheck.*\\*"
+          "^\\*Help\\*"
+          "^\\*Ibuffer\\*"
+          "^\\*Messages\\*"
+          "^\\*Moccur\\*"
+          "^\\*Rubocop.*\\*"
+          "^\\*ansi-term.*\\*"
+          "^\\*helm.*\\*"
+          "^\\*magit.*"
+          "^\\*rspec-compilation\\*"
+          "^magit-process.*"))
+  (setq nswbuff-clear-delay 1)
+  (setq nswbuff-display-intermediate-buffers t)
+  (smartrep-define-key
+      global-map "C-x" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
+                         ("<right>" . 'nswbuff-switch-to-next-buffer))))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -672,13 +666,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; undo-tree.el
 ;;; ----------------------------------------------------------------------
-(global-undo-tree-mode)
-(define-key global-map [?\C-.] 'undo-tree-redo)
+(use-package undo-tree
+  :ensure t
+  :diminish undo-tree-mode
+  :config
+  (global-undo-tree-mode)
+  (bind-key "C-." 'undo-tree-redo))
 
 ;;; ----------------------------------------------------------------------
 ;;; migemo
 ;;; ----------------------------------------------------------------------
-(when (require 'migemo nil t)
+(use-package migemo
+  :ensure t
+  :config
   (setq migemo-command "cmigemo")
   (setq migemo-options '("-q" "--emacs"))
   (cond ((eq window-system 'w32)
@@ -707,92 +707,87 @@ Highlight last expanded string."
           (lambda ()
             (dired-omit-mode 1)))
 
+;; wdired 終了時に IME を OFF にする
+(require 'wdired)
+(advice-add 'wdired-finish-edit
+            :after (lambda (&rest args)
+                     (deactivate-input-method)))
+
 ;;; ----------------------------------------------------------------------
 ;;; howm
 ;;; ----------------------------------------------------------------------
-(setq howm-compatible-to-ver1dot3 t)
-(setq howm-directory
-      (cond ((string-equal system-name "SILVER")
-             "D:/Dropbox/Documents/howm/")
-            (t
-             "~/Dropbox/Documents/howm/")))
-(setq howm-menu-lang 'ja)
-(global-set-key "\C-c,," 'howm-menu)
-(global-set-key "\C-c,c" 'howm-create)
-(mapc
- (lambda (f)
-   (autoload f
-     "howm" "Hitori Otegaru Wiki Modoki" t))
- '(howm-menu howm-list-all howm-list-recent
-             howm-list-grep howm-create
-             howm-keyword-to-kill-ring))
-;; メモは UTF-8
-(add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
-(setq howm-process-coding-system 'utf-8)
-(add-hook 'howm-create-file-hook
-          (lambda ()
-            (set-buffer-file-coding-system 'utf-8)))
-;; 「最近のメモ」一覧時にタイトル表示
-(setq howm-list-recent-title t)
-;; 全メモ一覧時にタイトル表示
-(setq howm-list-all-title t)
-;; メニューを 2 時間キャッシュ
-(setq howm-menu-expiry-hours 2)
-;; howm の時は auto-fill で
-;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
-;; RET でファイルを開く際, 一覧バッファを消す
-;; C-u RET なら残る
-(setq howm-view-summary-persistent nil)
-
-;; 検索しないファイルの正規表現
-(setq
- howm-excluded-file-regexp
- "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
-
-;; いちいち消すのも面倒なので
-;; 内容が 0 ならファイルごと削除する
-(if (not (memq 'delete-file-if-no-contents after-save-hook))
-    (setq after-save-hook
-          (cons 'delete-file-if-no-contents after-save-hook)))
-(defun delete-file-if-no-contents ()
-  (when (and
-         (buffer-file-name (current-buffer))
-         (string-match "\\.howm" (buffer-file-name (current-buffer)))
-         (= (point-min) (point-max)))
-    (delete-file
-     (buffer-file-name (current-buffer)))))
-
-;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
-;; C-cC-c で保存してバッファをキルする
-(defun my-save-and-kill-buffer-howm ()
-  (interactive)
-  (when (and
-         (buffer-file-name)
-         (string-match (expand-file-name howm-directory)
-                       (expand-file-name buffer-file-name)))
-    (save-buffer)
-    (kill-buffer nil)))
-(eval-after-load "howm"
-  '(progn
-     (define-key howm-mode-map
-       "\C-c\C-c" 'my-save-and-kill-buffer-howm)))
-
-;; 日付けの入力が面倒
-(eval-after-load "calendar"
-  '(progn
-     (define-key calendar-mode-map
-       "\C-m" 'my-insert-day)
-     (defun my-insert-day ()
-       (interactive)
-       (let ((day nil)
-             (calendar-date-display-form
-              '("[" year "-" (format "%02d" (string-to-int month))
-                "-" (format "%02d" (string-to-int day)) "]")))
-         (setq day (calendar-date-string
-                    (calendar-cursor-to-date t)))
-         (exit-calendar)
-         (insert day)))))
-(add-to-list 'auto-mode-alist '("\\.howm\\'" . howm-mode))
+(use-package howm
+  :ensure t
+  :commands (howm-list-all
+             howm-list-recent
+             howm-list-grep
+             howm-keyword-to-kill-ring)
+  :bind (("\C-c,," . howm-menu)
+         ("\C-c,c" . howm-create))
+  :mode ("\\.howm\\'" . howm-mode)
+  :config
+  (setq howm-compatible-to-ver1dot3 t)
+  (setq howm-directory
+        (cond ((string-equal system-name "SILVER")
+               "D:/Dropbox/Documents/howm/")
+              (t
+               "~/Dropbox/Documents/howm/")))
+  (setq howm-menu-lang 'ja)
+  ;; メモは UTF-8
+  (add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
+  (setq howm-process-coding-system 'utf-8)
+  (add-hook 'howm-create-file-hook
+            (lambda ()
+              (set-buffer-file-coding-system 'utf-8)))
+  ;; 「最近のメモ」一覧時にタイトル表示
+  (setq howm-list-recent-title t)
+  ;; 全メモ一覧時にタイトル表示
+  (setq howm-list-all-title t)
+  ;; メニューを 2 時間キャッシュ
+  (setq howm-menu-expiry-hours 2)
+  ;; howm の時は auto-fill で
+  ;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
+  ;; RET でファイルを開く際, 一覧バッファを消す
+  ;; C-u RET なら残る
+  (setq howm-view-summary-persistent nil)
+  ;; 検索しないファイルの正規表現
+  (setq howm-excluded-file-regexp
+        "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
+  ;; いちいち消すのも面倒なので
+  ;; 内容が 0 ならファイルごと削除する
+  (defun delete-file-if-no-contents ()
+    (when (and
+           (buffer-file-name (current-buffer))
+           (string-match "\\.howm" (buffer-file-name (current-buffer)))
+           (= (point-min) (point-max)))
+      (delete-file
+       (buffer-file-name (current-buffer)))))
+  (add-hook 'after-save-hook #'delete-file-if-no-contents)
+  ;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
+  ;; C-cC-c で保存してバッファをキルする
+  (defun my-save-and-kill-buffer-howm ()
+    (interactive)
+    (when (and
+           (buffer-file-name)
+           (string-match (expand-file-name howm-directory)
+                         (expand-file-name buffer-file-name)))
+      (save-buffer)
+      (kill-buffer nil)))
+  (define-key howm-mode-map "\C-c\C-c" 'my-save-and-kill-buffer-howm)
+  ;; 日付けの入力が面倒
+  (eval-after-load "calendar"
+    '(progn
+       (define-key calendar-mode-map "\C-m" 'my-insert-day)
+       (defun my-insert-day ()
+         (interactive)
+         (let ((day nil)
+               (calendar-date-display-form
+                '("[" year "-" (format "%02d" (string-to-int month))
+                  "-" (format "%02d" (string-to-int day)) "]")))
+           (setq day (calendar-date-string
+                      (calendar-cursor-to-date t)))
+           (exit-calendar)
+           (insert day))))))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -919,25 +914,20 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; hideshow
 ;;; ----------------------------------------------------------------------
-(dolist (hook '(
-                c-mode-common-hook
-                emacs-lisp-mode-hook
-                lisp-mode-hook
-                perl-mode-hook
-                sh-mode-hook
-                ))
-  (add-hook hook 'hs-minor-mode))
-
-(let ((ruby-mode-hs-info
-       '(enh-ruby-mode
-          "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
-          "end"
-          "#"
-          ruby-move-to-block
-          nil)))
-  (if (not (member ruby-mode-hs-info hs-special-modes-alist))
-      (setq hs-special-modes-alist
-            (cons ruby-mode-hs-info hs-special-modes-alist))))
+(use-package hideshow
+  :diminish hs-minor-mode
+  :hook (prog-mode . hs-minor-mode)
+  :config
+  (let ((ruby-mode-hs-info
+         '(enh-ruby-mode
+           "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
+           "end"
+           "#"
+           ruby-move-to-block
+           nil)))
+    (if (not (member ruby-mode-hs-info hs-special-modes-alist))
+        (setq hs-special-modes-alist
+              (cons ruby-mode-hs-info hs-special-modes-alist)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; color-moccur
@@ -965,43 +955,33 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; dsvn
 ;;; ----------------------------------------------------------------------
-(when (locate-library "dsvn")
-  (autoload 'svn-status "dsvn" "Run `svn status'." t)
-  (autoload 'svn-update "dsvn" "Run `svn update'." t)
+(use-package dsvn
+  :ensure t
+  :commands
+  (svn-status svn-update)
+  :config
   (setq svn-status-hide-unmodified t)
-  (setq process-coding-system-alist
-        (cons '("svn" . utf-8) process-coding-system-alist)))
+  (add-to-list 'process-coding-system-alist '("svn" . utf-8)))
 
 ;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
-(global-set-key "\C-xg" 'magit-status)
-(setq magit-push-always-verify nil)
-(setq magit-log-margin '(t "%Y-%m-%d" magit-log-margin-width t 18))
-(add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
-(eval-after-load "magit"
-  '(progn
-     (define-key magit-status-mode-map [C-tab] nil)
-     (define-key magit-status-mode-map [C-iso-lefttab] nil)
-     (define-key magit-diff-mode-map [C-tab] nil)
-     (define-key magit-diff-mode-map [C-iso-lefttab] nil)))
+(use-package magit
+  :ensure t
+  :defer t
+  :bind ("\C-xg" . magit-status)
+  :config
+  (setq magit-push-always-verify nil)
+  (setq magit-log-margin '(t "%Y-%m-%d" magit-log-margin-width t 18))
+  (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
+  (define-key magit-status-mode-map [C-tab] nil)
+  (define-key magit-status-mode-map [C-iso-lefttab] nil)
+  (define-key magit-diff-mode-map [C-tab] nil)
+  (define-key magit-diff-mode-map [C-iso-lefttab] nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; enhanced-ruby-mode
 ;;; ----------------------------------------------------------------------
-(setq ruby-insert-encoding-magic-comment nil)
-(setq enh-ruby-add-encoding-comment-on-save nil)
-;;(setq enh-ruby-deep-indent-paren nil)
-(setq auto-mode-alist
-      (append '(
-                ("\\.rb\\'" . enh-ruby-mode)
-                ("config\\.ru\\'" . enh-ruby-mode)
-                ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . enh-ruby-mode)
-                ("\\.xremap\\'" . enh-ruby-mode)
-                )
-              auto-mode-alist))
-(add-to-list 'interpreter-mode-alist '("ruby" . enh-ruby-mode))
-
 (defun ruby-mode-set-frozen-string-literal-true ()
   (when (and
          (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
@@ -1014,8 +994,11 @@ Highlight last expanded string."
       (unless (looking-at "^# frozen_string_literal: true")
         (insert "# frozen_string_literal: true\n\n")))))
 
-(defun my-ruby-mode-hook ()
+(defun my-ruby-mode-setup ()
   "Hooks for Ruby mode."
+  (setq ruby-insert-encoding-magic-comment nil)
+  (setq enh-ruby-add-encoding-comment-on-save nil)
+  ;;(setq enh-ruby-deep-indent-paren nil)
   (inf-ruby-minor-mode t)
   ;;(electric-pair-mode t)
   (electric-indent-mode t)
@@ -1023,28 +1006,61 @@ Highlight last expanded string."
   (ruby-end-mode t)
   (rubocop-mode t)
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
-(add-hook 'enh-ruby-mode-hook 'my-ruby-mode-hook)
-(add-hook 'inf-ruby-mode-hook (lambda () (require 'inf-ruby-company)))
+
+(use-package enh-ruby-mode
+  :ensure t
+  :defer t
+  :interpreter ("ruby")
+  :mode ("\\.rb\\'"
+         "config\\.ru\\'"
+         "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
+         "\\.xremap\\'")
+  :config
+  (add-hook 'enh-ruby-mode-hook 'my-ruby-mode-setup))
+
+(use-package inf-ruby
+  :ensure t
+  :defer t)
+
+(use-package company-inf-ruby
+  :ensure t
+  :defer t
+  :after inf-ruby
+  :config
+  (add-hook 'inf-ruby-mode-hook
+            (lambda ()
+              (setq-local company-backends
+                          (append '(company-inf-ruby) company-backends)))))
+
+(use-package ruby-end
+  :ensure t :defer t)
+
+(use-package rubocop
+  :ensure t :defer t)
 
 ;; ruby の symbol をいい感じに hippie-expand する
 (defun hippie-expand-ruby-symbols (orig-fun &rest args)
-  (if (eq major-mode 'ruby-mode)
+  (if (eq major-mode 'enh-ruby-mode)
       (let ((table (make-syntax-table ruby-mode-syntax-table)))
         (modify-syntax-entry ?: "." table)
         (with-syntax-table table (apply orig-fun args)))
     (apply orig-fun args)))
 (advice-add 'hippie-expand :around #'hippie-expand-ruby-symbols)
 
-;;; rd-mode
-(when (locate-library "rd-mode")
-  (autoload 'rd-mode "rd-mode" "major mode for ruby document formatter RD" t)
-  (add-to-list 'auto-mode-alist '("\\.rd\\'" . rd-mode)))
+;;; ----------------------------------------------------------------------
+;;; rspec-mode
+;;; ----------------------------------------------------------------------
+(use-package rspec-mode
+  :ensure t :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
 ;;; ----------------------------------------------------------------------
-(setq py-indent-offset 4)
-(add-to-list 'auto-mode-alist '("\\.pyw\\'" . python-mode))
+(use-package python-mode
+  :defer t
+  :mode ("\\.pyw\\'")
+  :init
+  (setq py-indent-offset 4))
 
 ;;; ----------------------------------------------------------------------
 ;;; cperl-mode
@@ -1076,22 +1092,26 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; visual-basic-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'visual-basic-mode "visual-basic-mode" "Basic Editing Mode" t)
-(autoload 'vbp-mode "vbp-mode" "VBP mode." t)
-(setq visual-basic-mode-indent 4)
-(setq auto-mode-alist
-      (append '(("\\.[Ff][Rr][Mm]\\'" . visual-basic-mode)  ;;Form Module
-                ("\\.[Bb][Aa][Ss]\\'" . visual-basic-mode)  ;;Bas Module
-                ("\\.[Cc][Ll][Ss]\\'" . visual-basic-mode)  ;;Class Module
-                ("\\.[Vv][Bb][Ss]?\\'" . visual-basic-mode) ;;VBScript file
-                ("\\.[Vv][Bb][Pp]\\'" . vbp-mode)
-                ("\\.[Vv][Bb][Gg]\\'" . vbp-mode))
-              auto-mode-alist))
+(use-package visual-basic-mode
+  ;; :ensure t ; el-get
+  :defer t
+  :mode ("\\.[Ff][Rr][Mm]\\'"
+         "\\.[Bb][Aa][Ss]\\'"
+         "\\.[Cc][Ll][Ss]\\'"
+         "\\.[Vv][Bb][Ss]?\\'")
+  :config
+  (setq visual-basic-mode-indent 4))
+
+(use-package vbp-mode
+  ;; :ensure t ; el-get
+  :defer t
+  :mode ("\\.[Vv][Bb][Pp]\\'"
+         "\\.[Vv][Bb][Gg]\\'"))
 
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(defun my-php-mode-hook ()
+(defun my-php-mode-setup ()
   (require 'php-align)
   (php-align-setup)
   (php-enable-psr2-coding-style)
@@ -1112,15 +1132,21 @@ Highlight last expanded string."
   ;;(add-to-list 'ac-sources 'ac-source-php)
   ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
   )
-(add-hook 'php-mode-hook 'my-php-mode-hook)
-;; バッファ先頭行が `<?php' なら php-mode で開く
-(add-to-list 'magic-mode-alist '("\\`<\\?php$" . php-mode))
+
+(use-package php-mode
+  :disabled t
+  :ensure t
+  :magic "\\`<\\?php$"
+  :config
+  (add-hook 'php-mode-hook 'my-php-mode-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(defun my-web-mode-hook ()
-  (my-company-web-mode-setup)
+(defun my-web-mode-setup ()
+  (setq-local company-backends
+              (append '(company-web-html) company-backends))
+  (define-key web-mode-map (kbd "C-'") 'company-web-html)
   (setq web-mode-enable-current-element-highlight t)
   (setq web-mode-enable-current-column-highlight t)
   (setq web-mode-markup-indent-offset 2)
@@ -1129,15 +1155,18 @@ Highlight last expanded string."
     (modify-syntax-entry ?% "w" web-mode-syntax-table))
   (when (string-match "\\.php" (buffer-file-name (current-buffer)))
     (modify-syntax-entry ?? "w" web-mode-syntax-table)))
-(add-hook 'web-mode-hook 'my-web-mode-hook)
 
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.rhtml?\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
+(use-package web-mode
+  :ensure t
+  :mode ("\\.html?\\'"
+         "\\.html\\.erb\\'"
+         "\\.rhtml?\\'"
+         "\\.php\\'")
+  :config
+  (add-hook 'web-mode-hook 'my-web-mode-setup))
 
 ;;; ----------------------------------------------------------------------
-;;; js2-mode (javascript)
+;;; js2-mode
 ;;; ----------------------------------------------------------------------
 (setq js2-include-browser-externs nil)
 (setq js2-mode-show-parse-errors nil)
@@ -1145,38 +1174,47 @@ Highlight last expanded string."
 (setq js2-highlight-external-variables nil)
 (setq js2-include-jslint-globals nil)
 
-(add-hook 'js2-mode-hook
-          '(lambda()
-             (setq js2-basic-offset 2)
-             (electric-indent-mode t)
-             (electric-layout-mode nil)
-             (setq-local electric-layout-rules
-                         '(
-                           ;; (?\{ . after)
-                           ;; (?\} . before)
-                           ;; (?\; . after)
-                           ))
-             ))
+(use-package js2-mode
+  :ensure t
+  :defer t
+  :config
+  (add-hook 'js2-mode-hook
+            (lambda()
+              (setq js2-basic-offset 2)
+              (electric-indent-mode t)
+              (setq-local electric-layout-rules
+                          '(
+                            ;; (?\{ . after)
+                            ;; (?\} . before)
+                            ;; (?\; . after)
+                            ))
+              )))
 
 ;;; ----------------------------------------------------------------------
 ;;; rjsx-mode
 ;;; ----------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '(".*\\.js\\'" . rjsx-mode))
+(use-package rjsx-mode
+  :ensure t
+  :mode (".*\\.jsx\\'" ".*\\.js\\'"))
 
 ;;; ----------------------------------------------------------------------
 ;;; add-node-module-path
 ;;; ----------------------------------------------------------------------
-(eval-after-load 'js2-mode
-  '(add-hook 'js2-mode-hook #'add-node-modules-path))
-(eval-after-load 'rjsx-mode
-  '(add-hook 'rjsx-mode-hook #'add-node-modules-path))
+(use-package add-node-modules-path
+  :ensure t
+  :defer t
+  :config
+  (eval-after-load 'js2-mode
+    '(add-hook 'js2-mode-hook #'add-node-modules-path))
+  (eval-after-load 'rjsx-mode
+    '(add-hook 'rjsx-mode-hook #'add-node-modules-path)))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
 ;;; ----------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
-(add-to-list 'auto-mode-alist '("\\.babelrc\\'" . json-mode))
-(add-to-list 'auto-mode-alist '("\\.eslintrc\\'" . json-mode))
+(use-package json-mode
+  :ensure t
+  :mode ("\\.json\\'" "\\.babelrc\\'" "\\.eslintrc\\'"))
 
 ;;; ----------------------------------------------------------------------
 ;;; for json format
@@ -1188,165 +1226,216 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; coffee-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'coffee-mode-hook
-          '(lambda()
-             (set (make-local-variable 'tab-width) 2)
-             (setq coffee-tab-width 2)))
-(add-to-list 'auto-mode-alist '("\\.coffee\\.erb\\'" . coffee-mode))
+(use-package coffee-mode
+  :ensure t
+  :mode ("\\.coffee\\'" "\\.coffee\\.erb\\'")
+  :config
+  (add-hook 'coffee-mode-hook
+            '(lambda()
+               (setq-local tab-width 2)
+               (setq coffee-tab-width 2))))
 
 ;;; ----------------------------------------------------------------------
 ;;; typescript-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'typescript-mode-hook
-          (lambda ()
-            (tide-setup)
-            (flycheck-mode t)
-            (setq flycheck-check-syntax-automatically '(save mode-enabled))
-            (eldoc-mode t)
-            (tide-hl-identifier-mode t)
-            (company-mode t)
-            (setq typescript-indent-level 2)
-            (electric-indent-mode t)
-            (setq-local electric-layout-rules
-                        '(
-                          ;; (?\{ . after)
-                          ;; (?\} . before)
-                          ;; (?\; . after)
-                          ))
-            ))
+(use-package typescript-mode
+  :ensure t
+  :defer t
+  :config
+  (add-hook 'typescript-mode-hook
+            (lambda ()
+              (setq typescript-indent-level 2)
+              (electric-indent-mode t)
+              (setq-local electric-layout-rules
+                          '(
+                            ;; (?\{ . after)
+                            ;; (?\} . before)
+                            ;; (?\; . after)
+                            ))
+              )))
 
 ;;; ----------------------------------------------------------------------
-;;; less-css-mode
+;;; tide
 ;;; ----------------------------------------------------------------------
-(setq less-css-compile-at-save nil)
-(add-hook 'less-css-mode-hook 'my-company-css-mode-setup)
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  (company-mode +1))
+
+(use-package tide
+  :ensure t
+  :defer t
+  :init
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (add-hook 'typescript-mode-hook #'setup-tide-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; scss-mode
+;;; less-css-mode / scss-mode
 ;;; ----------------------------------------------------------------------
-(setq scss-compile-at-save nil)
-(defun my-scss-mode-hook ()
-  (my-company-css-mode-setup)
+(defun my-css-mode-setup ()
   (electric-indent-mode t)
   (electric-layout-mode t)
   (setq-local electric-layout-rules
-              '((?\{ . after) (?\} . before))))
-(add-hook 'scss-mode-hook 'my-scss-mode-hook)
-(add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode))
+              '((?\{ . after) (?\} . before)))
+  (setq-local company-backends
+              (append '(company-css) company-backends)))
+
+(use-package less-css-mode
+  :ensure t
+  :defer t
+  :config
+  (setq less-css-compile-at-save nil)
+  (add-hook 'less-css-mode-hook 'my-css-mode-setup))
+
+(use-package scss-mode
+  :ensure t
+  :defer t
+  :config
+  (setq scss-compile-at-save nil)
+  (add-hook 'scss-mode-hook 'my-css-mode-setup)
+  (add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
 ;;; ----------------------------------------------------------------------
-(autoload 'csharp-mode "csharp-mode" "Major mode for editing C# code." t)
-(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
+(use-package csharp-mode
+  :ensure t
+  :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; po-mode+
 ;;; ----------------------------------------------------------------------
-;; (autoload 'po-mode "po-mode+"
-;;   "Major mode for translators to edit PO files" t)
-;; (add-to-list 'auto-mode-alist '("\\.po\\'\\|\\.po\\." . po-mode))
-;; (autoload 'po-find-file-coding-system "po-compat")
-;; (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
-;;                             'po-find-file-coding-system)
+(use-package po-mode+
+  ;; :ensure t ; el-get
+  :defer t
+  :mode ("\\.po\\'\\|\\.po\\." . po-mode)
+  :commands (po-find-file-coding-system)
+  :init (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
+                                    'po-find-file-coding-system))
 
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
 ;;; ----------------------------------------------------------------------
-(require 'mmm-mode)
-(setq mmm-global-mode 'maybe)
-(setq mmm-submode-decoration-level 2)
-(setq mmm-parse-when-idle t)
-;; 非 GUI 端末の場合
-(if (not window-system)
-    (progn
-      (set-face-background 'mmm-default-submode-face nil)
-      (set-face-bold-p 'mmm-default-submode-face t)
-      (set-face-background 'mmm-comment-submode-face nil)
-      (set-face-bold-p 'mmm-comment-submode-face t)
-      ))
-(mmm-add-classes
- '(
-   (mmm-html-css-mode
-    :submode css-mode
-    :front "<style[^>]*>\\([^<]*<!--\\)?\n"
-    :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
-    )
-   (mmm-html-javascript-mode
-    :submode js2-mode
-    :front "<script[^>]*>"
-    :back "</script>")
-   (mmm-jsp-mode
-    :submode java-mode
-    :front "<%[!=]?"
-    :back "%>"
-    :insert ((?% jsp-code nil        @ "<%"  @ " " _ " " @ "%>" @)
-             (?! jsp-declaration nil @ "<%!" @ " " _ " " @ "%>" @)
-             (?= jsp-expression nil  @ "<%=" @ " " _ " " @ "%>" @)))
-   (mmm-eruby-mode
-    :submode ruby-mode
-    :front "<%"
-    :back "-?%>"
-    :insert ((?c eruby nil @ "<%"  @ " " _ " " @ "%>" @)
-             (?e eruby nil @ "<%=" @ " " _ " " @ "%>" @)))
-   (mmm-php-mode
-    :submode php-mode
-    :front "<\\?\\(php\\)?"
-    :back "\\(\\?>\\|\\'\\)")
-   ))
-(mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
-(mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-;;(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
-;;(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
-(mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode)
+(use-package mmm-mode
+  :disabled t
+  :ensure t
+  :config
+  (setq mmm-global-mode 'maybe)
+  (setq mmm-submode-decoration-level 2)
+  (setq mmm-parse-when-idle t)
+  ;; 非 GUI 端末の場合
+  (if (not window-system)
+      (progn
+        (set-face-background 'mmm-default-submode-face nil)
+        (set-face-bold-p 'mmm-default-submode-face t)
+        (set-face-background 'mmm-comment-submode-face nil)
+        (set-face-bold-p 'mmm-comment-submode-face t)
+        ))
+  (mmm-add-classes
+   '(
+     (mmm-html-css-mode
+      :submode css-mode
+      :front "<style[^>]*>\\([^<]*<!--\\)?\n"
+      :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
+      )
+     (mmm-html-javascript-mode
+      :submode js2-mode
+      :front "<script[^>]*>"
+      :back "</script>")
+     (mmm-jsp-mode
+      :submode java-mode
+      :front "<%[!=]?"
+      :back "%>"
+      :insert ((?% jsp-code nil        @ "<%"  @ " " _ " " @ "%>" @)
+               (?! jsp-declaration nil @ "<%!" @ " " _ " " @ "%>" @)
+               (?= jsp-expression nil  @ "<%=" @ " " _ " " @ "%>" @)))
+     (mmm-eruby-mode
+      :submode ruby-mode
+      :front "<%"
+      :back "-?%>"
+      :insert ((?c eruby nil @ "<%"  @ " " _ " " @ "%>" @)
+               (?e eruby nil @ "<%=" @ " " _ " " @ "%>" @)))
+     (mmm-php-mode
+      :submode php-mode
+      :front "<\\?\\(php\\)?"
+      :back "\\(\\?>\\|\\'\\)")
+     ))
+  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
+  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
+  ;;(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
+  ;;(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
+  (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode)
+  )
 
 ;;; ----------------------------------------------------------------------
 ;;; latex-mode
 ;;; ----------------------------------------------------------------------
 (add-hook 'latex-mode-hook
-          '(lambda ()
-             (setq tex-verbatim-face nil)
-             (defun tex-font-lock-suscript () nil)))
-
-;;; ----------------------------------------------------------------------
-;;; vcl-mode
-;;; ----------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '("\\.vcl\\'" . vcl-mode))
+          (lambda ()
+            (setq tex-verbatim-face nil)
+            (defun tex-font-lock-suscript () nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; rinari
 ;;; ----------------------------------------------------------------------
-(require 'rinari)
-(global-rinari-mode t)
-(setq rinari-exclude-major-modes
-      '(magit-status-mode
-        magit-log-edit-mode))
+(use-package rinari
+  :ensure t
+  :config
+  (setq rinari-exclude-major-modes
+        '(magit-status-mode
+          magit-log-edit-mode))
+  (global-rinari-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
-(editorconfig-mode 1)
-(diminish 'editorconfig-mode)
+(use-package editorconfig
+  :ensure t
+  :diminish editorconfig-mode
+  :config
+  (editorconfig-mode 1))
 
 ;;; ----------------------------------------------------------------------
-;;; logstash-conf
+;;; その他の major-mode
 ;;; ----------------------------------------------------------------------
+(use-package yaml-mode
+  :ensure t :defer t)
+
+(use-package lua-mode
+  :ensure t :defer t)
+
+(use-package ini-mode
+  :ensure t :defer t)
+
+(use-package dockerfile-mode
+  :ensure t :defer t)
+
+(use-package vcl-mode
+  :ensure t :defer t)
+
+(use-package nginx-mode
+  :ensure t :defer t
+  :mode ("nginx\\(.*\\).conf[^/]*$"))
+
+(use-package logstash-conf
+  :ensure t :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
 ;;; ----------------------------------------------------------------------
 (setq auto-mode-alist
       (append '(
-                ("\\.doc\\'"               . text-mode)
-                ;;("\\.[Hh][Tt][Mm][Ll]?\\'" . html-mode)     ;; HTML Document
-                ("\\.[Aa][Ss][PpAa]\\'"    . html-mode)     ;; Active Server Page
-                ("\\.[Jj][Ss][PpAa]\\'"    . html-mode)     ;; Java Server Pages
                 ("\\.[ch]java\\'"          . java-mode)     ;; i-appli
-                ;;("\\.html\\.erb\\'"        . html-mode)     ;; HTML(erb)
-                ;;("\\.rhtml?\\'"            . html-mode)     ;; HTML(erb)
+                ("\\.doc\\'"               . text-mode)
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
-                ("nginx\\(.*\\).conf[^/]*$" . nginx-mode)
                 )
               auto-mode-alist))
 
@@ -1374,8 +1463,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (require 'recentf)
 (setq recentf-save-file "~/.emacs.d/.recentf")
-(setq recentf-max-saved-items 10000)
-(setq recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "/\\.emacs\\.d/elpa/"))
+(setq recentf-max-saved-items 2000)
+(setq recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores"))
 (setq recentf-auto-cleanup 'never)
 ;; http://qiita.com/itiut@github/items/d917eafd6ab255629346
 (defmacro with-suppressed-message (&rest body)
@@ -1386,50 +1475,59 @@ Highlight last expanded string."
 (setq recentf-auto-save-timer
       (run-with-idle-timer 30 t '(lambda ()
                                    (with-suppressed-message (recentf-save-list)))))
-(require 'recentf-ext)
+
+(use-package recentf-ext
+  :ensure t)
 
 ;;; ----------------------------------------------------------------------
-;;; session.el
+;;; session
 ;;; ----------------------------------------------------------------------
-(setq history-length t)
-(setq session-initialize '(de-saveplace session keys menus places)
-      session-globals-include '((kill-ring 1000)
-                                (session-file-alist 1000 t)
-                                (file-name-history 10000)))
-(setq session-globals-max-string 10000000)
-(setq session-save-print-spec '(t nil 40000)) ; anything/helmと一緒に使うために必要
-(add-hook 'after-init-hook 'session-initialize)
+(use-package session
+  :ensure t
+  :hook (after-init . session-initialize)
+  :init
+  (setq history-length t)
+  (setq session-initialize '(de-saveplace session keys menus places)
+        session-globals-include '((kill-ring 1000)
+                                  (session-file-alist 1000 t)
+                                  (file-name-history 10000)))
+  (setq session-globals-max-string 10000000)
+  ;; anything/helmと一緒に使うために必要
+  (setq session-save-print-spec '(t nil 40000)))
 
 ;;; ----------------------------------------------------------------------
 ;;; elscreen
 ;;; ----------------------------------------------------------------------
-(setq elscreen-display-tab nil)
-(elscreen-start)
-(global-unset-key "\C-z")
-(global-unset-key "\C-t")
-(cond (window-system
-       (elscreen-set-prefix-key "\C-z")
-       (define-key elscreen-map "\C-z" 'elscreen-toggle)
-       (define-key elscreen-map "z" 'iconify-frame))
-      (t
-       (elscreen-set-prefix-key "\C-t")
-       (define-key elscreen-map "\C-t" 'elscreen-toggle)))
-(smartrep-define-key
-    global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
-                                     ("n" . 'elscreen-next)
-                                     ("<left>" . 'elscreen-previous)
-                                     ("<right>" . 'elscreen-next)))
+(use-package elscreen
+  :ensure t
+  :init
+  (setq elscreen-display-tab nil)
+  :config
+  (elscreen-start)
+  (global-unset-key "\C-z")
+  (global-unset-key "\C-t")
+  (cond (window-system
+         (elscreen-set-prefix-key "\C-z")
+         (define-key elscreen-map "\C-z" 'elscreen-toggle)
+         (define-key elscreen-map "z" 'iconify-frame))
+        (t
+         (elscreen-set-prefix-key "\C-t")
+         (define-key elscreen-map "\C-t" 'elscreen-toggle)))
+  (smartrep-define-key
+      global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
+                                       ("n" . 'elscreen-next)
+                                       ("<left>" . 'elscreen-previous)
+                                       ("<right>" . 'elscreen-next))))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-(with-eval-after-load 'flycheck
-  (require 'flycheck-posframe)
-  (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
-  (setq flycheck-posframe-warning-prefix "\u26a0 ")
-  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)
-
-  ;;(require 'flycheck-pyflakes)
+(use-package flycheck
+  :ensure t
+  :hook (after-init . global-flycheck-mode)
+  :config
+  (setq flycheck-gcc-language-standard "c++11")
+  (setq flycheck-clang-language-standard "c++11")
   (setq flycheck-disabled-checkers
       (append '(
                 ;;python-flake8
@@ -1440,12 +1538,15 @@ Highlight last expanded string."
                 )
               flycheck-disabled-checkers)))
 
-(add-hook 'after-init-hook #'global-flycheck-mode)
+(use-package flycheck-pyflakes
+  :ensure t
+  :after flycheck)
 
-(defun my-c++-mode-flycheck-setup ()
-  (setq flycheck-gcc-language-standard "c++11")
-  (setq flycheck-clang-language-standard "c++11"))
-(add-hook 'c++-mode-hook 'my-c++-mode-flycheck-setup)
+(use-package flycheck-posframe
+  :ensure t
+  :hook (flycheck-mode . flycheck-posframe-mode)
+  :config
+  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1483,11 +1584,12 @@ Highlight last expanded string."
 (defadvice kill-new (before ys:no-kill-new-duplicates activate)
   (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
 
-
 ;;; ----------------------------------------------------------------------
 ;;; bm
 ;;; ----------------------------------------------------------------------
-(when (require 'bm nil t)
+(use-package bm
+  :ensure t
+  :config
   (setq-default bm-buffer-persistence t)
   (setq bm-repository-file "~/.emacs.d/.bm-repository")
   (add-hook 'after-init-hook 'bm-repository-load)
@@ -1547,143 +1649,169 @@ Highlight last expanded string."
   )
 
 ;;; ----------------------------------------------------------------------
+;;; projectile
+;;; ----------------------------------------------------------------------
+(use-package projectile
+  :ensure t
+  :config
+  (projectile-global-mode t))
+
+;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
-(require 'helm)
-(require 'helm-config)
-(require 'helm-descbinds)
-(helm-descbinds-mode)
-(require 'helm-multi-match)
-(helm-migemo-mode +1)
-(diminish 'helm-migemo-mode)
-(require 'helm-buffers)
-(require 'helm-files)
-(require 'helm-ls-git)
-;;(require 'helm-elscreen)
+(use-package helm
+  :ensure t
+  :defer t
+  :diminish helm-migemo-mode
+  :init
+  (bind-key (if window-system "C-;" "C-c ;") 'helm-mini)
+  (bind-key "M-x" 'helm-M-x)
+  (bind-key "C-x b" 'helm-buffers-list)
+  (bind-key "M-y" 'helm-show-kill-ring)
+  (bind-key "C-x C-d" 'helm-browse-project)
+  (bind-key "C-x C-r" 'helm-recentf)
+  (bind-key "C-x C-g" 'helm-grep-do-git-grep)
+  :config
+  (require 'helm-config)
+  (require 'helm-buffers)
+  (require 'helm-files)
+  (helm-migemo-mode +1)
+  (setq helm-idle-delay 0.3)
+  (setq helm-input-idle-delay 0.2)
+  (setq helm-candidate-number-limit 100)
+  (setq helm-buffer-max-length 50)
+  (setq helm-truncate-lines t)
+  (setq helm-inherit-input-method nil)
+  (setq helm-mini-default-sources
+        '(helm-source-buffers-list
+          helm-source-recentf
+          helm-source-files-in-current-dir
+          helm-source-buffer-not-found
+          )))
 
+(use-package helm-descbinds
+  :ensure t
+  :after helm
+  :config (helm-descbinds-mode +1))
 
-(setq helm-idle-delay 0.3)
-(setq helm-input-idle-delay 0.2)
-(setq helm-candidate-number-limit 100)
-(setq helm-buffer-max-length 50)
-(setq helm-truncate-lines t)
-;;(setq helm-full-frame nil)
-;;(setq helm-split-window-default-side 'same)
-(setq helm-inherit-input-method nil)
-(setq helm-mini-default-sources
-      '(helm-source-buffers-list
-        helm-source-ls-git
-        helm-source-recentf
-        helm-source-files-in-current-dir
-        helm-source-buffer-not-found
-        ))
+(use-package helm-projectile
+  :ensure t
+  :diminish projectile-mode
+  :bind
+  ("C-x C-p" . helm-projectile)
+  ("C-x p"   . helm-projectile-switch-project)
+  :config
+  (helm-projectile-on))
 
-(global-set-key (if window-system (kbd "C-;") "\C-c;") 'helm-mini)
-(global-set-key "\M-x" 'helm-M-x)
-(global-set-key "\C-xb" 'helm-buffers-list)
-(global-set-key "\M-y" 'helm-show-kill-ring)
-;;(define-key elscreen-map "w" 'helm-elscreen)
-(global-set-key "\C-cb" 'helm-bm)
-(global-set-key (kbd "C-x C-d") 'helm-browse-project)
-(global-set-key (kbd "C-x C-r") 'helm-recentf)
-(global-set-key (kbd "C-x C-g") 'helm-grep-do-git-grep)
+(use-package helm-bm
+  :ensure t
+  :bind ("C-c b" . helm-bm))
 
-(require 'helm-c-yasnippet)
-(setq helm-yas-space-match-any-greedy t)
-(global-set-key (kbd "C-c y") 'helm-yas-complete)
-(push '("emacs.+/snippets/" . snippet-mode) auto-mode-alist)
+(use-package helm-c-yasnippet
+  :ensure t
+  :bind ("C-c y" . helm-yas-complete)
+  :config
+  (setq helm-yas-space-match-any-greedy t))
 
-(with-eval-after-load "helm-gtags"
-  (diminish 'helm-gtags-mode)
+(use-package helm-gtags
+  :ensure t
+  :diminish helm-gtags-mode
+  :hook (prog-mode . helm-gtags-mode)
+  :config
   (setq helm-gtags-auto-update t)
-  (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
-  (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-  (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+  (bind-key "M-t" 'helm-gtags-find-tag    helm-gtags-mode-map)
+  (bind-key "M-r" 'helm-gtags-find-rtag   helm-gtags-mode-map)
+  (bind-key "M-s" 'helm-gtags-find-symbol helm-gtags-mode-map)
+  (bind-key "M-," 'helm-gtags-pop-stack   helm-gtags-mode-map)
   (smartrep-define-key
       helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
-                                  (">" . 'helm-gtags-next-history)))
-  (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))
+                                  (">" . 'helm-gtags-next-history))))
 
-(dolist (hook '(
-                php-mode-hook
-                ruby-mode-hook
-                enh-ruby-mode-hook
-                python-mode-hook
-                html-mode-hook
-                c-mode-hook
-                c++-mode-hook
-                asm-mode-hook
-                web-mode-hook
-                rjsx-mode-hook
-                ))
-  (add-hook hook 'helm-gtags-mode))
+(use-package helm-flycheck
+  :ensure t
+  :after (flycheck)
+  :config
+  (bind-key "C-c ! h" 'helm-flycheck flycheck-mode-map))
 
-(eval-after-load 'flycheck
-  '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
-
-(require 'helm-swoop)
-(global-set-key (kbd "M-i") 'helm-swoop)
-(global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
-(global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
-(global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
-(define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
-(define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
-(setq helm-multi-swoop-edit-save t)
+(use-package helm-swoop
+  :ensure t
+  :defer t
+  :init
+  (setq helm-multi-swoop-edit-save t)
+  (bind-key "M-i" 'helm-swoop)
+  (bind-key "M-I" 'helm-swoop-back-to-last-point)
+  (bind-key "C-c M-i" 'helm-multi-swoop)
+  (bind-key "C-x M-i" 'helm-multi-swoop-all)
+  (bind-key "M-i" 'helm-swoop-from-isearch isearch-mode-map)
+  :config
+  (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map)
+  )
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
-(setq anzu-mode-lighter "")
-(setq anzu-deactivate-region t)
-(setq anzu-search-threshold 1000)
-(setq anzu-use-migemo t)
-(global-anzu-mode t)
-(global-set-key (kbd "M-%") 'anzu-query-replace)
-(global-set-key (kbd "C-x M-%") 'anzu-query-replace-regexp)
+(use-package anzu
+  :ensure t
+  :config
+  (setq anzu-mode-lighter "")
+  (setq anzu-deactivate-region t)
+  (setq anzu-search-threshold 1000)
+  (setq anzu-use-migemo t)
+  (global-anzu-mode t)
+  (global-set-key [remap query-replace] #'anzu-query-replace)
+  (global-set-key [remap query-replace-regexp] #'anzu-query-replace-regexp)
+  (define-key isearch-mode-map [remap isearch-query-replace]  #'anzu-isearch-query-replace)
+  (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp))
 
 ;;; ----------------------------------------------------------------------
 ;;; gist
 ;;; ----------------------------------------------------------------------
-(require 'gist)
+(use-package gist
+  :ensure t
+  :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; popwin.el
 ;;; ----------------------------------------------------------------------
-(require 'popwin)
-(popwin-mode 1)
-(setq pop-up-windows nil)
-;;(setq display-buffer-function 'popwin:display-buffer)
-(setq popwin:adjust-other-windows t)
-(setq popwin:special-display-config
-      (append '(("*Backtrace*" :height 0.3)
-                ("*Kill Ring*" :height 0.4 :noselect t)
-                ("*Apropos*" :height 0.4)
-                ("*Help*" :height 0.4)
-                ("*sdic*" :height 0.3)
-                ("*Warnings*" :height 0.3)
-                ("*Google Translate*" :height 0.3)
-                ("^\\*helm" :regexp t :height 0.4)
-                ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
-                ("*git-gutter:diff*" :height 0.4 :stick t)
-                (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
-                ;;("*rspec-compilation*" :height 0.4 :stick t :regexp t)
-                ;;(dired-mode :height 0.4 :position top)
-                )
-              popwin:special-display-config))
-(define-key global-map (kbd "C-x p") 'popwin:display-last-buffer)
+(use-package popwin
+  :ensure t
+  :config
+  (popwin-mode 1)
+  (setq pop-up-windows nil)
+  ;;(setq display-buffer-function 'popwin:display-buffer)
+  (setq popwin:adjust-other-windows t)
+  (setq popwin:special-display-config
+        (append '(("*Backtrace*" :height 0.3)
+                  ("*Kill Ring*" :height 0.4 :noselect t)
+                  ("*Apropos*" :height 0.4)
+                  ("*Help*" :height 0.4)
+                  ("*sdic*" :height 0.3)
+                  ("*Warnings*" :height 0.3)
+                  ("*Google Translate*" :height 0.3)
+                  ("^\\*helm" :regexp t :height 0.4)
+                  ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
+                  ("*git-gutter:diff*" :height 0.4 :stick t)
+                  (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
+                  ;;("*rspec-compilation*" :height 0.4 :stick t :regexp t)
+                  ;;(dired-mode :height 0.4 :position top)
+                  )
+                popwin:special-display-config))
+  (define-key global-map (kbd "C-c l") 'popwin:display-last-buffer))
 
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
-(require 'git-gutter-fringe)
-(setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
-(run-with-idle-timer 1 t 'git-gutter)
-(global-git-gutter-mode t)
-
-(global-set-key (kbd "C-x v =") 'git-gutter:popup-hunk)
-(smartrep-define-key
-    global-map "C-x v" '(("p" . 'git-gutter:previous-hunk)
-                         ("n" . 'git-gutter:next-hunk)))
+(use-package git-gutter-fringe
+  :ensure t
+  :diminish git-gutter-mode
+  :config
+  (setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
+  (run-with-idle-timer 1 t 'git-gutter)
+  (global-git-gutter-mode t)
+  (global-set-key (kbd "C-x v =") 'git-gutter:popup-hunk)
+  (smartrep-define-key
+      global-map "C-x v" '(("p" . 'git-gutter:previous-hunk)
+                           ("n" . 'git-gutter:next-hunk))))
 
 ;;; ----------------------------------------------------------------------
 ;;; ansi-term / shell-pop
@@ -1708,59 +1836,84 @@ Highlight last expanded string."
               (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
               (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
 
-  (setq shell-pop-shell-type '("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell))))
-  (setq shell-pop-term-shell "/bin/zsh")
-  (setq shell-pop-universal-key "<f12>")
-  (setq shell-pop-window-size 40)
-  (setq shell-pop-window-position "bottom")
-  (require 'shell-pop)
-
   (defun my-term-switch-line-char ()
     "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
     (interactive)
     (cond
      ((term-in-line-mode)
-      (term-char-mode)
-      ;; (hl-line-mode -1)
-      )
+      (term-char-mode))
      ((term-in-char-mode)
-      (term-line-mode)
-      ;; (hl-line-mode 1)
-      )))
+      (term-line-mode))))
 
-  (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
-    "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
-    (if (eq major-mode 'term-mode)
-        (letf (((symbol-function 'insert-for-yank) (symbol-function 'term-send-raw-string)))
-          ad-do-it)
-      ad-do-it)))
+  ;; (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
+  ;;   "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
+  ;;   (if (eq major-mode 'term-mode)
+  ;;       (letf (((symbol-function 'insert-for-yank) (symbol-function 'term-send-raw-string)))
+  ;;         ad-do-it)
+  ;;     ad-do-it))
+
+  (use-package shell-pop
+    :ensure t
+    :defer t
+    :bind ("<f12>" . shell-pop)
+    :init
+    (setq shell-pop-shell-type '("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell))))
+    (setq shell-pop-term-shell "/bin/zsh")
+    (setq shell-pop-universal-key "<f12>")
+    (setq shell-pop-window-size 40)
+    (setq shell-pop-window-position "bottom")))
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
 ;;; ----------------------------------------------------------------------
-(require 'whitespace)
-(setq whitespace-style
-      '(face
-        tabs spaces newline trailing space-before-tab space-after-tab
-        space-mark tab-mark newline-mark))
-(setq whitespace-space-regexp "\\(\u3000+\\)")
-(setq whitespace-display-mappings
-      '(
-        ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
-        ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-        (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
-        (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
-        ))
-(set-face-italic-p 'whitespace-space nil)
-(set-face-foreground 'whitespace-newline "#335544")
-(set-face-bold-p 'whitespace-newline t)
-(setq whitespace-global-modes '(not dired-mode tar-mode))
-(global-whitespace-mode 1)
+(use-package whitespace
+  :diminish global-whitespace-mode
+  :config
+  (setq whitespace-style
+        '(face
+          tabs spaces newline trailing space-before-tab space-after-tab
+          space-mark tab-mark newline-mark))
+  (setq whitespace-space-regexp "\\(\u3000+\\)")
+  (setq whitespace-display-mappings
+        '(
+          ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
+          ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
+          (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
+          ))
+  (set-face-italic-p 'whitespace-space nil)
+  (set-face-foreground 'whitespace-newline "#335544")
+  (set-face-bold-p 'whitespace-newline t)
+  (setq whitespace-global-modes '(not dired-mode tar-mode))
+  (global-whitespace-mode 1))
+
+
+;; (require 'whitespace)
+;; (setq whitespace-style
+;;       '(face
+;;         tabs spaces newline trailing space-before-tab space-after-tab
+;;         space-mark tab-mark newline-mark))
+;; (setq whitespace-space-regexp "\\(\u3000+\\)")
+;; (setq whitespace-display-mappings
+;;       '(
+;;         ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
+;;         ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
+;;         (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+;;         (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
+;;         ))
+;; (set-face-italic-p 'whitespace-space nil)
+;; (set-face-foreground 'whitespace-newline "#335544")
+;; (set-face-bold-p 'whitespace-newline t)
+;; (setq whitespace-global-modes '(not dired-mode tar-mode))
+;; (global-whitespace-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; google-translate.el
 ;;; ----------------------------------------------------------------------
-(global-set-key "\C-ct" 'google-translate-smooth-translate)
+(use-package google-translate
+  :ensure t
+  :defer t
+  :bind ("\C-ct" . google-translate-smooth-translate))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -1843,12 +1996,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; open-junk-file
 ;;; ----------------------------------------------------------------------
-(global-set-key "\C-x\C-z" 'open-junk-file)
+(use-package open-junk-file
+  :ensure t
+  :defer t
+  :bind ("\C-x\C-z" . open-junk-file))
 
 ;;; ----------------------------------------------------------------------
 ;;; lispxmp
 ;;; ----------------------------------------------------------------------
-(define-key emacs-lisp-mode-map "\C-c\C-d" 'lispxmp)
+(use-package lispxmp
+  :ensure t
+  :commands lispxmp
+  :init
+  (define-key emacs-lisp-mode-map "\C-c\C-d" 'lispxmp))
 
 ;;; ----------------------------------------------------------------------
 ;;; paredit
@@ -1868,9 +2028,15 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
-(when (require 'auto-async-byte-compile nil t)
+;; (when (require 'auto-async-byte-compile nil t)
+;;   (setq auto-async-byte-compile-exclude-files-regexp "/junk/")
+;;   (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode))
+(use-package auto-async-byte-compile
+  :ensure t
+  :config
   (setq auto-async-byte-compile-exclude-files-regexp "/junk/")
-  (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode))
+  :hook
+  (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; eldoc-mode
@@ -1884,120 +2050,114 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; highlight-symbol
 ;;; ----------------------------------------------------------------------
-(require 'highlight-symbol)
-(global-set-key [(control f3)] 'highlight-symbol-at-point)
-(global-set-key [f3] 'highlight-symbol-next)
-(global-set-key [(shift f3)] 'highlight-symbol-prev)
-(global-set-key [(meta f3)] 'highlight-symbol-query-replace)
-(add-hook 'prog-mode-hook 'highlight-symbol-mode)
+(use-package highlight-symbol
+  :ensure t
+  :diminish highlight-symbol-mode
+  :hook (prog-mode . highlight-symbol-mode)
+  :bind (([(control f3)] . highlight-symbol-at-point)
+         ([f3]           . highlight-symbol-next)
+         ([(shift f3)]   . highlight-symbol-prev)
+         ([(meta f3)]    . highlight-symbol-query-replace)))
 
 ;;; ----------------------------------------------------------------------
 ;;; highlight-indent-guides
 ;;; ----------------------------------------------------------------------
-(add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
-(add-hook 'python-mode-hook 'highlight-indent-guides-mode)
-(setq highlight-indent-guides-auto-enabled t)
-(setq highlight-indent-guides-responsive t)
-(setq highlight-indent-guides-method 'character)
+(use-package highlight-indent-guides
+  :ensure t
+  :diminish highlight-indent-guides-mode
+  :hook ((yaml-mode python-mode) . highlight-indent-guides-mode)
+  :init
+  (setq highlight-indent-guides-auto-enabled t)
+  (setq highlight-indent-guides-responsive t)
+  (setq highlight-indent-guides-method 'character))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-mode
 ;;; ----------------------------------------------------------------------
-(add-hook 'prog-mode-hook #'rainbow-mode)
-(add-hook 'text-mode-hook #'rainbow-mode)
-(eval-after-load "rainbow-mode" '(diminish 'rainbow-mode))
+(use-package rainbow-mode
+  :ensure t
+  :diminish rainbow-mode
+  :hook ((prog-mode text-mode) . rainbow-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-delimiters
 ;;; ----------------------------------------------------------------------
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; ag
 ;;; ----------------------------------------------------------------------
-(setq ag-highlight-search t)
-(setq ag-reuse-window t)
-(setq ag-reuse-buffers t)
-(global-set-key "\C-ca" 'ag)
-(global-set-key "\C-cf" 'ag-project)
+(use-package ag
+  :ensure t
+  :bind
+  (("\C-ca" . ag)
+   ("\C-cf" . ag-project))
+  :config
+  (setq ag-highlight-search t)
+  (setq ag-reuse-window t)
+  (setq ag-reuse-buffers t))
 
 ;;; ----------------------------------------------------------------------
 ;;; wgrep / wgrep-ag
 ;;; ----------------------------------------------------------------------
-(setq wgrep-auto-save-buffer t)
-(eval-after-load "ag"
-  '(progn
-     (add-hook 'ag-mode-hook 'wgrep-ag-setup)
-     (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode)))
+(use-package wgrep
+  :ensure t
+  :defer t
+  :init
+  (setq wgrep-enable-key "r")
+  (setq wgrep-auto-save-buffer t))
+
+(use-package wgrep-ag
+  :ensure t
+  :after ag
+  :hook (ag-mode . wgrep-ag-setup)
+  :config (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; tempbuf-mode
+;;; tempbuf
 ;;; ----------------------------------------------------------------------
-(setq tempbuf-kill-message nil)
-(autoload 'turn-on-tempbuf-mode "tempbuf" "kill unused buffers in the background." t)
-(add-hook 'dired-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'magit-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'custom-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'w3-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'Man-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'view-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'compilation-mode-hook
-          (lambda ()
-            (when (string-match "*RuboCop " (buffer-name))
-              'turn-on-tempbuf-mode)))
-(add-hook 'helm-major-mode-hook 'turn-on-tempbuf-mode)
-(add-hook 'fundamental-mode-hook
-          (lambda ()
-            (when (string-match "*Flycheck error messages*" (buffer-name))
-              'turn-on-tempbuf-mode)))
+(use-package tempbuf
+  ;; :ensure t ; el-get
+  :hook ((dired-mode
+          magit-mode
+          custom-mode-hook
+          w3-mode-hook
+          Man-mode-hook
+          view-mode-hook
+          helm-major-mode-hook)
+         . turn-on-tempbuf-mode)
+  :init
+  (setq tempbuf-kill-message nil)
+  (add-hook 'compilation-mode-hook
+            (lambda ()
+              (when (string-match "*RuboCop " (buffer-name))
+                'turn-on-tempbuf-mode)))
+  (add-hook 'fundamental-mode-hook
+            (lambda ()
+              (when (string-match "*Flycheck error messages*" (buffer-name))
+                'turn-on-tempbuf-mode))))
 
 ;;; ----------------------------------------------------------------------
 ;;; buffer-move
 ;;; ----------------------------------------------------------------------
-(global-set-key (kbd "<C-S-up>")     'buf-move-up)
-(global-set-key (kbd "<C-S-down>")   'buf-move-down)
-(global-set-key (kbd "<C-S-left>")   'buf-move-left)
-(global-set-key (kbd "<C-S-right>")  'buf-move-right)
-
-;;; ---------------------------------------------------------------------
-;;; monokai-theme
-;;; ----------------------------------------------------------------------
-(load-theme 'monokai t)
-(set-face-attribute 'mozc-cand-posframe-normal-face nil
-                    :background monokai-highlight-line
-                    :foreground monokai-emphasis)
-(set-face-attribute 'mozc-cand-posframe-focused-face nil
-                    :background monokai-blue
-                    :foreground monokai-background)
-(set-face-attribute 'mozc-cand-posframe-footer-face nil
-                    :foreground monokai-foreground)
-
-;;; ---------------------------------------------------------------------
-;;; doom-theme
-;;; ----------------------------------------------------------------------
-;; (load-theme 'doom-one t)
-;; (load-theme 'doom-vibrant t)
-;; (set-face-attribute 'mozc-cand-posframe-normal-face nil
-;;                     :background (face-background 'tooltip)
-;;                     :foreground (face-foreground 'tooltip))
-;; (set-face-attribute 'mozc-cand-posframe-focused-face nil
-;;                     :background (face-background 'company-tooltip-selection)
-;;                     :foreground (face-foreground 'tooltip)
-;;                     :weight (face-attribute 'company-tooltip-selection :weight))
-;; (set-face-attribute 'mozc-cand-posframe-footer-face nil
-;;                     :foreground (face-foreground 'tooltip))
-
-;;(require 'doom-modeline)
-;;(doom-modeline-mode t)
+(use-package buffer-move
+  :ensure t
+  :bind (([C-S-up]     . buf-move-up)
+         ([C-S-down]   . buf-move-down)
+         ([C-S-left]   . buf-move-left)
+         ([C-S-right]  . buf-move-right)))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
-(setq nyan-bar-length 16)
-(add-hook 'after-init-hook
-          (lambda()
-            (nyan-mode)
-            (nyan-start-animation)))
+(use-package nyan-mode
+  :ensure t
+  :hook after-init
+  :config
+  (setq nyan-bar-length 16)
+  (nyan-start-animation))
 
 ;;; ----------------------------------------------------------------------
 ;;; 終了前に確認する
@@ -2065,7 +2225,9 @@ Highlight last expanded string."
 
 ;;; ----------------------------------------------------------------------
 (if (not (eq window-system 'w32))
-    (exec-path-from-shell-initialize))
+    (use-package exec-path-from-shell
+      :ensure t
+      :config (exec-path-from-shell-initialize)))
 (cd "~")
 
 ;;; end of file ;;;
