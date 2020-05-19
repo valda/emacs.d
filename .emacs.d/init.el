@@ -113,9 +113,31 @@
       (package-install pkg))))
 
 ;;; ----------------------------------------------------------------------
+;;; use-package
+;;; ----------------------------------------------------------------------
+(defvar use-package-enable-imenu-support t)
+(eval-when-compile
+  (require 'use-package))
+(require 'diminish)
+(require 'bind-key)
+(setq use-package-verbose t)
+(setq use-package-minimum-reported-time 0.001)
+(setq use-package-compute-statistics t)
+
+;;; ----------------------------------------------------------------------
+;;; paradox
+;;; ----------------------------------------------------------------------
+(use-package paradox
+  :ensure t
+  :defer t
+  :init
+  (setq paradox-github-token t)
+  (setq paradox-execute-asynchronously t)
+  (setq paradox-automatically-star t))
+
+;;; ----------------------------------------------------------------------
 ;;; el-get
 ;;; ----------------------------------------------------------------------
-(setq el-get-generate-autoloads nil)
 (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 
 (unless (require 'el-get nil 'noerror)
@@ -136,35 +158,11 @@
     moccur-edit
     mozc-el-extensions
     po-mode
-    po-mode+
     tempbuf
-    visual-basic-mode
     cygwin-mount
     )
   "A list of packages to install by el-get at launch.")
 (el-get 'sync el-get-installing-package-list)
-
-;;; ----------------------------------------------------------------------
-;;; use-package
-;;; ----------------------------------------------------------------------
-(defvar use-package-enable-imenu-support t)
-(eval-when-compile
-  (require 'use-package))
-(require 'diminish)
-(require 'bind-key)
-(setq use-package-verbose t)
-(setq use-package-minimum-reported-time 0.001)
-
-;;; ----------------------------------------------------------------------
-;;; paradox
-;;; ----------------------------------------------------------------------
-(use-package paradox
-  :ensure t
-  :defer t
-  :init
-  (setq paradox-github-token t)
-  (setq paradox-execute-asynchronously t)
-  (setq paradox-automatically-star t))
 
 ;;; ---------------------------------------------------------------------
 ;;; monokai-theme
@@ -1090,25 +1088,6 @@ Highlight last expanded string."
 (add-to-list 'auto-mode-alist '("\\.t\\'" . cperl-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; visual-basic-mode
-;;; ----------------------------------------------------------------------
-(use-package visual-basic-mode
-  ;; :ensure t ; el-get
-  :defer t
-  :mode ("\\.[Ff][Rr][Mm]\\'"
-         "\\.[Bb][Aa][Ss]\\'"
-         "\\.[Cc][Ll][Ss]\\'"
-         "\\.[Vv][Bb][Ss]?\\'")
-  :config
-  (setq visual-basic-mode-indent 4))
-
-(use-package vbp-mode
-  ;; :ensure t ; el-get
-  :defer t
-  :mode ("\\.[Vv][Bb][Pp]\\'"
-         "\\.[Vv][Bb][Gg]\\'"))
-
-;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
 (defun my-php-mode-setup ()
@@ -1310,9 +1289,9 @@ Highlight last expanded string."
   :defer t)
 
 ;;; ----------------------------------------------------------------------
-;;; po-mode+
+;;; po-mode
 ;;; ----------------------------------------------------------------------
-(use-package po-mode+
+(use-package po-mode
   ;; :ensure t ; el-get
   :defer t
   :mode ("\\.po\\'\\|\\.po\\." . po-mode)
