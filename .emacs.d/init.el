@@ -302,7 +302,15 @@
                       (activate-input-method default-input-method)
                     (deactivate-input-method))))))
 
+  (use-package mozc-popup
+    :if (not (window-system))
+    :ensure t
+    :after mozc
+    :config
+    (setq mozc-candidate-style 'popup))
+
   (use-package mozc-cand-posframe
+    :if (window-system)
     :ensure t
     :after mozc
     :config
@@ -329,7 +337,10 @@
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
 ;;; ----------------------------------------------------------------------
-(when (require 'ibuffer nil t)
+(use-package ibuffer
+  :bind
+  ("\C-x\C-b" . ibuffer)
+  :config
   (setq ibuffer-formats
         '((mark modified read-only " " (name 30 30)
                 " " (size 6 -1) " " (mode 16 16) " " (coding 15 15) " " filename)
@@ -343,8 +354,7 @@
     (if (coding-system-get buffer-file-coding-system 'mime-charset)
         (format " %s" (coding-system-get buffer-file-coding-system 'mime-charset))
       " undefined"
-      ))
-  (global-set-key "\C-x\C-b" 'ibuffer))
+      )))
 
 ;;; ----------------------------------------------------------------------
 ;;; ido
@@ -407,7 +417,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev-highlight
 ;;; ----------------------------------------------------------------------
-(require 'dabbrev-highlight)
+(use-package dabbrev-highlight) ; el-get
 
 ;;; ----------------------------------------------------------------------
 ;;; hippie-expand
@@ -509,28 +519,6 @@ Highlight last expanded string."
           (when quit-flag
             (setq quit-flag nil)
             (setq unread-command-events '(7))))))))
-
-;;; ----------------------------------------------------------------------
-;;; auto-complete
-;;; ----------------------------------------------------------------------
-;; (require 'auto-complete)
-;; (require 'auto-complete-config)
-;; (ac-config-default)
-;; (global-auto-complete-mode t)
-;; (add-to-list 'ac-modes 'html-mode)
-;; (add-to-list 'ac-modes 'web-mode)
-;; (add-to-list 'ac-modes 'rjsx-mode)
-;; (add-to-list 'ac-modes 'csharp-mode)
-;; (add-to-list 'ac-modes 'less-css-mode)
-;; (add-to-list 'ac-modes 'scss-mode)
-;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-;; (setq ac-auto-start 2)
-;; (setq ac-dwim t)
-;; (setq ac-ignore-case t)
-;; (setq-default ac-sources '(ac-source-abbrev
-;;                            ac-source-dictionary
-;;                            ac-source-words-in-same-mode-buffers))
-;; (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;;; ----------------------------------------------------------------------
 ;;; company-mode
@@ -653,26 +641,33 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
 ;;; ----------------------------------------------------------------------
-(setq w3m-type 'w3m-ja)
-(setq w3m-use-cookies t)
-(setq w3m-accept-japanese-characters t)
-(autoload 'w3m "w3m" "Interface for w3m on Emacs." t)
-(autoload 'w3m-browse-url "w3m" "Ask emacs-w3m to show a URL." t)
+(use-package w3m
+  :if (executable-find "w3m")
+  :ensure t
+  :defer t
+  :config
+  (setq w3m-type 'w3m-ja)
+  (setq w3m-use-cookies t)
+  (setq w3m-accept-japanese-characters t))
 
-(require 'browse-url)
-(cond ((my-wsl-p)
-       (setq browse-url-browser-function 'browse-url-generic)
-       (setq browse-url-generic-program  "/init")
-       (setq browse-url-generic-args '("/mnt/c/Windows/System32/rundll32.exe" "url.dll,FileProtocolHandler")))
-      ((eq window-system 'x)
-       (setq browse-url-browser-function 'browse-url-xdg-open))
-      ((eq window-system 'w32)
-       (setq browse-url-browser-function 'browse-url-default-windows-browser))
-      (t
-       (setq browse-url-browser-function 'w3m-browse-url)))
-(global-set-key "\C-xm" 'browse-url-at-point)
-(when (window-system)
-  (global-set-key [mouse-3] 'browse-url-at-mouse))
+(use-package browse-url
+  :defer t
+  :commands (browse-url-at-point browse-url-at-mouse)
+  :init
+  (bind-key "\C-xm" 'browse-url-at-point)
+  (if (window-system)
+    (bind-key [mouse-3] 'browse-url-at-mouse))
+  :config
+  (cond ((my-wsl-p)
+         (setq browse-url-browser-function 'browse-url-generic)
+         (setq browse-url-generic-program  "/init")
+         (setq browse-url-generic-args '("/mnt/c/Windows/System32/rundll32.exe" "url.dll,FileProtocolHandler")))
+        ((eq window-system 'x)
+         (setq browse-url-browser-function 'browse-url-xdg-open))
+        ((eq window-system 'w32)
+         (setq browse-url-browser-function 'browse-url-default-windows-browser))
+        ((fboundp 'w3m-browse-url)
+         (setq browse-url-browser-function 'w3m-browse-url))))
 
 ;;; ----------------------------------------------------------------------
 ;;; undo-tree.el
@@ -706,23 +701,32 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; dired
 ;;; ----------------------------------------------------------------------
-(require 'dired-x)
-(require 'jka-compr)
-(require 'wdired)
+(use-package dired
+  :config
+  (setq dired-dwim-target t)
+  (setq dired-recursive-copies 'always)
+  (setq dired-isearch-filenames t))
 
-(setq dired-dwim-target t)
-(setq dired-recursive-copies 'always)
-(setq dired-isearch-filenames t)
-(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (dired-omit-mode 1)))
+(use-package dired-x
+  :after dired
+  :config
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (dired-omit-mode 1))))
 
-;; wdired 終了時に IME を OFF にする
-(require 'wdired)
-(advice-add 'wdired-finish-edit
-            :after (lambda (&rest args)
-                     (deactivate-input-method)))
+(use-package dired-k
+  :ensure t
+  :defer t
+  :init
+  (add-hook 'dired-initial-position-hook 'dired-k))
+
+(use-package wdired
+  :bind (:map dired-mode-map
+              ("r" . wdired-change-to-wdired-mode))
+  :config
+  (advice-add 'wdired-finish-edit
+              :after (lambda (&rest args)
+                       (deactivate-input-method))))
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -803,7 +807,6 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
 ;;; ----------------------------------------------------------------------
-;;(require 'cc-mode)
 (defconst my-cc-style
   '(
     ;; インデント幅を空白2コ分にする
@@ -941,7 +944,7 @@ Highlight last expanded string."
               (cons ruby-mode-hs-info hs-special-modes-alist)))))
 
 ;;; ----------------------------------------------------------------------
-;;; color-moccur
+;;; moccur
 ;;; ----------------------------------------------------------------------
 (require 'color-moccur)
 (setq moccur-split-word t) ; スペース区切りでAND検索
@@ -955,9 +958,6 @@ Highlight last expanded string."
 (global-set-key "\M-o" 'occur-by-moccur)
 (global-set-key "\C-c\C-x\C-o" 'moccur)
 
-;;; ----------------------------------------------------------------------
-;;; moccur-edit
-;;; ----------------------------------------------------------------------
 (require 'moccur-edit)
 (defadvice moccur-edit-change-file
     (after save-after-moccur-edit-buffer activate)
@@ -1535,6 +1535,7 @@ Highlight last expanded string."
   :after flycheck)
 
 (use-package flycheck-posframe
+  :if (window-system)
   :ensure t
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
