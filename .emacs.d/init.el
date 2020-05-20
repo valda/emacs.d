@@ -946,22 +946,24 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; moccur
 ;;; ----------------------------------------------------------------------
-(require 'color-moccur)
-(setq moccur-split-word t) ; スペース区切りでAND検索
-(setq moccur-use-migemo t)
-(setq *moccur-buffer-name-exclusion-list*
-      '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (define-key dired-mode-map "O" 'dired-do-moccur)))
-(define-key Buffer-menu-mode-map "O" 'Buffer-menu-moccur)
-(global-set-key "\M-o" 'occur-by-moccur)
-(global-set-key "\C-c\C-x\C-o" 'moccur)
+(use-package color-moccur
+  :bind (("M-o"         . occur-by-moccur)
+         ("C-c C-x C-o" . moccur))
+  :config
+  (setq moccur-split-word t) ; スペース区切りでAND検索
+  (setq moccur-use-migemo t)
+  (setq *moccur-buffer-name-exclusion-list*
+        '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (bind-key "O" 'dired-do-moccur dired-mode-map))))
 
-(require 'moccur-edit)
-(defadvice moccur-edit-change-file
-    (after save-after-moccur-edit-buffer activate)
-  (save-buffer))
+(use-package moccur-edit
+  :after color-moccur
+  :config
+  (defadvice moccur-edit-change-file
+      (after save-after-moccur-edit-buffer activate)
+    (save-buffer)))
 
 ;;; ----------------------------------------------------------------------
 ;;; dsvn
@@ -1035,7 +1037,6 @@ Highlight last expanded string."
 
 (use-package company-inf-ruby
   :ensure t
-  :defer t
   :after inf-ruby
   :config
   (add-hook 'inf-ruby-mode-hook
@@ -1104,8 +1105,6 @@ Highlight last expanded string."
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
 (defun my-php-mode-setup ()
-  (require 'php-align)
-  (php-align-setup)
   (php-enable-psr2-coding-style)
   (setq flycheck-phpcs-standard "PSR2")
   ;;(electric-pair-mode t)
@@ -1131,6 +1130,11 @@ Highlight last expanded string."
   :magic "\\`<\\?php$"
   :config
   (add-hook 'php-mode-hook 'my-php-mode-setup))
+
+(use-package php-align
+  :after php-mode
+  :config
+  (php-align-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
