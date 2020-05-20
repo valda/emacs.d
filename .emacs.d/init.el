@@ -386,7 +386,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package snippet
   :ensure t
-  :defer t)
+  :commands (snippet-insert))
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
@@ -717,8 +717,9 @@ Highlight last expanded string."
 (use-package dired-k
   :ensure t
   :defer t
-  :init
-  (add-hook 'dired-initial-position-hook 'dired-k))
+  :bind (:map dired-mode-map
+              ("g" . dired-k))
+  :hook (dired-initial-position))
 
 (use-package wdired
   :bind (:map dired-mode-map
