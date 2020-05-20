@@ -89,10 +89,16 @@
 ;;; ----------------------------------------------------------------------
 (setq package-user-dir "~/.emacs.d/elpa")
 (require 'package)
-(setq package-archives '(("gnu" .          "http://mirrors.163.com/elpa/gnu/")
-                         ("melpa" .        "https://melpa.org/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ("org" .          "http://orgmode.org/elpa/")))
+(setq package-archives
+      '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
+        ("melpa"        . "https://melpa.org/packages/")
+        ("melpa-stable" . "https://stable.melpa.org/packages/")
+        ("org"          . "http://orgmode.org/elpa/"))
+      package-archive-priorities
+      '(("melpa-stable" . 10)
+        ("gnu"          . 5)
+        ("melpa"        . 0)
+        ("org"          . 20)))
 (package-initialize)
 
 ;; install packages by package.el
@@ -184,21 +190,28 @@
 ;;; ---------------------------------------------------------------------
 ;;; doom-theme
 ;;; ----------------------------------------------------------------------
-;; (load-theme 'doom-one t)
-;; (load-theme 'doom-vibrant t)
-;; (with-eval-after-load 'mozc-cand-posframe
-;;   (set-face-attribute 'mozc-cand-posframe-normal-face nil
-;;                       :background (face-background 'tooltip)
-;;                       :foreground (face-foreground 'tooltip))
-;;   (set-face-attribute 'mozc-cand-posframe-focused-face nil
-;;                       :background (face-background 'company-tooltip-selection)
-;;                       :foreground (face-foreground 'tooltip)
-;;                       :weight (face-attribute 'company-tooltip-selection :weight))
-;;   (set-face-attribute 'mozc-cand-posframe-footer-face nil
-;;                       :foreground (face-foreground 'tooltip)))
+(use-package doom-themes
+  :disabled t
+  :ensure t
+  :config
+  (load-theme 'doom-one t)
+  ;;(load-theme 'doom-vibrant t)
+  (with-eval-after-load 'mozc-cand-posframe
+    (set-face-attribute 'mozc-cand-posframe-normal-face nil
+                        :background (face-background 'tooltip)
+                        :foreground (face-foreground 'tooltip))
+    (set-face-attribute 'mozc-cand-posframe-focused-face nil
+                        :background (face-background 'company-tooltip-selection)
+                        :foreground (face-foreground 'tooltip)
+                        :weight (face-attribute 'company-tooltip-selection :weight))
+    (set-face-attribute 'mozc-cand-posframe-footer-face nil
+                        :foreground (face-foreground 'tooltip))))
 
-;;(require 'doom-modeline)
-;;(doom-modeline-mode t)
+(use-package doom-modeline
+  :disabled t
+  :ensure t
+  :config
+  (doom-modeline-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; diminish
