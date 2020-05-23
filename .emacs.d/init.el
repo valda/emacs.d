@@ -1812,54 +1812,34 @@ Highlight last expanded string."
                            ("n" . 'git-gutter:next-hunk))))
 
 ;;; ----------------------------------------------------------------------
-;;; ansi-term / shell-pop
+;;; multi-term
 ;;; ----------------------------------------------------------------------
-(when (not (eq system-type 'windows-nt))
-  (defadvice ansi-term (after ansi-term-after-advice (arg))
-    "run hook as after advice"
-    (run-hooks 'ansi-term-after-hook))
-  (ad-activate 'ansi-term)
+(defun my-term-toggle-line-char-mode ()
+  (interactive)
+  (if (term-in-line-mode) (term-char-mode) (term-line-mode)))
 
-  (defvar ansi-term-after-hook nil)
+(use-package multi-term
+  :ensure t
+  :defer t
+  :config
+  (setq multi-term-program shell-file-name)
   (add-hook 'term-mode-hook
             (lambda()
-              (define-key term-raw-map (kbd "C-\\") nil)
-              (define-key term-raw-map (kbd "M-x") nil)
-              (define-key term-raw-map (kbd "C-z") nil)
               (define-key term-raw-map (kbd "C-z z") 'term-stop-subjob)
-              (define-key term-raw-map (kbd "C-k")
-                (lambda (&optional arg) (interactive "P") (funcall 'kill-line arg) (term-send-raw)))
-              (define-key term-raw-map (kbd "C-y") 'term-paste)
-              (define-key term-raw-map (kbd "M-y") 'helm-show-kill-ring)
-              (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-switch-line-char)
-              (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-switch-line-char)))
+              ;; (define-key term-raw-map (kbd "M-y") 'helm-show-kill-ring)
+              (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-toggle-line-char-mode)
+              (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-toggle-line-char-mode))))
 
-  (defun my-term-switch-line-char ()
-    "Switch `term-in-line-mode' and `term-in-char-mode' in `ansi-term'"
-    (interactive)
-    (cond
-     ((term-in-line-mode)
-      (term-char-mode))
-     ((term-in-char-mode)
-      (term-line-mode))))
-
-  ;; (defadvice anything-c-kill-ring-action (around my-anything-kill-ring-term-advice activate)
-  ;;   "In term-mode, use `term-send-raw-string' instead of `insert-for-yank'"
-  ;;   (if (eq major-mode 'term-mode)
-  ;;       (letf (((symbol-function 'insert-for-yank) (symbol-function 'term-send-raw-string)))
-  ;;         ad-do-it)
-  ;;     ad-do-it))
-
-  (use-package shell-pop
-    :ensure t
-    :defer t
-    :bind ("<f12>" . shell-pop)
-    :init
-    (setq shell-pop-shell-type '("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell))))
-    (setq shell-pop-term-shell "/bin/zsh")
-    (setq shell-pop-universal-key "<f12>")
-    (setq shell-pop-window-size 40)
-    (setq shell-pop-window-position "bottom")))
+;;; ----------------------------------------------------------------------
+;;; shell-pop
+;;; ----------------------------------------------------------------------
+(use-package shell-pop
+  :ensure t
+  :defer t
+  :bind ("<f12>" . shell-pop)
+  :init
+  (setq shell-pop-shell-type '("multi-term" "*terminal*" (lambda () (multi-term))))
+  (setq shell-pop-window-position "bottom"))
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
