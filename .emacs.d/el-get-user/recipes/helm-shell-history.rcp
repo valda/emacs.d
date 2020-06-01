@@ -1,0 +1,4 @@
+(:name helm-shell-history
+       :description "Find shell history by helm"
+       :type github
+       :pkgname "yuutayamada/helm-shell-history")

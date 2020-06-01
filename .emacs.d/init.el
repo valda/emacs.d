@@ -45,7 +45,6 @@
 (setq mode-require-final-newline t)
 (setq ring-bell-function 'ignore)
 (setq search-default-regexp-mode nil)
-(desktop-save-mode 1)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -572,7 +571,11 @@ Highlight last expanded string."
   :ensure t
   :diminish company-box-mode
   :hook (company-mode . company-box-mode)
-  :after company)
+  :after company
+  :config
+  (require 'desktop)
+  (push '(company-box-mode . nil)
+        desktop-minor-mode-table))
 
 (use-package company-web
   :ensure t
@@ -741,6 +744,8 @@ Highlight last expanded string."
   :bind (("\C-c,," . howm-menu)
          ("\C-c,c" . howm-create))
   :mode ("\\.howm\\'" . howm-mode)
+  :custom-face
+  (howm-mode-title-face ((t (:foreground "cyan"))))
   :config
   (setq howm-compatible-to-ver1dot3 t)
   (setq howm-directory
@@ -1449,7 +1454,7 @@ Highlight last expanded string."
 ;;(add-hook 'find-file-hooks 'auto-insert)
 
 ;;; ----------------------------------------------------------------------
-;;; ~のつくバックアップファイルの保存場所の指定
+;;; ~のつくバックアップファイルaaの保存場所の指定
 ;;; ----------------------------------------------------------------------
 (setq make-backup-files t)
 (add-to-list 'backup-directory-alist
@@ -1491,6 +1496,15 @@ Highlight last expanded string."
   (setq session-globals-max-string 10000000)
   ;; anything/helmと一緒に使うために必要
   (setq session-save-print-spec '(t nil 40000)))
+
+;;; ----------------------------------------------------------------------
+;;; desktop
+;;; ----------------------------------------------------------------------
+(use-package desktop
+  :ensure t
+  :config
+  (setq desktop-restore-eager 10)
+  (desktop-save-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; elscreen
@@ -1543,6 +1557,10 @@ Highlight last expanded string."
   :if (window-system)
   :ensure t
   :hook (flycheck-mode . flycheck-posframe-mode)
+  :custom
+  (flycheck-posframe-border-width 1)
+  :custom-face
+  (flycheck-posframe-border-face ((t (:foreground "gray30"))))
   :config
   (set-face-background 'flycheck-posframe-background-face monokai-highlight-line))
 
@@ -1660,7 +1678,7 @@ Highlight last expanded string."
 (use-package helm
   :ensure t
   :defer t
-  :diminish helm-migemo-mode
+  :diminish (helm-mode helm-migemo-mode)
   :init
   (bind-key (if window-system "C-;" "C-c ;") 'helm-mini)
   (bind-key "M-x" 'helm-M-x)
@@ -1799,7 +1817,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
-(use-package git-gutter-fringe
+(use-package git-gutter
   :ensure t
   :diminish git-gutter-mode
   :config
@@ -1818,6 +1836,16 @@ Highlight last expanded string."
   (interactive)
   (if (term-in-line-mode) (term-char-mode) (term-line-mode)))
 
+(defun term-send-ctrl-z ()
+  "Allow using ctrl-z to suspend in multi-term shells."
+  (interactive)
+  (term-send-raw-string "\C-z"))
+
+(defun term-send-ctrl-r ()
+  "Allow using ctrl-z to suspend in multi-term shells."
+  (interactive)
+  (term-send-raw-string "\C-r"))
+
 (use-package multi-term
   :ensure t
   :defer t
@@ -1825,10 +1853,11 @@ Highlight last expanded string."
   (setq multi-term-program shell-file-name)
   (add-hook 'term-mode-hook
             (lambda()
-              (define-key term-raw-map (kbd "C-z z") 'term-stop-subjob)
-              ;; (define-key term-raw-map (kbd "M-y") 'helm-show-kill-ring)
-              (define-key term-raw-map (kbd "ESC <C-return>") 'my-term-toggle-line-char-mode)
-              (define-key term-mode-map (kbd "ESC <C-return>") 'my-term-toggle-line-char-mode))))
+              (add-to-list 'term-bind-key-alist '("C-z z" . term-send-ctrl-z))
+              (bind-key "C-r" 'term-send-ctrl-r term-raw-map)
+              (bind-key "ESC <C-return>" 'my-term-toggle-line-char-mode term-raw-map)
+              (bind-key "ESC <C-return>" 'my-term-toggle-line-char-mode term-mode-map)
+              )))
 
 ;;; ----------------------------------------------------------------------
 ;;; shell-pop
@@ -1846,6 +1875,9 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package whitespace
   :diminish global-whitespace-mode
+  :custom-face
+  (whitespace-space ((t (:italic nil))))
+  (whitespace-newline ((t (:foreground "#335544" :bold t))))
   :config
   (setq whitespace-style
         '(face
@@ -1859,31 +1891,11 @@ Highlight last expanded string."
           (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
           (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
           ))
-  (set-face-italic-p 'whitespace-space nil)
-  (set-face-foreground 'whitespace-newline "#335544")
-  (set-face-bold-p 'whitespace-newline t)
+  ;;(set-face-italic-p 'whitespace-space nil)
+  ;;(set-face-foreground 'whitespace-newline "#335544")
+  ;;(set-face-bold-p 'whitespace-newline t)
   (setq whitespace-global-modes '(not dired-mode tar-mode))
   (global-whitespace-mode 1))
-
-
-;; (require 'whitespace)
-;; (setq whitespace-style
-;;       '(face
-;;         tabs spaces newline trailing space-before-tab space-after-tab
-;;         space-mark tab-mark newline-mark))
-;; (setq whitespace-space-regexp "\\(\u3000+\\)")
-;; (setq whitespace-display-mappings
-;;       '(
-;;         ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
-;;         ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-;;         (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
-;;         (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
-;;         ))
-;; (set-face-italic-p 'whitespace-space nil)
-;; (set-face-foreground 'whitespace-newline "#335544")
-;; (set-face-bold-p 'whitespace-newline t)
-;; (setq whitespace-global-modes '(not dired-mode tar-mode))
-;; (global-whitespace-mode 1)
 
 ;;; ----------------------------------------------------------------------
 ;;; google-translate.el
