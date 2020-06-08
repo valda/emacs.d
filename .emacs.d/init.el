@@ -572,11 +572,10 @@ Highlight last expanded string."
   :ensure t
   :diminish company-box-mode
   :hook (company-mode . company-box-mode)
-  :after company
+  :after (company all-the-icons)
   :config
   (require 'desktop)
-  (push '(company-box-mode . nil)
-        desktop-minor-mode-table))
+  (push '(company-box-mode nil) desktop-minor-mode-table))
 
 (use-package company-web
   :ensure t
@@ -2158,7 +2157,9 @@ Highlight last expanded string."
 ;;; all-the-icons
 ;;; ----------------------------------------------------------------------
 (use-package all-the-icons
-  :ensure t)
+  :ensure t
+  :custom
+  (all-the-icons-scale-factor 1.0))
 
 ;;; ----------------------------------------------------------------------
 ;;; neotree
@@ -2192,8 +2193,6 @@ Highlight last expanded string."
               (neotree-dir project-dir))
           (if file-name
               (neotree-find file-name)))))))
-
-(setq neo-theme 'icons)
 
 ;;; ----------------------------------------------------------------------
 ;;; hide-mode-line
