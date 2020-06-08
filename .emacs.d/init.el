@@ -98,6 +98,7 @@
         ("gnu"          . 5)
         ("melpa"        . 0)
         ("org"          . 20)))
+;;(setq package-menu-hide-low-priority nil)
 (package-initialize)
 
 ;; install packages by package.el
@@ -746,6 +747,7 @@ Highlight last expanded string."
   :mode ("\\.howm\\'" . howm-mode)
   :custom-face
   (howm-mode-title-face ((t (:foreground "cyan"))))
+  (howm-reminder-normal-face ((t (:foreground "deep sky blue"))))
   :config
   (setq howm-compatible-to-ver1dot3 t)
   (setq howm-directory
@@ -1017,7 +1019,7 @@ Highlight last expanded string."
   "Hooks for Ruby mode."
   (setq ruby-insert-encoding-magic-comment nil)
   (setq enh-ruby-add-encoding-comment-on-save nil)
-  ;;(setq enh-ruby-deep-indent-paren nil)
+  (setq enh-ruby-deep-indent-paren nil)
   (inf-ruby-minor-mode t)
   ;;(electric-pair-mode t)
   (electric-indent-mode t)
@@ -1205,7 +1207,7 @@ Highlight last expanded string."
 (use-package add-node-modules-path
   :ensure t
   :defer t
-  :config
+  :init
   (eval-after-load 'js2-mode
     '(add-hook 'js2-mode-hook #'add-node-modules-path))
   (eval-after-load 'rjsx-mode
@@ -1903,6 +1905,9 @@ Highlight last expanded string."
 (use-package google-translate
   :ensure t
   :defer t
+  :custom
+  (google-translate-default-source-language "en")
+  (google-translate-default-target-language "ja")
   :bind ("\C-ct" . google-translate-smooth-translate))
 
 ;;; ----------------------------------------------------------------------
@@ -2148,6 +2153,55 @@ Highlight last expanded string."
   :config
   (setq nyan-bar-length 16)
   (nyan-start-animation))
+
+;;; ----------------------------------------------------------------------
+;;; all-the-icons
+;;; ----------------------------------------------------------------------
+(use-package all-the-icons
+  :ensure t)
+
+;;; ----------------------------------------------------------------------
+;;; neotree
+;;; ----------------------------------------------------------------------
+(use-package neotree
+  :ensure t
+  :after
+  projectile
+  :commands
+  (neotree-show neotree-hide neotree-dir neotree-find)
+  :custom
+  (neo-theme 'icons)
+  :bind
+  ("<f9>" . neotree-projectile-toggle)
+  :preface
+  (defun neotree-projectile-toggle ()
+    (interactive)
+    (let ((project-dir
+           (ignore-errors
+         ;;; Pick one: projectile or find-file-in-project
+             (projectile-project-root)
+             ))
+          (file-name (buffer-file-name))
+          (neo-smart-open t))
+      (if (and (fboundp 'neo-global--window-exists-p)
+               (neo-global--window-exists-p))
+          (neotree-hide)
+        (progn
+          (neotree-show)
+          (if project-dir
+              (neotree-dir project-dir))
+          (if file-name
+              (neotree-find file-name)))))))
+
+(setq neo-theme 'icons)
+
+;;; ----------------------------------------------------------------------
+;;; hide-mode-line
+;;; ----------------------------------------------------------------------
+(use-package hide-mode-line
+  :ensure t
+  :hook
+  ((neotree-mode imenu-list-minor-mode) . hide-mode-line-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; 終了前に確認する
