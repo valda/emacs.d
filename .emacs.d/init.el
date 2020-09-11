@@ -82,23 +82,30 @@
 ;;(add-to-list 'initial-frame-alist '(font . "Ricty Discord-14"))
 (add-to-list 'initial-frame-alist '(font . "Cica-14"))
 (setq default-frame-alist initial-frame-alist)
+;; Emoji: 😄, 🤦, 🏴󠁧󠁢󠁳󠁣󠁴󠁿
+(set-fontset-font t 'symbol "Noto Color Emoji" nil 'prepend)
 
 ;;; ----------------------------------------------------------------------
 ;;; package.el
 ;;; ----------------------------------------------------------------------
 (setq package-user-dir "~/.emacs.d/elpa")
 (require 'package)
+;; (setq package-archives
+;;       '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
+;;         ("melpa"        . "https://melpa.org/packages/")
+;;         ("melpa-stable" . "https://stable.melpa.org/packages/")
+;;         ("org"          . "http://orgmode.org/elpa/"))
+;;       package-archive-priorities
+;;       '(("melpa-stable" . 10)
+;;         ("gnu"          . 5)
+;;         ("melpa"        . 0)
+;;         ("org"          . 20)))
+;; (setq package-menu-hide-low-priority nil)
 (setq package-archives
       '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
         ("melpa"        . "https://melpa.org/packages/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")
         ("org"          . "http://orgmode.org/elpa/"))
-      package-archive-priorities
-      '(("melpa-stable" . 10)
-        ("gnu"          . 5)
-        ("melpa"        . 0)
-        ("org"          . 20)))
-;;(setq package-menu-hide-low-priority nil)
+      )
 (package-initialize)
 
 ;; install packages by package.el
@@ -214,11 +221,6 @@
   (doom-modeline-mode t))
 
 ;;; ----------------------------------------------------------------------
-;;; diminish
-;;; ----------------------------------------------------------------------
-(eval-after-load "ruby-end" '(diminish 'ruby-end-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
 ;;; ----------------------------------------------------------------------
 (defun my-w32-ime-init()
@@ -236,8 +238,8 @@
 
   ;; isearch に移行した際に日本語入力を無効にする
   (add-hook 'isearch-mode-hook (lambda ()
-                                  (deactivate-input-method)
-                                  (setq w32-ime-composition-window (minibuffer-window))))
+                                 (deactivate-input-method)
+                                 (setq w32-ime-composition-window (minibuffer-window))))
   (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil)))
 
   ;; helm 使用中に日本語入力を無効にする
@@ -562,7 +564,6 @@ Highlight last expanded string."
 
 
 (use-package company-emoji
-  :disabled t
   :ensure t
   :config
   (add-to-list 'company-backends 'company-emoji)
@@ -619,24 +620,25 @@ Highlight last expanded string."
   :bind
   ([C-tab] . nswbuff-switch-to-next-buffer)
   ([C-iso-lefttab] . nswbuff-switch-to-previous-buffer)
+  :custom
+  (nswbuff-exclude-buffer-regexps
+   '("^ .*"
+     "^\\*Backtrace\\*"
+     "^\\*[Ee]diff.*\\*"
+     "^\\*Flycheck.*\\*"
+     "^\\*Help\\*"
+     "^\\*Ibuffer\\*"
+     "^\\*Messages\\*"
+     "^\\*Moccur\\*"
+     "^\\*Rubocop.*\\*"
+     "^\\*ansi-term.*\\*"
+     "^\\*helm.*\\*"
+     "^\\*magit.*"
+     "^\\*rspec-compilation\\*"
+     "^magit-process.*"))
+  (nswbuff-clear-delay 3)
+  (nswbuff-display-intermediate-buffers t)
   :init
-  (setq nswbuff-exclude-buffer-regexps
-        '("^ .*"
-          "^\\*Backtrace\\*"
-          "^\\*[Ee]diff.*\\*"
-          "^\\*Flycheck.*\\*"
-          "^\\*Help\\*"
-          "^\\*Ibuffer\\*"
-          "^\\*Messages\\*"
-          "^\\*Moccur\\*"
-          "^\\*Rubocop.*\\*"
-          "^\\*ansi-term.*\\*"
-          "^\\*helm.*\\*"
-          "^\\*magit.*"
-          "^\\*rspec-compilation\\*"
-          "^magit-process.*"))
-  (setq nswbuff-clear-delay 1)
-  (setq nswbuff-display-intermediate-buffers t)
   (smartrep-define-key
       global-map "C-x" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
                          ("<right>" . 'nswbuff-switch-to-next-buffer))))
@@ -659,7 +661,7 @@ Highlight last expanded string."
   :init
   (bind-key "\C-xm" 'browse-url-at-point)
   (if (window-system)
-    (bind-key [mouse-3] 'browse-url-at-mouse))
+      (bind-key [mouse-3] 'browse-url-at-mouse))
   :config
   (cond ((my-wsl-p)
          (setq browse-url-browser-function 'browse-url-generic)
@@ -1052,7 +1054,9 @@ Highlight last expanded string."
                           (append '(company-inf-ruby) company-backends)))))
 
 (use-package ruby-end
-  :ensure t :defer t)
+  :ensure t
+  :defer t
+  :diminish ruby-end-mode)
 
 (use-package rubocop
   :ensure t :defer t)
@@ -1324,6 +1328,14 @@ Highlight last expanded string."
                                     'po-find-file-coding-system))
 
 ;;; ----------------------------------------------------------------------
+;;; es-mode
+;;; ----------------------------------------------------------------------
+(use-package es-mode
+  :ensure t
+  :defer t
+  :mode ("\\.es$" . es-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; mmm-mode
 ;;; ----------------------------------------------------------------------
 (use-package mmm-mode
@@ -1541,14 +1553,14 @@ Highlight last expanded string."
   (setq flycheck-gcc-language-standard "c++11")
   (setq flycheck-clang-language-standard "c++11")
   (setq flycheck-disabled-checkers
-      (append '(
-                ;;python-flake8
-                ;;python-pylint
-                ruby-rubylint
-                javascript-jshint
-                javascript-jscs
-                )
-              flycheck-disabled-checkers)))
+        (append '(
+                  ;;python-flake8
+                  ;;python-pylint
+                  ruby-rubylint
+                  javascript-jshint
+                  javascript-jscs
+                  )
+                flycheck-disabled-checkers)))
 
 (use-package flycheck-pyflakes
   :ensure t
@@ -1623,49 +1635,6 @@ Highlight last expanded string."
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
-;;; uniquify
-;;; ----------------------------------------------------------------------
-;;(require 'uniquify)
-;;(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
-
-;;; ----------------------------------------------------------------------
-;;; sdic
-;;; ----------------------------------------------------------------------
-(if (not (boundp 'default-fill-column))
-    (setq default-fill-column (default-value 'fill-column)))
-(when (require 'sdic nil t)
-  (global-set-key "\C-cw" 'sdic-describe-word)
-  (global-set-key "\C-cW" 'sdic-describe-word-at-point)
-  (setq sdic-eiwa-dictionary-list
-        '((sdicf-client "~/dict/eijiro52u.sdic")))
-  (setq sdic-waei-dictionary-list
-        '((sdicf-client "~/dict/waeiji52u.sdic"
-                        (add-keys-to-headword t))))
-  (setq sdic-default-coding-system 'utf-8-unix)
-
-  ;; sdic-display-buffer 書き換え
-  (defadvice sdic-display-buffer (around sdic-display-buffer-normalize activate)
-    "sdic のバッファ表示を普通にする。"
-    (setq ad-return-value (buffer-size))
-    (let ((p (or (ad-get-arg 0)
-                 (point))))
-      (and sdic-warning-hidden-entry
-           (> p (point-min))
-           (message "この前にもエントリがあります。"))
-      (goto-char p)
-      (display-buffer (get-buffer sdic-buffer-name))
-      (set-window-start (get-buffer-window sdic-buffer-name) p)))
-
-  (defadvice sdic-other-window (around sdic-other-normalize activate)
-    "sdic のバッファ移動を普通にする。"
-    (other-window 1))
-
-  (defadvice sdic-close-window (around sdic-close-normalize activate)
-    "sdic のバッファクローズを普通にする。"
-    (bury-buffer sdic-buffer-name))
-  )
-
-;;; ----------------------------------------------------------------------
 ;;; projectile
 ;;; ----------------------------------------------------------------------
 (use-package projectile
@@ -1724,6 +1693,10 @@ Highlight last expanded string."
   :ensure t
   :bind ("C-c b" . helm-bm))
 
+(use-package helm-ls-git
+  :ensure t
+  :after helm)
+
 (use-package helm-c-yasnippet
   :ensure t
   :bind ("C-c y" . helm-yas-complete)
@@ -1763,6 +1736,13 @@ Highlight last expanded string."
   :config
   (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map)
   )
+
+(use-package helm-ag
+  :ensure t
+  :custom
+  (helm-ag-base-command "rg --vimgrep --no-heading")
+  (helm-ag-success-exit-status '(0 2))
+  (helm-ag-insert-at-point 'symbol))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -2081,20 +2061,7 @@ Highlight last expanded string."
   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; ag
-;;; ----------------------------------------------------------------------
-(use-package ag
-  :ensure t
-  :bind
-  (("\C-ca" . ag)
-   ("\C-cf" . ag-project))
-  :config
-  (setq ag-highlight-search t)
-  (setq ag-reuse-window t)
-  (setq ag-reuse-buffers t))
-
-;;; ----------------------------------------------------------------------
-;;; wgrep / wgrep-ag
+;;; wgrep
 ;;; ----------------------------------------------------------------------
 (use-package wgrep
   :ensure t
@@ -2103,11 +2070,31 @@ Highlight last expanded string."
   (setq wgrep-enable-key "r")
   (setq wgrep-auto-save-buffer t))
 
+;;; ----------------------------------------------------------------------
+;;; ag / wgrep-ag
+;;; ----------------------------------------------------------------------
+(use-package ag
+  :ensure t
+  :bind
+  (("\C-ca" . ag)
+   ("\C-c\C-a" . ag-project))
+  :config
+  (setq ag-highlight-search t)
+  (setq ag-reuse-window t)
+  (setq ag-reuse-buffers t))
+
 (use-package wgrep-ag
   :ensure t
-  :after ag
   :hook (ag-mode . wgrep-ag-setup)
   :config (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode))
+
+;;; ----------------------------------------------------------------------
+;;; rg
+;;; ----------------------------------------------------------------------
+(use-package rg
+  :ensure t
+  :config
+  (rg-enable-default-bindings))
 
 ;;; ----------------------------------------------------------------------
 ;;; tempbuf
