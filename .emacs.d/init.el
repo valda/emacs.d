@@ -79,11 +79,12 @@
 ;;; ----------------------------------------------------------------------
 ;;; フォント設定
 ;;; ----------------------------------------------------------------------
-;;(add-to-list 'initial-frame-alist '(font . "Ricty Discord-14"))
-(add-to-list 'initial-frame-alist '(font . "Cica-14"))
-(setq default-frame-alist initial-frame-alist)
-;; Emoji: 😄, 🤦, 🏴󠁧󠁢󠁳󠁣󠁴󠁿
-(set-fontset-font t 'symbol "Noto Color Emoji" nil 'prepend)
+;; abcdefghijklmnopqrst
+;; あいうえおかきくけこ
+;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
+(set-face-attribute 'default nil :family "Cica" :height 150)
+(set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
+(add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
 ;;; ----------------------------------------------------------------------
 ;;; package.el
@@ -562,8 +563,8 @@ Highlight last expanded string."
   (company-quickhelp-mode)
   :after company)
 
-
 (use-package company-emoji
+  :disabled t
   :ensure t
   :config
   (add-to-list 'company-backends 'company-emoji)
@@ -732,7 +733,8 @@ Highlight last expanded string."
   :config
   (advice-add 'wdired-finish-edit
               :after (lambda (&rest args)
-                       (deactivate-input-method))))
+                       (deactivate-input-method)
+                       (dired-k))))
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
@@ -1875,7 +1877,7 @@ Highlight last expanded string."
   ;;(set-face-italic-p 'whitespace-space nil)
   ;;(set-face-foreground 'whitespace-newline "#335544")
   ;;(set-face-bold-p 'whitespace-newline t)
-  (setq whitespace-global-modes '(not dired-mode tar-mode))
+  (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode))
   (global-whitespace-mode 1))
 
 ;;; ----------------------------------------------------------------------
