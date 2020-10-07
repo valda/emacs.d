@@ -82,6 +82,7 @@
 ;; abcdefghijklmnopqrst
 ;; あいうえおかきくけこ
 ;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
+(setq use-default-font-for-symbols nil)
 (set-face-attribute 'default nil :family "Cica" :height 150)
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
