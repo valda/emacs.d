@@ -759,6 +759,13 @@ Highlight last expanded string."
                "D:/Dropbox/Documents/howm/")
               (t
                "~/Dropbox/Documents/howm/")))
+  (add-hook 'find-file-hook
+            (lambda ()
+              (when (and
+                     (buffer-file-name)
+                     (string-match (expand-file-name howm-directory)
+                                   (expand-file-name buffer-file-name)))
+                (howm-mode))))
   (setq howm-menu-lang 'ja)
   ;; メモは UTF-8
   (add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
@@ -785,7 +792,8 @@ Highlight last expanded string."
   (defun delete-file-if-no-contents ()
     (when (and
            (buffer-file-name (current-buffer))
-           (string-match "\\.howm" (buffer-file-name (current-buffer)))
+           (string-match (expand-file-name howm-directory)
+                                   (expand-file-name buffer-file-name))
            (= (point-min) (point-max)))
       (delete-file
        (buffer-file-name (current-buffer)))))
@@ -1625,7 +1633,7 @@ Highlight last expanded string."
   (setq-default bm-buffer-persistence t)
   (setq bm-repository-file "~/.emacs.d/.bm-repository")
   (add-hook 'after-init-hook 'bm-repository-load)
-  (add-hook 'find-file-hooks 'bm-buffer-restore)
+  (add-hook 'find-file-hook 'bm-buffer-restore)
   (add-hook 'kill-buffer-hook 'bm-buffer-save)
   (add-hook 'auto-save-hook 'bm-buffer-save)
   (add-hook 'after-save-hook 'bm-buffer-save)
@@ -1748,6 +1756,36 @@ Highlight last expanded string."
   (helm-ag-insert-at-point 'symbol))
 
 ;;; ----------------------------------------------------------------------
+;;; ivy
+;;; ----------------------------------------------------------------------
+;; (use-package ivy
+;;   :ensure t
+;;   :init
+;;   (setq ivy-truncate-lines nil)
+;;   (setq ivy-wrap t)
+;;   :config
+;;   (bind-key "<escape>" 'minibuffer-keyboard-quit ivy-minibuffer-map)
+;;   (ivy-mode 1))
+
+;; (use-package ivy-hydra
+;;   :ensure t
+;;   :config
+;;   (setq ivy-read-action-function #'ivy-hydra-read-action))
+
+;; (use-package counsel
+;;   :ensure t
+;;   :defer t
+;;   :bind (
+;;          ;; ("M-x" . counsel-M-x)
+;;          ;; ("M-y" . counsel-yank-pop)
+;;          ))
+
+;; (use-package swiper
+;;   :ensure t
+;;   :defer t
+;; )
+
+;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
 (use-package anzu
@@ -1816,25 +1854,23 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; multi-term
 ;;; ----------------------------------------------------------------------
-(defun my-term-toggle-line-char-mode ()
-  (interactive)
-  (if (term-in-line-mode) (term-char-mode) (term-line-mode)))
-
-(defun term-send-ctrl-z ()
-  "Allow using ctrl-z to suspend in multi-term shells."
-  (interactive)
-  (term-send-raw-string "\C-z"))
-
-(defun term-send-ctrl-r ()
-  "Allow using ctrl-z to suspend in multi-term shells."
-  (interactive)
-  (term-send-raw-string "\C-r"))
-
 (use-package multi-term
+  :disabled t
   :ensure t
   :defer t
   :config
   (setq multi-term-program shell-file-name)
+  (defun my-term-toggle-line-char-mode ()
+    (interactive)
+    (if (term-in-line-mode) (term-char-mode) (term-line-mode)))
+  (defun term-send-ctrl-z ()
+    "Allow using ctrl-z to suspend in multi-term shells."
+    (interactive)
+    (term-send-raw-string "\C-z"))
+  (defun term-send-ctrl-r ()
+    "Allow using ctrl-z to suspend in multi-term shells."
+    (interactive)
+    (term-send-raw-string "\C-r"))
   (add-hook 'term-mode-hook
             (lambda()
               (add-to-list 'term-bind-key-alist '("C-z z" . term-send-ctrl-z))
@@ -1847,12 +1883,57 @@ Highlight last expanded string."
 ;;; shell-pop
 ;;; ----------------------------------------------------------------------
 (use-package shell-pop
+  :disabled t
   :ensure t
   :defer t
   :bind ("<f12>" . shell-pop)
   :init
   (setq shell-pop-shell-type '("multi-term" "*terminal*" (lambda () (multi-term))))
   (setq shell-pop-window-position "bottom"))
+
+;;; ----------------------------------------------------------------------
+;;; vterm
+;;; ----------------------------------------------------------------------
+(use-package vterm
+  :ensure t
+  :defer t
+  :custom
+  (vterm-max-scrollback 10000)
+  (vterm-buffer-name-string "vterm: %s")
+  (vterm-keymap-exceptions
+   '("C-c"
+     ;; "C-x"
+     "C-u"
+     "C-g"
+     ;; "C-h"
+     "C-l"
+     ;; "M-x"
+     "M-o"
+     "C-v"
+     "M-v"
+     "C-y"
+     "M-y"
+     "<f12>")))
+
+;;; ----------------------------------------------------------------------
+;;; vterm-toggle
+;;; ----------------------------------------------------------------------
+(use-package vterm-toggle
+  :ensure t
+  :defer t
+  :bind (([f12] . vterm-toggle)
+         ([C-f12] . vterm-toggle-cd))
+  :custom
+  (vterm-toggle-scope 'project)
+  :config
+  ;; Show vterm buffer in the window located at bottom
+  (add-to-list 'display-buffer-alist
+               '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode)))
+                 (display-buffer-reuse-window display-buffer-in-direction)
+                 (direction . bottom)
+                 (reusable-frames . visible)
+                 (window-height . 0.3)))
+  )
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
@@ -1878,7 +1959,7 @@ Highlight last expanded string."
   ;;(set-face-italic-p 'whitespace-space nil)
   ;;(set-face-foreground 'whitespace-newline "#335544")
   ;;(set-face-bold-p 'whitespace-newline t)
-  (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode))
+  (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode vterm-mode))
   (global-whitespace-mode 1))
 
 ;;; ----------------------------------------------------------------------
@@ -2096,6 +2177,8 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package rg
   :ensure t
+  :bind
+  (("\C-c\C-s" . rg))
   :config
   (rg-enable-default-bindings))
 
@@ -2150,6 +2233,21 @@ Highlight last expanded string."
   :ensure t
   :custom
   (all-the-icons-scale-factor 1.0))
+
+;;; ----------------------------------------------------------------------
+;;; all-the-icons-dired
+;;; ----------------------------------------------------------------------
+(use-package all-the-icons-dired
+  :ensure t
+  :diminish all-the-icons-dired-mode
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+;;; ----------------------------------------------------------------------
+;;; all-the-icons-ibuffer
+;;; ----------------------------------------------------------------------
+(use-package all-the-icons-ibuffer
+  :ensure t
+  :init (all-the-icons-ibuffer-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; neotree
