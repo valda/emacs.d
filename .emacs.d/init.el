@@ -787,6 +787,8 @@ Highlight last expanded string."
   ;; 検索しないファイルの正規表現
   (setq howm-excluded-file-regexp
         "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
+  ;; howmメニューの完了済みToDoは非表示にする
+  (setq howm-todo-menu-types "[-+~!]")
   ;; いちいち消すのも面倒なので
   ;; 内容が 0 ならファイルごと削除する
   (defun delete-file-if-no-contents ()
