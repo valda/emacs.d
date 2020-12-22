@@ -1934,8 +1934,7 @@ Highlight last expanded string."
                  (display-buffer-reuse-window display-buffer-in-direction)
                  (direction . bottom)
                  (reusable-frames . visible)
-                 (window-height . 0.3)))
-  )
+                 (window-height . 0.4))))
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
