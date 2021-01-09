@@ -1660,16 +1660,15 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package helm
   :ensure t
-  :defer t
   :diminish (helm-mode helm-migemo-mode)
-  :init
-  (bind-key (if window-system "C-;" "C-c ;") 'helm-mini)
-  (bind-key "M-x" 'helm-M-x)
-  (bind-key "C-x b" 'helm-buffers-list)
-  (bind-key "M-y" 'helm-show-kill-ring)
-  (bind-key "C-x C-d" 'helm-browse-project)
-  (bind-key "C-x C-r" 'helm-recentf)
-  (bind-key "C-x C-g" 'helm-grep-do-git-grep)
+  :bind
+  ("C-;"     . helm-mini)
+  ("C-c ;"   . helm-mini)
+  ("M-x"     . helm-M-x)
+  ("C-x b"   . helm-buffers-list)
+  ("M-y"     . helm-show-kill-ring)
+  ("C-x C-d" . helm-browse-project)
+  ("C-x C-r" . helm-recentf)
   :config
   (require 'helm-config)
   (require 'helm-buffers)
@@ -1709,6 +1708,10 @@ Highlight last expanded string."
 (use-package helm-ls-git
   :ensure t
   :after helm)
+
+(use-package helm-git-grep
+  :ensure t
+  :bind ("C-x C-g" . helm-git-grep))
 
 (use-package helm-c-yasnippet
   :ensure t
@@ -2174,7 +2177,7 @@ Highlight last expanded string."
   :config (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; rg
+;;; ripgrep
 ;;; ----------------------------------------------------------------------
 (use-package rg
   :ensure t
@@ -2187,7 +2190,6 @@ Highlight last expanded string."
 ;;; tempbuf
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
-  ;; :ensure t ; el-get
   :hook ((dired-mode
           magit-mode
           custom-mode-hook
@@ -2196,8 +2198,9 @@ Highlight last expanded string."
           view-mode-hook
           helm-major-mode-hook)
          . turn-on-tempbuf-mode)
+  :custom
+  (tempbuf-kill-message nil)
   :init
-  (setq tempbuf-kill-message nil)
   (add-hook 'compilation-mode-hook
             (lambda ()
               (when (string-match "*RuboCop " (buffer-name))
@@ -2330,8 +2333,6 @@ Highlight last expanded string."
        (global-set-key [backspace] 'delete-backward-char)
        (global-set-key "\177" 'delete-char)
        (global-set-key "\C-h" 'backward-delete-char)
-       (autoload 'mwheel-install "mwheel" "Enable mouse wheel support.")
-       (mwheel-install)
        (global-set-key [mouse-2] 'mouse-yank-at-click))
       ((eq window-system 'w32)
        (global-set-key [mouse-2] 'mouse-yank-at-click))
