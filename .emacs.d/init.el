@@ -366,7 +366,6 @@
 (use-package ido
   :config
   (setq ido-enable-flex-matching t)
-  (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
   (setq ido-use-filename-at-point 'guess)
   (ido-mode 1))
 
@@ -374,7 +373,15 @@
   :ensure t
   :after ido
   :config
+  (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
   (ido-vertical-mode 1))
+
+(use-package flx-ido
+  :ensure t
+  :after ido
+  :config
+  (setq ido-use-faces nil)
+  (flx-ido-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; smartrep.el
@@ -1413,13 +1420,13 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; rinari
 ;;; ----------------------------------------------------------------------
-(use-package rinari
-  :ensure t
-  :config
-  (setq rinari-exclude-major-modes
-        '(magit-status-mode
-          magit-log-edit-mode))
-  (global-rinari-mode t))
+;; (use-package rinari
+;;   :ensure t
+;;   :config
+;;   (setq rinari-exclude-major-modes
+;;         '(magit-status-mode
+;;           magit-log-edit-mode))
+;;   (global-rinari-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -1648,14 +1655,6 @@ Highlight last expanded string."
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
-;;; projectile
-;;; ----------------------------------------------------------------------
-(use-package projectile
-  :ensure t
-  :config
-  (projectile-global-mode t))
-
-;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
 (use-package helm
@@ -1691,15 +1690,6 @@ Highlight last expanded string."
   :ensure t
   :after helm
   :config (helm-descbinds-mode +1))
-
-(use-package helm-projectile
-  :ensure t
-  :diminish projectile-mode
-  :bind
-  ("C-x C-p" . helm-projectile)
-  ("C-x p"   . helm-projectile-switch-project)
-  :config
-  (helm-projectile-on))
 
 (use-package helm-bm
   :ensure t
@@ -1756,9 +1746,35 @@ Highlight last expanded string."
 (use-package helm-ag
   :ensure t
   :custom
-  (helm-ag-base-command "rg --vimgrep --no-heading")
-  (helm-ag-success-exit-status '(0 2))
+  ;; (helm-ag-base-command "rg --vimgrep --no-heading")
+  ;; (helm-ag-success-exit-status '(0 2))
   (helm-ag-insert-at-point 'symbol))
+
+(use-package helm-rg
+  :ensure t)
+
+;;; ----------------------------------------------------------------------
+;;; projectile
+;;; ----------------------------------------------------------------------
+(use-package projectile
+  :ensure t
+  :diminish projectile-mode
+  :config
+  (projectile-mode +1)
+  (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
+  (setq projectile-completion-system 'helm)
+  (setq projectile-switch-project-action 'helm-projectile))
+
+(use-package helm-projectile
+  :ensure t
+  :config
+  (helm-projectile-on))
+
+(use-package projectile-rails
+  :ensure t
+  :config
+  (projectile-rails-global-mode)
+  (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map))
 
 ;;; ----------------------------------------------------------------------
 ;;; ivy
