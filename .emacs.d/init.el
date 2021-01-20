@@ -361,29 +361,6 @@
       )))
 
 ;;; ----------------------------------------------------------------------
-;;; ido
-;;; ----------------------------------------------------------------------
-(use-package ido
-  :config
-  (setq ido-enable-flex-matching t)
-  (setq ido-use-filename-at-point 'guess)
-  (ido-mode 1))
-
-(use-package ido-vertical-mode
-  :ensure t
-  :after ido
-  :config
-  (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
-  (ido-vertical-mode 1))
-
-(use-package flx-ido
-  :ensure t
-  :after ido
-  :config
-  (setq ido-use-faces nil)
-  (flx-ido-mode 1))
-
-;;; ----------------------------------------------------------------------
 ;;; smartrep.el
 ;;; ----------------------------------------------------------------------
 (use-package smartrep
@@ -1655,6 +1632,29 @@ Highlight last expanded string."
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
+;;; ido
+;;; ----------------------------------------------------------------------
+;; (use-package ido
+;;   :config
+;;   (setq ido-enable-flex-matching t)
+;;   (setq ido-use-filename-at-point 'guess)
+;;   (ido-mode 1))
+
+;; (use-package ido-vertical-mode
+;;   :ensure t
+;;   :after ido
+;;   :config
+;;   (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
+;;   (ido-vertical-mode 1))
+
+;; (use-package flx-ido
+;;   :ensure t
+;;   :after ido
+;;   :config
+;;   (setq ido-use-faces nil)
+;;   (flx-ido-mode 1))
+
+;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
 (use-package helm
@@ -1668,6 +1668,12 @@ Highlight last expanded string."
   ("M-y"     . helm-show-kill-ring)
   ("C-x C-d" . helm-browse-project)
   ("C-x C-r" . helm-recentf)
+  ("C-x C-f" . helm-find-files)
+  (:map helm-find-files-map
+        ("C-<backspace>" . nil)
+        ("TAB" . helm-execute-persistent-action))
+  :custom
+  (helm-ff-auto-update-initial-value nil)
   :config
   (require 'helm-config)
   (require 'helm-buffers)
@@ -1701,7 +1707,7 @@ Highlight last expanded string."
 
 (use-package helm-git-grep
   :ensure t
-  :bind ("C-x C-g" . helm-git-grep))
+  :bind ("C-x C-g" . helm-git-grep-at-point))
 
 (use-package helm-c-yasnippet
   :ensure t
