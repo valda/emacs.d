@@ -1657,107 +1657,242 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
-(use-package helm
+;; (use-package helm
+;;   :ensure t
+;;   :diminish (helm-mode helm-migemo-mode)
+;;   :bind
+;;   ("C-;"     . helm-mini)
+;;   ("C-c ;"   . helm-mini)
+;;   ("M-x"     . helm-M-x)
+;;   ("C-x b"   . helm-buffers-list)
+;;   ("M-y"     . helm-show-kill-ring)
+;;   ("C-x C-d" . helm-browse-project)
+;;   ("C-x C-r" . helm-recentf)
+;;   ("C-x C-f" . helm-find-files)
+;;   (:map helm-find-files-map
+;;         ("C-<backspace>" . nil)
+;;         ("TAB" . helm-execute-persistent-action))
+;;   :custom
+;;   (helm-ff-auto-update-initial-value nil)
+;;   :config
+;;   (require 'helm-config)
+;;   (require 'helm-buffers)
+;;   (require 'helm-files)
+;;   (helm-migemo-mode +1)
+;;   (setq helm-idle-delay 0.3)
+;;   (setq helm-input-idle-delay 0.2)
+;;   (setq helm-candidate-number-limit 100)
+;;   (setq helm-buffer-max-length 50)
+;;   (setq helm-truncate-lines t)
+;;   (setq helm-inherit-input-method nil)
+;;   (setq helm-mini-default-sources
+;;         '(helm-source-buffers-list
+;;           helm-source-recentf
+;;           helm-source-files-in-current-dir
+;;           helm-source-buffer-not-found
+;;           )))
+
+;; (use-package helm-descbinds
+;;   :ensure t
+;;   :after helm
+;;   :config (helm-descbinds-mode +1))
+
+;; (use-package helm-bm
+;;   :ensure t
+;;   :bind ("C-c b" . helm-bm))
+
+;; (use-package helm-ls-git
+;;   :ensure t
+;;   :after helm)
+
+;; (use-package helm-git-grep
+;;   :ensure t
+;;   :bind ("C-x C-g" . helm-git-grep-at-point))
+
+;; (use-package helm-c-yasnippet
+;;   :ensure t
+;;   :bind ("C-c y" . helm-yas-complete)
+;;   :config
+;;   (setq helm-yas-space-match-any-greedy t))
+
+;; (use-package helm-gtags
+;;   :ensure t
+;;   :diminish helm-gtags-mode
+;;   :hook (prog-mode . helm-gtags-mode)
+;;   :config
+;;   (setq helm-gtags-auto-update t)
+;;   (bind-key "M-t" 'helm-gtags-find-tag    helm-gtags-mode-map)
+;;   (bind-key "M-r" 'helm-gtags-find-rtag   helm-gtags-mode-map)
+;;   (bind-key "M-s" 'helm-gtags-find-symbol helm-gtags-mode-map)
+;;   (bind-key "M-," 'helm-gtags-pop-stack   helm-gtags-mode-map)
+;;   (smartrep-define-key
+;;       helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
+;;                                   (">" . 'helm-gtags-next-history))))
+
+;; (use-package helm-flycheck
+;;   :ensure t
+;;   :after (flycheck)
+;;   :config
+;;   (bind-key "C-c ! h" 'helm-flycheck flycheck-mode-map))
+
+;; (use-package helm-swoop
+;;   :ensure t
+;;   :defer t
+;;   :custom
+;;   (helm-multi-swoop-edit-save t)
+;;   :bind
+;;   ("M-i"     . helm-swoop)
+;;   ("M-I"     . helm-swoop-back-to-last-point)
+;;   ("C-c M-i" . helm-multi-swoop)
+;;   ("C-x M-i" . helm-multi-swoop-all)
+;;   (:map isearch-mode-map
+;;         ("M-i"     . helm-swoop-from-isearch))
+;;   :config
+;;   (setq helm-swoop-split-window-function '(lambda ($buf) (display-buffer $buf))
+;;   (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map))
+
+;; (use-package helm-ag
+;;   :ensure t
+;;   :custom
+;;   (helm-ag-insert-at-point 'symbol))
+
+;; (use-package helm-rg
+;;   :ensure t)
+
+;; (use-package helm-icons
+;;   :ensure t
+;;   :config
+;;   (helm-icons-enable))
+
+;;; ----------------------------------------------------------------------
+;;; ivy
+;;; ----------------------------------------------------------------------
+(use-package ivy
   :ensure t
-  :diminish (helm-mode helm-migemo-mode)
+  :diminish ivy-mode
   :bind
-  ("C-;"     . helm-mini)
-  ("C-c ;"   . helm-mini)
-  ("M-x"     . helm-M-x)
-  ("C-x b"   . helm-buffers-list)
-  ("M-y"     . helm-show-kill-ring)
-  ("C-x C-d" . helm-browse-project)
-  ("C-x C-r" . helm-recentf)
-  ("C-x C-f" . helm-find-files)
-  (:map helm-find-files-map
-        ("C-<backspace>" . nil)
-        ("TAB" . helm-execute-persistent-action))
+  ("C-;"     . ivy-switch-buffer)
+  ("C-c ;"   . ivy-switch-buffer)
   :custom
-  (helm-ff-auto-update-initial-value nil)
+  (ivy-use-virtual-buffers t)
+  (ivy-wrap t)
+  (ivy-height 20)
+  (ivy-extra-directories nil)
   :config
-  (require 'helm-config)
-  (require 'helm-buffers)
-  (require 'helm-files)
-  (helm-migemo-mode +1)
-  (setq helm-idle-delay 0.3)
-  (setq helm-input-idle-delay 0.2)
-  (setq helm-candidate-number-limit 100)
-  (setq helm-buffer-max-length 50)
-  (setq helm-truncate-lines t)
-  (setq helm-inherit-input-method nil)
-  (setq helm-mini-default-sources
-        '(helm-source-buffers-list
-          helm-source-recentf
-          helm-source-files-in-current-dir
-          helm-source-buffer-not-found
-          )))
+  (ivy-mode 1))
 
-(use-package helm-descbinds
-  :ensure t
-  :after helm
-  :config (helm-descbinds-mode +1))
-
-(use-package helm-bm
-  :ensure t
-  :bind ("C-c b" . helm-bm))
-
-(use-package helm-ls-git
-  :ensure t
-  :after helm)
-
-(use-package helm-git-grep
-  :ensure t
-  :bind ("C-x C-g" . helm-git-grep-at-point))
-
-(use-package helm-c-yasnippet
-  :ensure t
-  :bind ("C-c y" . helm-yas-complete)
-  :config
-  (setq helm-yas-space-match-any-greedy t))
-
-(use-package helm-gtags
-  :ensure t
-  :diminish helm-gtags-mode
-  :hook (prog-mode . helm-gtags-mode)
-  :config
-  (setq helm-gtags-auto-update t)
-  (bind-key "M-t" 'helm-gtags-find-tag    helm-gtags-mode-map)
-  (bind-key "M-r" 'helm-gtags-find-rtag   helm-gtags-mode-map)
-  (bind-key "M-s" 'helm-gtags-find-symbol helm-gtags-mode-map)
-  (bind-key "M-," 'helm-gtags-pop-stack   helm-gtags-mode-map)
-  (smartrep-define-key
-      helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
-                                  (">" . 'helm-gtags-next-history))))
-
-(use-package helm-flycheck
-  :ensure t
-  :after (flycheck)
-  :config
-  (bind-key "C-c ! h" 'helm-flycheck flycheck-mode-map))
-
-(use-package helm-swoop
+(use-package swiper
   :ensure t
   :defer t
-  :init
-  (setq helm-multi-swoop-edit-save t)
-  (bind-key "M-i" 'helm-swoop)
-  (bind-key "M-I" 'helm-swoop-back-to-last-point)
-  (bind-key "C-c M-i" 'helm-multi-swoop)
-  (bind-key "C-x M-i" 'helm-multi-swoop-all)
-  (bind-key "M-i" 'helm-swoop-from-isearch isearch-mode-map)
-  :config
-  (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map)
-  )
+  :bind
+  ("M-i" . swiper-thing-at-point)
+  ("C-c M-i" . swiper-all-thing-at-point)
+  (:map isearch-mode-map
+        ("M-i"     . swiper-from-isearch)))
 
-(use-package helm-ag
+(use-package counsel
   :ensure t
+  :defer t
   :custom
-  ;; (helm-ag-base-command "rg --vimgrep --no-heading")
-  ;; (helm-ag-success-exit-status '(0 2))
-  (helm-ag-insert-at-point 'symbol))
+  (counsel-yank-pop-separator "\n----------\n")
+  (counsel-find-file-ignore-regexp (regexp-opt completion-ignored-extensions))
+  :bind
+  ("M-x" . counsel-M-x)
+  ("M-y" . counsel-yank-pop)
+  ("C-x C-f" . counsel-find-file)
+  ("C-x b" . counsel-switch-buffer)
+  ("C-x C-r" . counsel-buffer-or-recentf)
+  ("C-x C-g" . counsel-git-grep)
+  :config
+  (advice-add 'counsel-switch-buffer
+              :around (lambda (orig-fun &rest args)
+                        (let ((ivy-use-virtual-buffers nil))
+                          (apply orig-fun args)))))
 
-(use-package helm-rg
-  :ensure t)
+(use-package ivy-hydra
+  :ensure t
+  :config
+  (setq ivy-read-action-function #'ivy-hydra-read-action))
+
+(use-package all-the-icons-ivy-rich
+  :ensure t
+  :init (all-the-icons-ivy-rich-mode 1))
+
+(use-package ivy-rich
+  :ensure t
+  :init (ivy-rich-mode 1))
+
+(use-package ivy-yasnippet
+  :ensure t
+  :bind ("C-c y" . ivy-yasnippet))
+
+(use-package counsel-gtags
+  :ensure t
+  :hook (prog-mode . counsel-gtags-mode)
+  :config
+  (bind-key "M-t" 'counsel-gtags-find-definition counsel-gtags-mode-map)
+  (bind-key "M-r" 'counsel-gtags-find-reference  counsel-gtags-mode-map)
+  (bind-key "M-s" 'counsel-gtags-find-symbol     counsel-gtags-mode-map)
+  (bind-key "M-," 'counsel-gtags-go-backward     counsel-gtags-mode-map)
+  (smartrep-define-key
+      counsel-gtags-mode-map "C-c" '(("<" . 'counsel-gtags-go-backward)
+                                     (">" . 'counsel-gtags-go-forward))))
+
+;;; ivy インターフェイスで bm.el の bookmark を選択
+;;; https://www.reddit.com/r/emacs/comments/700xck/ivy_with_bmel_bookmark_manager/
+(defun bm-counsel-get-list (bookmark-overlays)
+  (-map (lambda (bm)
+          (with-current-buffer (overlay-buffer bm)
+            (let* ((line (replace-regexp-in-string "\n$" "" (buffer-substring (overlay-start bm)
+                                                                              (overlay-end bm))))
+                   ;; line numbers start on 1
+                   (line-num (+ 1 (count-lines (point-min) (overlay-start bm))))
+                   (name (format "%s:%d - %s" (buffer-name) line-num line))
+                   )
+              `(,name . ,bm)
+              )
+            )
+          )
+        bookmark-overlays))
+(defun bm-counsel-find-bookmark ()
+  (interactive)
+
+  (let* ((bm-list (bm-counsel-get-list (bm-overlays-lifo-order t)))
+         (bm-hash-table (make-hash-table :test 'equal))
+         (search-list (-map (lambda (bm) (car bm)) bm-list)))
+
+    (-each bm-list (lambda (bm)
+                     (puthash (car bm) (cdr bm) bm-hash-table)
+                     ))
+
+    (ivy-read "Find bookmark: "
+              search-list
+              :require-match t
+              :keymap counsel-describe-map
+              :action (lambda (chosen)
+                        (let ((bookmark (gethash chosen bm-hash-table)))
+                          (switch-to-buffer (overlay-buffer bookmark))
+                          (bm-goto bookmark)
+                          ))
+              :sort t
+              )))
+(bind-key "C-c b" 'bm-counsel-find-bookmark)
+
+;;; ivy で migemo を使う
+;;; https://www.yewton.net/2020/05/21/migemo-ivy/
+(require 'dash)
+(require 's)
+(defun ytn-ivy-migemo-re-builder (str)
+  (let* ((sep " \\|\\^\\|\\.\\|\\*")
+         (splitted (--map (s-join "" it)
+                          (--partition-by (s-matches-p " \\|\\^\\|\\.\\|\\*" it)
+                                          (s-split "" str t)))))
+    (s-join "" (--map (cond ((s-equals? it " ") ".*?")
+                            ((s-matches? sep it) it)
+                            (t (migemo-get-pattern it)))
+                      splitted))))
+(setq ivy-re-builders-alist '((t . ivy--regex-plus)
+                              (swiper . ytn-ivy-migemo-re-builder)))
 
 ;;; ----------------------------------------------------------------------
 ;;; projectile
@@ -1765,52 +1900,38 @@ Highlight last expanded string."
 (use-package projectile
   :ensure t
   :diminish projectile-mode
+  ;;:custom
+  ;;(projectile-completion-system 'ivy)
+  ;;(projectile-switch-project-action 'counsel-projectile)
   :config
-  (projectile-mode +1)
   (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
-  (setq projectile-completion-system 'helm)
-  (setq projectile-switch-project-action 'helm-projectile))
+  (projectile-mode +1))
 
-(use-package helm-projectile
+;; (use-package helm-projectile
+;;   :ensure t
+;;   :config
+;;   (helm-projectile-on))
+
+(use-package counsel-projectile
   :ensure t
   :config
-  (helm-projectile-on))
+  (counsel-projectile-mode 1))
 
 (use-package projectile-rails
   :ensure t
   :config
-  (projectile-rails-global-mode)
-  (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map))
+  (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
+  (projectile-rails-global-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; ivy
+;;; amx
 ;;; ----------------------------------------------------------------------
-;; (use-package ivy
-;;   :ensure t
-;;   :init
-;;   (setq ivy-truncate-lines nil)
-;;   (setq ivy-wrap t)
-;;   :config
-;;   (bind-key "<escape>" 'minibuffer-keyboard-quit ivy-minibuffer-map)
-;;   (ivy-mode 1))
-
-;; (use-package ivy-hydra
-;;   :ensure t
-;;   :config
-;;   (setq ivy-read-action-function #'ivy-hydra-read-action))
-
-;; (use-package counsel
-;;   :ensure t
-;;   :defer t
-;;   :bind (
-;;          ;; ("M-x" . counsel-M-x)
-;;          ;; ("M-y" . counsel-yank-pop)
-;;          ))
-
-;; (use-package swiper
-;;   :ensure t
-;;   :defer t
-;; )
+(use-package amx
+  :ensure t
+  :custom
+  (amx-history-length 20)
+  :config
+  (amx-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
