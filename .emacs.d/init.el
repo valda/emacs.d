@@ -694,10 +694,11 @@ Highlight last expanded string."
 ;;; dired
 ;;; ----------------------------------------------------------------------
 (use-package dired
-  :config
-  (setq dired-dwim-target t)
-  (setq dired-recursive-copies 'always)
-  (setq dired-isearch-filenames t))
+  :custom
+  (dired-listing-switches "-aFl --group-directories-first")
+  (dired-dwim-target t)
+  (dired-recursive-copies 'always)
+  (dired-isearch-filenames t))
 
 (use-package dired-x
   :after dired
