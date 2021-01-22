@@ -84,6 +84,7 @@
 ;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
 (setq use-default-font-for-symbols nil)
 (set-face-attribute 'default nil :family "Cica" :height 150)
+(set-fontset-font t ?… "Ricty")
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -1473,20 +1474,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; recentf / recentf-ext
 ;;; ----------------------------------------------------------------------
-(require 'recentf)
-(setq recentf-save-file "~/.emacs.d/.recentf")
-(setq recentf-max-saved-items 2000)
-(setq recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores"))
-(setq recentf-auto-cleanup 'never)
-;; http://qiita.com/itiut@github/items/d917eafd6ab255629346
-(defmacro with-suppressed-message (&rest body)
-  "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
-  (declare (indent 0))
-  (let ((message-log-max nil))
-    `(with-temp-message (or (current-message) "") ,@body)))
-(setq recentf-auto-save-timer
-      (run-with-idle-timer 30 t '(lambda ()
-                                   (with-suppressed-message (recentf-save-list)))))
+(use-package recentf
+  :custom
+  (recentf-save-file "~/.emacs.d/.recentf")
+  (recentf-max-saved-items 2000)
+  (recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "bookmarks"))
+  (recentf-auto-cleanup 'never)
+  :config
+  (advice-add 'recentf-save-list
+              :around (lambda (orig-fun &rest args)
+                        (let ((inhibit-message t))
+                          (apply orig-fun args))))
+  (run-with-idle-timer 30 t 'recentf-save-list)
+  (recentf-mode 1))
 
 (use-package recentf-ext
   :ensure t)
