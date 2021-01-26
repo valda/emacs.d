@@ -1780,6 +1780,7 @@ Highlight last expanded string."
   (ivy-height 20)
   (ivy-extra-directories nil)
   :config
+  (setf (alist-get t ivy-re-builders-alist) #'ivy--regex-ignore-order)
   (ivy-mode 1))
 
 (use-package swiper
@@ -1804,7 +1805,10 @@ Highlight last expanded string."
   ("C-x b" . counsel-switch-buffer)
   ("C-x C-r" . counsel-buffer-or-recentf)
   ("C-x C-g" . counsel-git-grep)
+  ("C-c C-f" . counsel-fzf)
   :config
+  (ivy-configure 'counsel-M-x :initial-input "")
+  (setf (alist-get 'counsel-M-x ivy-re-builders-alist) #'ivy--regex-ignore-order)
   (advice-add 'counsel-switch-buffer
               :around (lambda (orig-fun &rest args)
                         (let ((ivy-use-virtual-buffers nil))
@@ -1830,6 +1834,7 @@ Highlight last expanded string."
 (use-package counsel-gtags
   :ensure t
   :hook (prog-mode . counsel-gtags-mode)
+  :custom (counsel-gtags-auto-update t)
   :config
   (bind-key "M-t" 'counsel-gtags-find-definition counsel-gtags-mode-map)
   (bind-key "M-r" 'counsel-gtags-find-reference  counsel-gtags-mode-map)
