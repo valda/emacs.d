@@ -82,9 +82,12 @@
 ;; abcdefghijklmnopqrst
 ;; あいうえおかきくけこ
 ;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
+;; ■□◆◇■□◆◇……
+
 (setq use-default-font-for-symbols nil)
 (set-face-attribute 'default nil :family "Cica" :height 150)
-(set-fontset-font t ?… "Ricty")
+(dolist (c '(?… ?■ ?□ ?◆ ?◇))
+  (set-fontset-font t c "Ricty"))
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -136,9 +139,10 @@
   (require 'use-package))
 (require 'diminish)
 (require 'bind-key)
-(setq use-package-verbose t)
-(setq use-package-minimum-reported-time 0.001)
-(setq use-package-compute-statistics t)
+(custom-set-variables
+ '(use-package-verbose t)
+ '(use-package-minimum-reported-time 0.001)
+ '(use-package-compute-statistics t))
 
 ;;; ----------------------------------------------------------------------
 ;;; paradox
@@ -146,10 +150,10 @@
 (use-package paradox
   :ensure t
   :defer t
-  :init
-  (setq paradox-github-token t)
-  (setq paradox-execute-asynchronously t)
-  (setq paradox-automatically-star t))
+  :custom
+  (paradox-github-token t)
+  (paradox-execute-asynchronously t)
+  (paradox-automatically-star t))
 
 ;;; ----------------------------------------------------------------------
 ;;; el-get
@@ -1658,40 +1662,37 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
-;; (use-package helm
-;;   :ensure t
-;;   :diminish (helm-mode helm-migemo-mode)
-;;   :bind
-;;   ("C-;"     . helm-mini)
-;;   ("C-c ;"   . helm-mini)
-;;   ("M-x"     . helm-M-x)
-;;   ("C-x b"   . helm-buffers-list)
-;;   ("M-y"     . helm-show-kill-ring)
-;;   ("C-x C-d" . helm-browse-project)
-;;   ("C-x C-r" . helm-recentf)
-;;   ("C-x C-f" . helm-find-files)
-;;   (:map helm-find-files-map
-;;         ("C-<backspace>" . nil)
-;;         ("TAB" . helm-execute-persistent-action))
-;;   :custom
-;;   (helm-ff-auto-update-initial-value nil)
-;;   :config
-;;   (require 'helm-config)
-;;   (require 'helm-buffers)
-;;   (require 'helm-files)
-;;   (helm-migemo-mode +1)
-;;   (setq helm-idle-delay 0.3)
-;;   (setq helm-input-idle-delay 0.2)
-;;   (setq helm-candidate-number-limit 100)
-;;   (setq helm-buffer-max-length 50)
-;;   (setq helm-truncate-lines t)
-;;   (setq helm-inherit-input-method nil)
-;;   (setq helm-mini-default-sources
-;;         '(helm-source-buffers-list
-;;           helm-source-recentf
-;;           helm-source-files-in-current-dir
-;;           helm-source-buffer-not-found
-;;           )))
+(use-package helm
+  :ensure t
+  :diminish (helm-mode helm-migemo-mode)
+  :bind
+  ;; ("C-;"     . helm-mini)
+  ;; ("C-c ;"   . helm-mini)
+  ;; ("M-x"     . helm-M-x)
+  ;; ("C-x b"   . helm-buffers-list)
+  ;; ("M-y"     . helm-show-kill-ring)
+  ("C-x C-d" . helm-browse-project)
+  ;; ("C-x C-r" . helm-recentf)
+  ;; ("C-x C-f" . helm-find-files)
+  (:map helm-find-files-map
+        ("C-<backspace>" . nil)
+        ("TAB" . helm-execute-persistent-action))
+  :custom
+  (helm-ff-auto-update-initial-value nil)
+  (helm-input-idle-delay 0.2)
+  (helm-buffer-max-length 50)
+  (helm-inherit-input-method nil)
+  (helm-candidate-number-limit 100)
+  (helm-truncate-lines t)
+  (helm-mini-default-sources '(helm-source-buffers-list
+                               helm-source-recentf
+                               helm-source-files-in-current-dir
+                               helm-source-buffer-not-found))
+  :config
+  (require 'helm-config)
+  (require 'helm-buffers)
+  (require 'helm-files)
+  (helm-migemo-mode +1))
 
 ;; (use-package helm-descbinds
 ;;   :ensure t
@@ -1708,7 +1709,7 @@ Highlight last expanded string."
 
 ;; (use-package helm-git-grep
 ;;   :ensure t
-;;   :bind ("C-x C-g" . helm-git-grep-at-point))
+;;   :bind ("C-c C-g" . helm-git-grep-at-point))
 
 ;; (use-package helm-c-yasnippet
 ;;   :ensure t
@@ -1760,11 +1761,6 @@ Highlight last expanded string."
 ;; (use-package helm-rg
 ;;   :ensure t)
 
-;; (use-package helm-icons
-;;   :ensure t
-;;   :config
-;;   (helm-icons-enable))
-
 ;;; ----------------------------------------------------------------------
 ;;; ivy
 ;;; ----------------------------------------------------------------------
@@ -1774,11 +1770,11 @@ Highlight last expanded string."
   :bind
   ("C-;"     . ivy-switch-buffer)
   ("C-c ;"   . ivy-switch-buffer)
+  ("C-c C-r" . ivy-resume)
   :custom
   (ivy-use-virtual-buffers t)
   (ivy-wrap t)
   (ivy-height 20)
-  (ivy-extra-directories nil)
   :config
   (setf (alist-get t ivy-re-builders-alist) #'ivy--regex-ignore-order)
   (ivy-mode 1))
@@ -1804,7 +1800,7 @@ Highlight last expanded string."
   ("C-x C-f" . counsel-find-file)
   ("C-x b" . counsel-switch-buffer)
   ("C-x C-r" . counsel-buffer-or-recentf)
-  ("C-x C-g" . counsel-git-grep)
+  ("C-c C-g" . counsel-git-grep)
   ("C-c C-f" . counsel-fzf)
   :config
   (ivy-configure 'counsel-M-x :initial-input "")
