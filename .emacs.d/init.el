@@ -1187,6 +1187,8 @@ Highlight last expanded string."
 (use-package js2-mode
   :ensure t
   :defer t
+  :bind (:map web-mode-map
+              ("C-c C-r" . nil))
   :config
   (add-hook 'js2-mode-hook
             (lambda()
@@ -1775,6 +1777,7 @@ Highlight last expanded string."
   (ivy-use-virtual-buffers t)
   (ivy-wrap t)
   (ivy-height 20)
+  (ivy-on-del-error-function #'ignore)
   :config
   (setf (alist-get t ivy-re-builders-alist) #'ivy--regex-ignore-order)
   (ivy-mode 1))
@@ -1804,7 +1807,7 @@ Highlight last expanded string."
   ("C-c C-f" . counsel-fzf)
   :config
   (ivy-configure 'counsel-M-x :initial-input "")
-  (setf (alist-get 'counsel-M-x ivy-re-builders-alist) #'ivy--regex-ignore-order)
+  ;;(setf (alist-get 'counsel-M-x ivy-re-builders-alist) #'ivy--regex-ignore-order)
   (advice-add 'counsel-switch-buffer
               :around (lambda (orig-fun &rest args)
                         (let ((ivy-use-virtual-buffers nil))
@@ -1893,8 +1896,7 @@ Highlight last expanded string."
                             ((s-matches? sep it) it)
                             (t (migemo-get-pattern it)))
                       splitted))))
-(setq ivy-re-builders-alist '((t . ivy--regex-plus)
-                              (swiper . ytn-ivy-migemo-re-builder)))
+(setf (alist-get 'swiper ivy-re-builders-alist) #'ytn-ivy-migemo-re-builder)
 
 ;;; ----------------------------------------------------------------------
 ;;; projectile
