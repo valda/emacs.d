@@ -1664,37 +1664,37 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
-(use-package helm
-  :ensure t
-  :diminish (helm-mode helm-migemo-mode)
-  :bind
-  ;; ("C-;"     . helm-mini)
-  ;; ("C-c ;"   . helm-mini)
-  ;; ("M-x"     . helm-M-x)
-  ;; ("C-x b"   . helm-buffers-list)
-  ;; ("M-y"     . helm-show-kill-ring)
-  ("C-x C-d" . helm-browse-project)
-  ;; ("C-x C-r" . helm-recentf)
-  ;; ("C-x C-f" . helm-find-files)
-  (:map helm-find-files-map
-        ("C-<backspace>" . nil)
-        ("TAB" . helm-execute-persistent-action))
-  :custom
-  (helm-ff-auto-update-initial-value nil)
-  (helm-input-idle-delay 0.2)
-  (helm-buffer-max-length 50)
-  (helm-inherit-input-method nil)
-  (helm-candidate-number-limit 100)
-  (helm-truncate-lines t)
-  (helm-mini-default-sources '(helm-source-buffers-list
-                               helm-source-recentf
-                               helm-source-files-in-current-dir
-                               helm-source-buffer-not-found))
-  :config
-  (require 'helm-config)
-  (require 'helm-buffers)
-  (require 'helm-files)
-  (helm-migemo-mode +1))
+;; (use-package helm
+;;   :ensure t
+;;   :diminish (helm-mode helm-migemo-mode)
+;;   :bind
+;;   ("C-;"     . helm-mini)
+;;   ("C-c ;"   . helm-mini)
+;;   ("M-x"     . helm-M-x)
+;;   ("C-x b"   . helm-buffers-list)
+;;   ("M-y"     . helm-show-kill-ring)
+;;   ("C-c C-d" . helm-browse-project)
+;;   ("C-x C-r" . helm-recentf)
+;;   ("C-x C-f" . helm-find-files)
+;;   (:map helm-find-files-map
+;;         ("C-<backspace>" . nil)
+;;         ("TAB" . helm-execute-persistent-action))
+;;   :custom
+;;   (helm-ff-auto-update-initial-value nil)
+;;   (helm-input-idle-delay 0.2)
+;;   (helm-buffer-max-length 50)
+;;   (helm-inherit-input-method nil)
+;;   (helm-candidate-number-limit 100)
+;;   (helm-truncate-lines t)
+;;   (helm-mini-default-sources '(helm-source-buffers-list
+;;                                helm-source-recentf
+;;                                helm-source-files-in-current-dir
+;;                                helm-source-buffer-not-found))
+;;   :config
+;;   (require 'helm-config)
+;;   (require 'helm-buffers)
+;;   (require 'helm-files)
+;;   (helm-migemo-mode +1))
 
 ;; (use-package helm-descbinds
 ;;   :ensure t
@@ -1752,7 +1752,6 @@ Highlight last expanded string."
 ;;   (:map isearch-mode-map
 ;;         ("M-i"     . helm-swoop-from-isearch))
 ;;   :config
-;;   (setq helm-swoop-split-window-function '(lambda ($buf) (display-buffer $buf))
 ;;   (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map))
 
 ;; (use-package helm-ag
@@ -1775,6 +1774,7 @@ Highlight last expanded string."
   ("C-c C-r" . ivy-resume)
   :custom
   (ivy-use-virtual-buffers t)
+  (ivy-virtual-abbreviate 'full)
   (ivy-wrap t)
   (ivy-height 20)
   (ivy-on-del-error-function #'ignore)
@@ -1861,7 +1861,6 @@ Highlight last expanded string."
         bookmark-overlays))
 (defun bm-counsel-find-bookmark ()
   (interactive)
-
   (let* ((bm-list (bm-counsel-get-list (bm-overlays-lifo-order t)))
          (bm-hash-table (make-hash-table :test 'equal))
          (search-list (-map (lambda (bm) (car bm)) bm-list)))
@@ -1897,6 +1896,27 @@ Highlight last expanded string."
                             (t (migemo-get-pattern it)))
                       splitted))))
 (setf (alist-get 'swiper ivy-re-builders-alist) #'ytn-ivy-migemo-re-builder)
+
+;;; git status からファイル選択 (helm-browse-project の代替)
+(defun my/counsel-git-status-list (dir)
+  (let ((default-directory dir))
+    (split-string
+     (shell-command-to-string "git status -s -z --")
+     "\0"
+     t)))
+(defun my/counsel-git-status-action (x)
+  (when (string-match "\\`[ MADRCU]\\{2\\} \\(.*\\)" x)
+    (with-ivy-window
+      (let ((default-directory (ivy-state-directory ivy-last)))
+        (find-file (match-string 1 x))))))
+(defun my/counsel-git-status (&optional initial-input)
+  (interactive)
+  (let ((default-directory (counsel-locate-git-root)))
+    (ivy-read "Git status: " (my/counsel-git-status-list default-directory)
+              :initial-input initial-input
+              :action #'my/counsel-git-status-action
+              :caller 'counsel-git-status)))
+(bind-key "C-c C-d" 'my/counsel-git-status)
 
 ;;; ----------------------------------------------------------------------
 ;;; projectile
