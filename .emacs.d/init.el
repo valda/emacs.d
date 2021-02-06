@@ -315,18 +315,15 @@
     :if (not (window-system))
     :ensure t
     :after mozc
-    :config
-    (setq mozc-candidate-style 'popup))
+    :custom (mozc-candidate-style 'popup))
 
   (use-package mozc-cand-posframe
     :if (window-system)
     :ensure t
     :after mozc
-    :config
-    (setq mozc-candidate-style 'posframe))
+    :custom (mozc-candidate-style 'posframe))
 
   (use-package mozc-cursor-color
-    ;; :ensure t ; el-get
     :after mozc
     :config
     (setq mozc-cursor-color-alist '((direct        . "green")
@@ -335,35 +332,12 @@
                                     (full-katakana . "goldenrod")
                                     (half-ascii    . "dark orchid")
                                     (full-ascii    . "orchid")
-                                    (half-katakana . "dark goldenrod"))))
-  )
+                                    (half-katakana . "dark goldenrod")))))
 
 (cond ((eq window-system 'w32)
        (my-w32-ime-init))
       (t
        (my-mozc-init)))
-
-;;; ----------------------------------------------------------------------
-;;; ibuffer
-;;; ----------------------------------------------------------------------
-(use-package ibuffer
-  :bind
-  ("\C-x\C-b" . ibuffer)
-  :config
-  (setq ibuffer-formats
-        '((mark modified read-only " " (name 30 30)
-                " " (size 6 -1) " " (mode 16 16) " " (coding 15 15) " " filename)
-          (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
-  (define-ibuffer-column
-    ;; ibuffer-formats に追加した文字
-    coding
-    ;; 一行目の文字
-    (:name " coding ")
-    ;; 以下に文字コードを返す関数を書く
-    (if (coding-system-get buffer-file-coding-system 'mime-charset)
-        (format " %s" (coding-system-get buffer-file-coding-system 'mime-charset))
-      " undefined"
-      )))
 
 ;;; ----------------------------------------------------------------------
 ;;; smartrep.el
@@ -519,46 +493,36 @@ Highlight last expanded string."
 (use-package company
   :ensure t
   :diminish company-mode
+  :custom
+  (company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                       company-preview-frontend
+                       company-echo-metadata-frontend))
+  (company-require-match 'never)
+  (company-idle-delay 0)
+  (company-minimum-prefix-length 2)
+  (company-selection-wrap-around t)
+  (completion-ignore-case t)
+  (company-dabbrev-downcase nil)
+  (company-auto-expand t)
   :config
   (global-company-mode +1)
   (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
   (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
   (define-key company-active-map (kbd "S-TAB") 'company-select-previous)
   (define-key company-active-map (kbd "<backtab>") 'company-select-previous)
-  (define-key company-mode-map (kbd "M-TAB") 'company-complete)
-  (setq company-frontends
-        '(company-pseudo-tooltip-unless-just-one-frontend
-          company-preview-frontend
-          company-echo-metadata-frontend))
-  (setq company-require-match 'never)
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 2)
-  (setq company-selection-wrap-around t)
-  (setq completion-ignore-case t)
-  (setq company-dabbrev-downcase nil)
-  (setq company-auto-expand t))
+  (define-key company-mode-map (kbd "M-TAB") 'company-complete))
 
 (use-package company-statistics
   :ensure t
+  :custom
+  (company-transformers '(company-sort-by-statistics company-sort-by-backend-importance))
   :config
-  (company-statistics-mode)
-  (setq company-transformers
-        '(company-sort-by-statistics
-          company-sort-by-backend-importance))
-  :after company)
+  (company-statistics-mode))
 
 (use-package company-quickhelp
   :ensure t
   :config
-  (company-quickhelp-mode)
-  :after company)
-
-(use-package company-emoji
-  :disabled t
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-emoji)
-  :after company)
+  (company-quickhelp-mode))
 
 (use-package company-box
   :ensure t
@@ -571,8 +535,7 @@ Highlight last expanded string."
 
 (use-package company-web
   :ensure t
-  :defer t
-  :after company)
+  :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -641,10 +604,7 @@ Highlight last expanded string."
   :if (executable-find "w3m")
   :ensure t
   :defer t
-  :config
-  (setq w3m-type 'w3m-ja)
-  (setq w3m-use-cookies t)
-  (setq w3m-accept-japanese-characters t))
+  :custom (w3m-use-cookies t))
 
 (use-package browse-url
   :defer t
@@ -680,18 +640,19 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package migemo
   :ensure t
-  :config
-  (setq migemo-command "cmigemo")
-  (setq migemo-options '("-q" "--emacs"))
+  :custom
+  (migemo-command "cmigemo")
+  (migemo-options '("-q" "--emacs"))
   (cond ((eq window-system 'w32)
-         (setq migemo-dictionary "./dict/utf-8/migemo-dict"))
+         (migemo-dictionary "./dict/utf-8/migemo-dict"))
         (t
-         (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")))
-  (setq migemo-coding-system 'utf-8-unix)
-  (setq migemo-use-pattern-alist nil)
-  (setq migemo-use-frequent-pattern-alist t)
-  (setq migemo-pattern-alist-length 1024)
-  (setq migemo-isearch-min-length 2)
+         (migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")))
+  (migemo-coding-system 'utf-8-unix)
+  (migemo-use-pattern-alist nil)
+  (migemo-use-frequent-pattern-alist t)
+  (migemo-pattern-alist-length 1024)
+  (migemo-isearch-min-length 2)
+  :config
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
@@ -994,7 +955,7 @@ Highlight last expanded string."
 (use-package magit
   :ensure t
   :defer t
-  :bind ("\C-xg" . magit-status)
+  :bind ("C-x g" . magit-status)
   :config
   (setq magit-push-always-verify nil)
   (setq magit-log-margin '(t "%Y-%m-%d" magit-log-margin-width t 18))
@@ -1062,7 +1023,8 @@ Highlight last expanded string."
   :diminish ruby-end-mode)
 
 (use-package rubocop
-  :ensure t :defer t)
+  :ensure t :defer t
+  :custom (rubocop-keymap-prefix (kbd "C-c C-c C-r")))
 
 ;; ruby の symbol をいい感じに hippie-expand する
 (defun hippie-expand-ruby-symbols (orig-fun &rest args)
@@ -1401,17 +1363,6 @@ Highlight last expanded string."
           (lambda ()
             (setq tex-verbatim-face nil)
             (defun tex-font-lock-suscript () nil)))
-
-;;; ----------------------------------------------------------------------
-;;; rinari
-;;; ----------------------------------------------------------------------
-;; (use-package rinari
-;;   :ensure t
-;;   :config
-;;   (setq rinari-exclude-major-modes
-;;         '(magit-status-mode
-;;           magit-log-edit-mode))
-;;   (global-rinari-mode t))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -1774,7 +1725,7 @@ Highlight last expanded string."
   ("C-c C-r" . ivy-resume)
   :custom
   (ivy-use-virtual-buffers t)
-  (ivy-virtual-abbreviate 'full)
+  (ivy-virtual-abbreviate 'abbreviate)
   (ivy-wrap t)
   (ivy-height 20)
   (ivy-on-del-error-function #'ignore)
@@ -1787,9 +1738,9 @@ Highlight last expanded string."
   :defer t
   :bind
   ("M-i" . swiper-thing-at-point)
-  ("C-c M-i" . swiper-all-thing-at-point)
+  ("M-I" . swiper-all-thing-at-point)
   (:map isearch-mode-map
-        ("M-i"     . swiper-from-isearch)))
+        ("M-i" . swiper-from-isearch)))
 
 (use-package counsel
   :ensure t
@@ -1952,21 +1903,20 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package amx
   :ensure t
-  :custom
-  (amx-history-length 20)
-  :config
-  (amx-mode 1))
+  :custom (amx-history-length 20)
+  :config (amx-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
 (use-package anzu
   :ensure t
+  :custom
+  (anzu-mode-lighter "")
+  (anzu-deactivate-region t)
+  (anzu-search-threshold 1000)
+  (anzu-use-migemo t)
   :config
-  (setq anzu-mode-lighter "")
-  (setq anzu-deactivate-region t)
-  (setq anzu-search-threshold 1000)
-  (setq anzu-use-migemo t)
   (global-anzu-mode t)
   (global-set-key [remap query-replace] #'anzu-query-replace)
   (global-set-key [remap query-replace-regexp] #'anzu-query-replace-regexp)
@@ -2321,35 +2271,30 @@ Highlight last expanded string."
 (use-package wgrep
   :ensure t
   :defer t
-  :init
-  (setq wgrep-enable-key "r")
-  (setq wgrep-auto-save-buffer t))
+  :custom
+  (wgrep-enable-key "r")
+  (wgrep-auto-save-buffer t))
 
 ;;; ----------------------------------------------------------------------
 ;;; ag / wgrep-ag
 ;;; ----------------------------------------------------------------------
 (use-package ag
   :ensure t
-  :bind
-  (("\C-ca" . ag)
-   ("\C-c\C-a" . ag-project))
-  :config
-  (setq ag-highlight-search t)
-  (setq ag-reuse-window t)
-  (setq ag-reuse-buffers t))
+  :custom
+  (ag-highlight-search t)
+  (ag-reuse-window t)
+  (ag-reuse-buffers t))
 
 (use-package wgrep-ag
   :ensure t
   :hook (ag-mode . wgrep-ag-setup)
-  :config (define-key ag-mode-map (kbd "r") 'wgrep-change-to-wgrep-mode))
+  :bind (:map ag-mode-map ("r" . wgrep-change-to-wgrep-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; ripgrep
 ;;; ----------------------------------------------------------------------
 (use-package rg
   :ensure t
-  :bind
-  (("\C-c\C-s" . rg))
   :config
   (rg-enable-default-bindings))
 
@@ -2358,7 +2303,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
   :hook ((dired-mode
-          magit-mode
+          ;;magit-mode
           custom-mode-hook
           w3-mode-hook
           Man-mode-hook
@@ -2393,9 +2338,8 @@ Highlight last expanded string."
 (use-package nyan-mode
   :ensure t
   :hook after-init
-  :config
-  (setq nyan-bar-length 16)
-  (nyan-start-animation))
+  :custom (nyan-bar-length 16)
+  :config (nyan-start-animation))
 
 ;;; ----------------------------------------------------------------------
 ;;; all-the-icons
@@ -2414,10 +2358,43 @@ Highlight last expanded string."
   :hook (dired-mode . all-the-icons-dired-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; all-the-icons-ibuffer
+;;; ibuffer
 ;;; ----------------------------------------------------------------------
+(use-package ibuffer
+  :bind
+  ("C-x C-b" . ibuffer)
+  :config
+  (define-ibuffer-column
+    ;; ibuffer-formats に追加した文字
+    coding
+    ;; 一行目の文字
+    (:name " coding ")
+    ;; 以下に文字コードを返す関数を書く
+    (if (coding-system-get buffer-file-coding-system 'mime-charset)
+        (format " %s" (coding-system-get buffer-file-coding-system 'mime-charset))
+      " undefined"
+      )))
+
+(use-package ibuffer-vc
+  :ensure t
+  :hook (ibuffer . (lambda ()
+            (ibuffer-vc-set-filter-groups-by-vc-root)
+            (unless (eq ibuffer-sorting-mode 'alphabetic)
+              (ibuffer-do-sort-by-alphabetic)))))
+
 (use-package all-the-icons-ibuffer
   :ensure t
+  :custom
+  (all-the-icons-ibuffer-formats
+   `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
+           " " (icon 2 2 :left :elide)
+           ,(propertize " " 'display `(space :align-to 10))
+           (name 30 30 :left :elide)
+           " " (size-h 9 -1 :right)
+           " " (mode+ 16 16 :left :elide)
+           " " (coding 12 12 :left)
+           " " filename-and-process+)
+     (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
   :init (all-the-icons-ibuffer-mode 1))
 
 ;;; ----------------------------------------------------------------------
