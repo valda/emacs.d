@@ -12,39 +12,40 @@
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
-(setq inhibit-startup-message t)
-(setq scroll-step 2)
-(setq next-line-add-newlines nil)
-(setq kill-whole-line t)
-(setq case-replace t)
-;;(setq major-mode 'text-mode)
-(setq-default transient-mark-mode t)
-(setq indent-line-function 'indent-relative-maybe)
-(setq truncate-partial-width-windows nil)
-(setq read-buffer-completion-ignore-case t)
-(setq read-file-name-completion-ignore-case t)
+(custom-set-variables
+ '(inhibit-startup-message t)
+ '(scroll-conservatively 1)
+ '(next-line-add-newlines nil)
+ '(kill-whole-line t)
+ '(case-replace t)
+ '(transient-mark-mode t)
+ '(indent-line-function 'indent-relative-maybe)
+ '(truncate-partial-width-windows nil)
+ '(read-buffer-completion-ignore-case t)
+ '(read-file-name-completion-ignore-case t)
+ '(line-move-visual nil)
+ '(tab-width 4)
+ '(indent-tabs-mode nil)
+ '(blink-matching-paren nil)
+ '(confirm-kill-emacs nil)
+ '(indicate-empty-lines t)
+ '(mode-line-frame-identification " ")
+ '(line-number-mode t)
+ '(column-number-mode t)
+ '(require-final-newline t)
+ '(mode-require-final-newline t)
+ '(ring-bell-function 'ignore)
+ '(search-default-regexp-mode nil)
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ '(ediff-split-window-function 'split-window-horizontally))
+
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
-(when (fboundp 'set-scroll-bar-mode)
-  (set-scroll-bar-mode nil))
+(set-scroll-bar-mode nil)
 (tool-bar-mode -1)
-(blink-cursor-mode 0)
+(blink-cursor-mode -1)
 (delete-selection-mode t)
-(setq line-move-visual nil)
-(setq-default tab-width 4 indent-tabs-mode nil)
 (show-paren-mode t)
-(setq blink-matching-paren nil)
-(setq confirm-kill-emacs nil)
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
-(setq ediff-split-window-function 'split-window-horizontally)
-(setq-default indicate-empty-lines t)
-(setq mode-line-frame-identification " ")
-(setq line-number-mode t)
-(setq column-number-mode t)
-(setq require-final-newline t)
-(setq mode-require-final-newline t)
-(setq ring-bell-function 'ignore)
-(setq search-default-regexp-mode nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -150,6 +151,7 @@
 (use-package paradox
   :ensure t
   :defer t
+  :init (use-package async :ensure t)
   :custom
   (paradox-github-token t)
   (paradox-execute-asynchronously t)
@@ -922,11 +924,12 @@ Highlight last expanded string."
 (use-package color-moccur
   :bind (("M-o"         . occur-by-moccur)
          ("C-c C-x C-o" . moccur))
+  :custom
+  (moccur-split-word t) ; スペース区切りでAND検索
+  (moccur-use-migemo t)
+  (*moccur-buffer-name-exclusion-list*
+   '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
   :config
-  (setq moccur-split-word t) ; スペース区切りでAND検索
-  (setq moccur-use-migemo t)
-  (setq *moccur-buffer-name-exclusion-list*
-        '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
   (add-hook 'dired-mode-hook
             (lambda ()
               (bind-key "O" 'dired-do-moccur dired-mode-map))))
@@ -945,8 +948,9 @@ Highlight last expanded string."
   :ensure t
   :commands
   (svn-status svn-update)
+  :custom
+  (svn-status-hide-unmodified t)
   :config
-  (setq svn-status-hide-unmodified t)
   (add-to-list 'process-coding-system-alist '("svn" . utf-8)))
 
 ;;; ----------------------------------------------------------------------
@@ -956,9 +960,10 @@ Highlight last expanded string."
   :ensure t
   :defer t
   :bind ("C-x g" . magit-status)
+  :custom
+  (magit-push-always-verify nil)
+  (magit-log-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
   :config
-  (setq magit-push-always-verify nil)
-  (setq magit-log-margin '(t "%Y-%m-%d" magit-log-margin-width t 18))
   (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
   (define-key magit-status-mode-map [C-tab] nil)
   (define-key magit-status-mode-map [C-iso-lefttab] nil)
@@ -982,15 +987,12 @@ Highlight last expanded string."
 
 (defun my-ruby-mode-setup ()
   "Hooks for Ruby mode."
-  (setq ruby-insert-encoding-magic-comment nil)
-  (setq enh-ruby-add-encoding-comment-on-save nil)
-  (setq enh-ruby-deep-indent-paren nil)
   (inf-ruby-minor-mode t)
-  ;;(electric-pair-mode t)
   (electric-indent-mode t)
   (electric-layout-mode t)
   (ruby-end-mode t)
   (rubocop-mode t)
+  (modify-syntax-entry ?: ".")
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
 
 (use-package enh-ruby-mode
@@ -1001,6 +1003,9 @@ Highlight last expanded string."
          "config\\.ru\\'"
          "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
          "\\.xremap\\'")
+  :custom
+  (enh-ruby-add-encoding-comment-on-save nil)
+  (enh-ruby-deep-indent-paren nil)
   :config
   (add-hook 'enh-ruby-mode-hook 'my-ruby-mode-setup))
 
@@ -1025,15 +1030,6 @@ Highlight last expanded string."
 (use-package rubocop
   :ensure t :defer t
   :custom (rubocop-keymap-prefix (kbd "C-c C-c C-r")))
-
-;; ruby の symbol をいい感じに hippie-expand する
-(defun hippie-expand-ruby-symbols (orig-fun &rest args)
-  (if (eq major-mode 'enh-ruby-mode)
-      (let ((table (make-syntax-table ruby-mode-syntax-table)))
-        (modify-syntax-entry ?: "." table)
-        (with-syntax-table table (apply orig-fun args)))
-    (apply orig-fun args)))
-(advice-add 'hippie-expand :around #'hippie-expand-ruby-symbols)
 
 ;;; ----------------------------------------------------------------------
 ;;; rspec-mode
@@ -1140,18 +1136,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode
 ;;; ----------------------------------------------------------------------
-(setq js2-include-browser-externs nil)
-(setq js2-mode-show-parse-errors nil)
-(setq js2-mode-show-strict-warnings nil)
-(setq js2-highlight-external-variables nil)
-(setq js2-include-jslint-globals nil)
-
 (use-package js2-mode
   :ensure t
   :defer t
-  :bind (:map web-mode-map
-              ("C-c C-r" . nil))
+  :custom
+  (js2-include-browser-externs nil)
+  (js2-mode-show-parse-errors nil)
+  (js2-mode-show-strict-warnings nil)
+  (js2-highlight-external-variables nil)
+  (js2-include-jslint-globals nil)
   :config
+  (bind-key "C-c C-r" nil web-mode-map)
   (add-hook 'js2-mode-hook
             (lambda()
               (setq js2-basic-offset 2)
@@ -1264,15 +1259,17 @@ Highlight last expanded string."
 (use-package less-css-mode
   :ensure t
   :defer t
+  :custom
+  (less-css-compile-at-save nil)
   :config
-  (setq less-css-compile-at-save nil)
   (add-hook 'less-css-mode-hook 'my-css-mode-setup))
 
 (use-package scss-mode
   :ensure t
   :defer t
+  :custom
+  (scss-compile-at-save nil)
   :config
-  (setq scss-compile-at-save nil)
   (add-hook 'scss-mode-hook 'my-css-mode-setup)
   (add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)))
 
@@ -1590,29 +1587,6 @@ Highlight last expanded string."
   (global-set-key (kbd "<S-f2>") 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
-;;; ido
-;;; ----------------------------------------------------------------------
-;; (use-package ido
-;;   :config
-;;   (setq ido-enable-flex-matching t)
-;;   (setq ido-use-filename-at-point 'guess)
-;;   (ido-mode 1))
-
-;; (use-package ido-vertical-mode
-;;   :ensure t
-;;   :after ido
-;;   :config
-;;   (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
-;;   (ido-vertical-mode 1))
-
-;; (use-package flx-ido
-;;   :ensure t
-;;   :after ido
-;;   :config
-;;   (setq ido-use-faces nil)
-;;   (flx-ido-mode 1))
-
-;;; ----------------------------------------------------------------------
 ;;; helm
 ;;; ----------------------------------------------------------------------
 ;; (use-package helm
@@ -1624,7 +1598,7 @@ Highlight last expanded string."
 ;;   ("M-x"     . helm-M-x)
 ;;   ("C-x b"   . helm-buffers-list)
 ;;   ("M-y"     . helm-show-kill-ring)
-;;   ("C-c C-d" . helm-browse-project)
+;;   ("C-c d"   . helm-browse-project)
 ;;   ("C-x C-r" . helm-recentf)
 ;;   ("C-x C-f" . helm-find-files)
 ;;   (:map helm-find-files-map
@@ -1726,7 +1700,6 @@ Highlight last expanded string."
   :custom
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
-  (ivy-wrap t)
   (ivy-height 20)
   (ivy-on-del-error-function #'ignore)
   :config
@@ -1852,11 +1825,11 @@ Highlight last expanded string."
 (defun my/counsel-git-status-list (dir)
   (let ((default-directory dir))
     (split-string
-     (shell-command-to-string "git status -s -z --")
-     "\0"
+     (shell-command-to-string "git status -s --")
+     "\n"
      t)))
 (defun my/counsel-git-status-action (x)
-  (when (string-match "\\`[ MADRCU]\\{2\\} \\(.*\\)" x)
+  (when (string-match "\\`[ MADRCU\\?]\\{2\\} \\(?:.*? -> \\)?\\(.*\\)\\'" x)
     (with-ivy-window
       (let ((default-directory (ivy-state-directory ivy-last)))
         (find-file (match-string 1 x))))))
@@ -1867,7 +1840,7 @@ Highlight last expanded string."
               :initial-input initial-input
               :action #'my/counsel-git-status-action
               :caller 'counsel-git-status)))
-(bind-key "C-c C-d" 'my/counsel-git-status)
+(bind-key "C-c d" 'my/counsel-git-status)
 
 ;;; ----------------------------------------------------------------------
 ;;; projectile
