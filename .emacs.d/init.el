@@ -133,6 +133,27 @@
       (package-install pkg))))
 
 ;;; ----------------------------------------------------------------------
+;;; install straight.el
+;;; ----------------------------------------------------------------------
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; (straight-use-package 'diminish)
+;; (straight-use-package 'use-package)
+;; (custom-set-variables
+;;  '(straight-use-package-by-default t))
+
+;;; ----------------------------------------------------------------------
 ;;; use-package
 ;;; ----------------------------------------------------------------------
 (defvar use-package-enable-imenu-support t)
@@ -156,35 +177,6 @@
   (paradox-github-token t)
   (paradox-execute-asynchronously t)
   (paradox-automatically-star t))
-
-;;; ----------------------------------------------------------------------
-;;; el-get
-;;; ----------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-(unless (require 'el-get nil 'noerror)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-    (let (el-get-master-branch)
-      (goto-char (point-max))
-      (eval-print-last-sexp))))
-
-(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-
-;; install packages by el-get
-(defvar el-get-installing-package-list
-  '(
-    dabbrev-highlight
-    emacs-php-align
-    moccur-edit
-    mozc-el-extensions
-    po-mode
-    tempbuf
-    cygwin-mount
-    )
-  "A list of packages to install by el-get at launch.")
-(el-get 'sync el-get-installing-package-list)
 
 ;;; ---------------------------------------------------------------------
 ;;; monokai-theme
@@ -325,9 +317,12 @@
     :after mozc
     :custom (mozc-candidate-style 'posframe))
 
-  (use-package mozc-cursor-color
+  (use-package mozc-el-extensions
+    :straight (:host github :repo "iRi-E/mozc-el-extensions")
     :after mozc
+    :no-require t
     :config
+    (require 'mozc-cursor-color)
     (setq mozc-cursor-color-alist '((direct        . "green")
                                     (read-only     . "yellow")
                                     (hiragana      . "red")
@@ -382,16 +377,12 @@
 (setq-default abbrev-mode nil)
 
 ;;; ----------------------------------------------------------------------
-;;; dabbrev-highlight
-;;; ----------------------------------------------------------------------
-(use-package dabbrev-highlight) ; el-get
-
-;;; ----------------------------------------------------------------------
 ;;; hippie-expand
 ;;; ----------------------------------------------------------------------
 (defun try-complete-abbrev (old)
   (if (expand-abbrev) t nil))
-(setq hippie-expand-try-functions-list
+(custom-set-variables
+ '(hippie-expand-try-functions-list
       '(yas/hippie-try-expand
         try-complete-abbrev
         try-expand-dabbrev
@@ -399,93 +390,9 @@
         try-expand-dabbrev-from-kill
         try-complete-file-name-partially
         try-complete-file-name))
-(define-key esc-map  "/" 'hippie-expand) ;; M-/
-(setq dabbrev-case-fold-search t)
-(setq dabbrev-case-replace t)
-
-;; 光る hippie-expand
-(defvar he-dabbrev-highlight-function "")
-(let (current-load-list)
-  (defadvice try-expand-dabbrev
-      (after dabbrev-expand-highlight activate)
-    "Advised by he-dabbrev-highlight.
-Highlight last expanded string."
-    (setq he-dabbrev-highlight-function "dabbrev")
-    (he-dabbrev-highlight))
-
-  (defadvice try-expand-dabbrev-all-buffers
-      (after dabbrev-expand-highlight activate)
-    "Advised by he-dabbrev-highlight.
-Highlight last expanded string."
-    (setq he-dabbrev-highlight-function "dabbrev-all-buffers")
-    (he-dabbrev-highlight))
-
-  (defadvice try-expand-migemo
-      (after dabbrev-expand-highlight activate)
-    "Advised by he-dabbrev-highlight.
-Highlight last expanded string."
-    (setq he-dabbrev-highlight-function "migemo")
-    (he-dabbrev-highlight)))
-
-(defun he-dabbrev-highlight ()
-  (when ad-return-value
-    (let ((start (marker-position he-search-loc))
-          (len (length (car he-tried-table)))
-          (buf (marker-buffer he-search-loc))
-          (cbuf (current-buffer))
-          end wait)
-      (save-selected-window
-        (save-excursion
-          (if (eq buf cbuf)
-              (if (> start (point))
-                  (setq end start
-                        start (- end len))
-                (setq end (+ start len)))
-            (set-buffer buf)
-            (setq end start
-                  start (- end len)))
-          (if (and (get-buffer-window buf)
-                   (select-window (get-buffer-window buf))
-                   (pos-visible-in-window-p start)
-                   (pos-visible-in-window-p end))
-              (progn
-                ;; Highlight the string used for the last expansion.
-                (if dabbrev-highlight-overlay
-                    (move-overlay dabbrev-highlight-overlay start end)
-                  (setq dabbrev-highlight-overlay (make-overlay start end)))
-                (overlay-put dabbrev-highlight-overlay
-                             'face dabbrev-highlight-face)
-                (add-hook 'pre-command-hook 'dabbrev-highlight-done))
-            (unless (minibufferp cbuf)
-              ;; Display one-line summary in minibuffer.
-              (save-excursion
-                (save-restriction
-                  (widen)
-                  (goto-char start)
-                  (let ((str (buffer-substring-no-properties start end))
-                        (bol (progn (forward-line 0) (point)))
-                        (eol (progn (end-of-line) (point))))
-                    (if (or (featurep 'xemacs)
-                            (<= emacs-major-version 20))
-                        (setq str (concat " *" str "* "))
-                      (put-text-property 0 (length str)
-                                         'face dabbrev-highlight-face str)
-                      (put-text-property 0 (length he-dabbrev-highlight-function)
-                                         'face 'bold he-dabbrev-highlight-function))
-                    (message "%s: %s(%d): %s%s%s"
-                             (format "Using %s" he-dabbrev-highlight-function)
-                             (buffer-name buf)
-                             (count-lines (point-min) start)
-                             (buffer-substring-no-properties bol start)
-                             str
-                             (buffer-substring-no-properties end eol))
-                    (setq wait t))))))))
-      (when wait
-        (let ((inhibit-quit t))
-          (sit-for 10)
-          (when quit-flag
-            (setq quit-flag nil)
-            (setq unread-command-events '(7))))))))
+ '(dabbrev-case-fold-search t)
+ '(dabbrev-case-replace t))
+(bind-key "/" 'hippie-expand esc-map)
 
 ;;; ----------------------------------------------------------------------
 ;;; company-mode
@@ -962,6 +869,7 @@ Highlight last expanded string."
               (bind-key "O" 'dired-do-moccur dired-mode-map))))
 
 (use-package moccur-edit
+  :straight t
   :after color-moccur
   :config
   (defadvice moccur-edit-change-file
@@ -1130,6 +1038,7 @@ Highlight last expanded string."
   (add-hook 'php-mode-hook 'my-php-mode-setup))
 
 (use-package php-align
+  :straight (:host github :repo "tetsujin/emacs-php-align")
   :after php-mode
   :config
   (php-align-setup))
@@ -1311,7 +1220,7 @@ Highlight last expanded string."
 ;;; po-mode
 ;;; ----------------------------------------------------------------------
 (use-package po-mode
-  ;; :ensure t ; el-get
+  :straight t
   :defer t
   :mode ("\\.po\\'\\|\\.po\\.")
   :commands (po-find-file-coding-system)
@@ -2253,6 +2162,7 @@ Highlight last expanded string."
 ;;; tempbuf
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
+  :straight (:host github :repo "valda/tempbuf")
   :hook ((dired-mode
           ;;magit-mode
           custom-mode-hook
