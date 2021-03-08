@@ -68,10 +68,10 @@
 ;;; ----------------------------------------------------------------------
 ;;; WSL
 ;;; ----------------------------------------------------------------------
-(defun my-wsl-p ()
+(defun my/wsl-p ()
   (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop"))
 
-(when (my-wsl-p)
+(when (my/wsl-p)
   (defun reset-frame-parameter (frame)
     (sleep-for 0.1)
     (set-frame-parameter frame 'height 32))
@@ -263,7 +263,7 @@
     :ensure t
     :config
     ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
-    (when (my-wsl-p)
+    (when (my/wsl-p)
       (advice-add 'mozc-session-execute-command
                   :after (lambda (&rest args)
                            (when (eq (nth 0 args) 'CreateSession)
@@ -379,9 +379,7 @@
 (setq save-abbrevs t)
 (setq abbrev-file-name (expand-file-name "~/.emacs.d/.abbrev_defs"))
 (quietly-read-abbrev-file)
-(add-hook 'pre-command-hook
-          (lambda ()
-            (setq abbrev-mode nil)))
+(setq-default abbrev-mode nil)
 
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev-highlight
@@ -616,7 +614,7 @@ Highlight last expanded string."
   (if (window-system)
       (bind-key [mouse-3] 'browse-url-at-mouse))
   :config
-  (cond ((my-wsl-p)
+  (cond ((my/wsl-p)
          (setq browse-url-browser-function 'browse-url-generic)
          (setq browse-url-generic-program  "/init")
          (setq browse-url-generic-args '("/mnt/c/Windows/System32/rundll32.exe" "url.dll,FileProtocolHandler")))
@@ -778,6 +776,35 @@ Highlight last expanded string."
                       (calendar-cursor-to-date t)))
            (exit-calendar)
            (insert day))))))
+
+;;; ----------------------------------------------------------------------
+;;; org-mode / org-roam
+;;; ----------------------------------------------------------------------
+(use-package org
+  :ensure t
+  :defer t
+  :config
+  (add-hook 'org-shiftup-final-hook 'windmove-up)
+  (add-hook 'org-shiftleft-final-hook 'windmove-left)
+  (add-hook 'org-shiftdown-final-hook 'windmove-down)
+  (add-hook 'org-shiftright-final-hook 'windmove-right))
+
+(use-package org-roam
+      :ensure t
+      :hook (after-init . org-roam-mode)
+      :diminish org-roam-mode
+      :custom
+      (org-roam-directory (cond ((string-equal system-name "SILVER")
+               "D:/Dropbox/Documents/org-files/")
+              (t
+               "~/Dropbox/Documents/org-files/")))
+      :bind (:map org-roam-mode-map
+              (("C-c n l" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-graph))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -985,8 +1012,7 @@ Highlight last expanded string."
       (unless (looking-at "^# frozen_string_literal: true")
         (insert "# frozen_string_literal: true\n\n")))))
 
-(defun my-ruby-mode-setup ()
-  "Hooks for Ruby mode."
+(defun my/ruby-mode-setup ()
   (inf-ruby-minor-mode t)
   (electric-indent-mode t)
   (electric-layout-mode t)
@@ -1007,7 +1033,7 @@ Highlight last expanded string."
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
   :config
-  (add-hook 'enh-ruby-mode-hook 'my-ruby-mode-setup))
+  (add-hook 'enh-ruby-mode-hook #'my/ruby-mode-setup))
 
 (use-package inf-ruby
   :ensure t
@@ -1111,18 +1137,13 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(defun my-web-mode-setup ()
+(defun my/web-mode-setup ()
   (setq-local company-backends
               (append '(company-web-html) company-backends))
-  (define-key web-mode-map (kbd "C-'") 'company-web-html)
-  (setq web-mode-enable-current-element-highlight t)
-  (setq web-mode-enable-current-column-highlight t)
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-enable-auto-indentation nil)
   (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?% "w" web-mode-syntax-table))
+    (modify-syntax-entry ?% "w"))
   (when (string-match "\\.php" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?? "w" web-mode-syntax-table)))
+    (modify-syntax-entry ?? "w")))
 
 (use-package web-mode
   :ensure t
@@ -1130,8 +1151,14 @@ Highlight last expanded string."
          "\\.html\\.erb\\'"
          "\\.rhtml?\\'"
          "\\.php\\'")
+  :custom
+  (web-mode-enable-current-element-highlight t)
+  (web-mode-enable-current-column-highlight t)
+  (web-mode-markup-indent-offset 2)
+  (web-mode-enable-auto-indentation nil)
   :config
-  (add-hook 'web-mode-hook 'my-web-mode-setup))
+  (bind-key "C-'" 'company-web-html web-mode-map)
+  (add-hook 'web-mode-hook #'my/web-mode-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode
@@ -1248,7 +1275,7 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; less-css-mode / scss-mode
 ;;; ----------------------------------------------------------------------
-(defun my-css-mode-setup ()
+(defun my/css-mode-setup ()
   (electric-indent-mode t)
   (electric-layout-mode t)
   (setq-local electric-layout-rules
@@ -1262,16 +1289,16 @@ Highlight last expanded string."
   :custom
   (less-css-compile-at-save nil)
   :config
-  (add-hook 'less-css-mode-hook 'my-css-mode-setup))
+  (add-hook 'less-css-mode-hook #'my/css-mode-setup))
 
 (use-package scss-mode
   :ensure t
   :defer t
+  :mode ("\\.scss\\'")
   :custom
   (scss-compile-at-save nil)
   :config
-  (add-hook 'scss-mode-hook 'my-css-mode-setup)
-  (add-to-list 'auto-mode-alist '("\\.scss$" . scss-mode)))
+  (add-hook 'scss-mode-hook #'my/css-mode-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1286,10 +1313,11 @@ Highlight last expanded string."
 (use-package po-mode
   ;; :ensure t ; el-get
   :defer t
-  :mode ("\\.po\\'\\|\\.po\\." . po-mode)
+  :mode ("\\.po\\'\\|\\.po\\.")
   :commands (po-find-file-coding-system)
-  :init (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
-                                    'po-find-file-coding-system))
+  :init
+  (modify-coding-system-alist 'file "\\.po\\'\\|\\.po\\."
+                              'po-find-file-coding-system))
 
 ;;; ----------------------------------------------------------------------
 ;;; es-mode
@@ -1297,7 +1325,7 @@ Highlight last expanded string."
 (use-package es-mode
   :ensure t
   :defer t
-  :mode ("\\.es$" . es-mode))
+  :mode ("\\.es\\'"))
 
 ;;; ----------------------------------------------------------------------
 ;;; mmm-mode
@@ -1348,18 +1376,7 @@ Highlight last expanded string."
      ))
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
   (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  ;;(mmm-add-mode-ext-class nil "\\.erb\\'" 'mmm-eruby-mode)
-  ;;(mmm-add-mode-ext-class nil "\\.rhtml\\'" 'mmm-eruby-mode)
-  (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode)
-  )
-
-;;; ----------------------------------------------------------------------
-;;; latex-mode
-;;; ----------------------------------------------------------------------
-(add-hook 'latex-mode-hook
-          (lambda ()
-            (setq tex-verbatim-face nil)
-            (defun tex-font-lock-suscript () nil)))
+  (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -1371,11 +1388,27 @@ Highlight last expanded string."
   (editorconfig-mode 1))
 
 ;;; ----------------------------------------------------------------------
-;;; その他の major-mode
+;;; yaml-mode
 ;;; ----------------------------------------------------------------------
 (use-package yaml-mode
   :ensure t :defer t)
 
+;;; ----------------------------------------------------------------------
+;;; ansible
+;;; ----------------------------------------------------------------------
+(use-package ansible
+  :ensure t
+  :defer t
+  :init
+  (add-hook 'yaml-mode-hook
+            '(lambda ()
+               (when (string-match "ansible.*/\\(tasks\\|handlers\\)/.*\\.yml\\'"
+                                   (buffer-file-name (current-buffer)))
+                 (ansible 1)))))
+
+;;; ----------------------------------------------------------------------
+;;; その他の major-mode
+;;; ----------------------------------------------------------------------
 (use-package lua-mode
   :ensure t :defer t)
 
@@ -1390,7 +1423,7 @@ Highlight last expanded string."
 
 (use-package nginx-mode
   :ensure t :defer t
-  :mode ("nginx\\(.*\\).conf[^/]*$"))
+  :mode ("nginx.*\\.conf[^/]*\\'"))
 
 (use-package logstash-conf
   :ensure t :defer t)
@@ -1410,21 +1443,17 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; ChangeLog 用の設定
 ;;; ----------------------------------------------------------------------
-(setq user-full-name "YAMAGUCHI, Seiji")
-(setq user-mail-address "valda@underscore.jp")
+(custom-set-variables
+ '(user-full-name "YAMAGUCHI, Seiji")
+ '(user-mail-address "valda@underscore.jp"))
 
 ;;; ----------------------------------------------------------------------
-;;; テンプレートの自動挿入
+;;; ~のつくバックアップファイルの保存場所の指定
 ;;; ----------------------------------------------------------------------
-(setq auto-insert-directory (expand-file-name "~/.emacs.d/insert"))
-;;(add-hook 'find-file-hooks 'auto-insert)
-
-;;; ----------------------------------------------------------------------
-;;; ~のつくバックアップファイルaaの保存場所の指定
-;;; ----------------------------------------------------------------------
-(setq make-backup-files t)
-(add-to-list 'backup-directory-alist
-             (cons "\\.*$" (expand-file-name "~/bak")))
+(custom-set-variables
+ '(backup-directory-alist `(("" . ,(expand-file-name "~/bak"))))
+ '(delete-old-versions t)
+ '(make-backup-files t))
 
 ;;; ----------------------------------------------------------------------
 ;;; recentf / recentf-ext
@@ -1501,18 +1530,16 @@ Highlight last expanded string."
 (use-package flycheck
   :ensure t
   :hook (after-init . global-flycheck-mode)
-  :config
-  (setq flycheck-gcc-language-standard "c++11")
-  (setq flycheck-clang-language-standard "c++11")
-  (setq flycheck-disabled-checkers
-        (append '(
-                  ;;python-flake8
-                  ;;python-pylint
-                  ruby-rubylint
-                  javascript-jshint
-                  javascript-jscs
-                  )
-                flycheck-disabled-checkers)))
+  :custom
+  (flycheck-gcc-language-standard "c++11")
+  (flycheck-clang-language-standard "c++11")
+  (flycheck-disabled-checkers '(
+                                ;;python-flake8
+                                ;;python-pylint
+                                ruby-rubylint
+                                javascript-jshint
+                                javascript-jscs
+                                )))
 
 (use-package flycheck-pyflakes
   :ensure t
@@ -1527,7 +1554,8 @@ Highlight last expanded string."
   :custom-face
   (flycheck-posframe-border-face ((t (:foreground "gray30"))))
   :config
-  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line))
+  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)
+  (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1697,6 +1725,7 @@ Highlight last expanded string."
   ("C-;"     . ivy-switch-buffer)
   ("C-c ;"   . ivy-switch-buffer)
   ("C-c C-r" . ivy-resume)
+  ("<f6>"    . ivy-resume)
   :custom
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
@@ -1727,7 +1756,6 @@ Highlight last expanded string."
   ("C-x C-f" . counsel-find-file)
   ("C-x b" . counsel-switch-buffer)
   ("C-x C-r" . counsel-buffer-or-recentf)
-  ("C-c C-g" . counsel-git-grep)
   ("C-c C-f" . counsel-fzf)
   :config
   (ivy-configure 'counsel-M-x :initial-input "")
@@ -1910,8 +1938,6 @@ Highlight last expanded string."
   :ensure t
   :config
   (popwin-mode 1)
-  (setq pop-up-windows nil)
-  ;;(setq display-buffer-function 'popwin:display-buffer)
   (setq popwin:adjust-other-windows t)
   (setq popwin:special-display-config
         (append '(("*Backtrace*" :height 0.3)
@@ -1922,14 +1948,10 @@ Highlight last expanded string."
                   ("*Warnings*" :height 0.3)
                   ("*Google Translate*" :height 0.3)
                   ("^\\*helm" :regexp t :height 0.4)
-                  ;;("\\*ag search.*\\*" :dedicated t :regexp t :height 0.4)
                   ("*git-gutter:diff*" :height 0.4 :stick t)
-                  (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2)
-                  ;;("*rspec-compilation*" :height 0.4 :stick t :regexp t)
-                  ;;(dired-mode :height 0.4 :position top)
-                  )
+                  (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2))
                 popwin:special-display-config))
-  (define-key global-map (kbd "C-c l") 'popwin:display-last-buffer))
+  (bind-key "C-c l" 'popwin:display-last-buffer))
 
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
@@ -1937,54 +1959,15 @@ Highlight last expanded string."
 (use-package git-gutter
   :ensure t
   :diminish git-gutter-mode
+  :custom
+  (git-gutter:update-hooks '(after-save-hook after-revert-hook))
   :config
-  (setq git-gutter:update-hooks '(after-save-hook after-revert-hook))
   (run-with-idle-timer 1 t 'git-gutter)
   (global-git-gutter-mode t)
-  (global-set-key (kbd "C-x v =") 'git-gutter:popup-hunk)
+  (bind-key "C-x v =" 'git-gutter:popup-hunk)
   (smartrep-define-key
       global-map "C-x v" '(("p" . 'git-gutter:previous-hunk)
                            ("n" . 'git-gutter:next-hunk))))
-
-;;; ----------------------------------------------------------------------
-;;; multi-term
-;;; ----------------------------------------------------------------------
-(use-package multi-term
-  :disabled t
-  :ensure t
-  :defer t
-  :config
-  (setq multi-term-program shell-file-name)
-  (defun my-term-toggle-line-char-mode ()
-    (interactive)
-    (if (term-in-line-mode) (term-char-mode) (term-line-mode)))
-  (defun term-send-ctrl-z ()
-    "Allow using ctrl-z to suspend in multi-term shells."
-    (interactive)
-    (term-send-raw-string "\C-z"))
-  (defun term-send-ctrl-r ()
-    "Allow using ctrl-z to suspend in multi-term shells."
-    (interactive)
-    (term-send-raw-string "\C-r"))
-  (add-hook 'term-mode-hook
-            (lambda()
-              (add-to-list 'term-bind-key-alist '("C-z z" . term-send-ctrl-z))
-              (bind-key "C-r" 'term-send-ctrl-r term-raw-map)
-              (bind-key "ESC <C-return>" 'my-term-toggle-line-char-mode term-raw-map)
-              (bind-key "ESC <C-return>" 'my-term-toggle-line-char-mode term-mode-map)
-              )))
-
-;;; ----------------------------------------------------------------------
-;;; shell-pop
-;;; ----------------------------------------------------------------------
-(use-package shell-pop
-  :disabled t
-  :ensure t
-  :defer t
-  :bind ("<f12>" . shell-pop)
-  :init
-  (setq shell-pop-shell-type '("multi-term" "*terminal*" (lambda () (multi-term))))
-  (setq shell-pop-window-position "bottom"))
 
 ;;; ----------------------------------------------------------------------
 ;;; vterm
@@ -2065,7 +2048,7 @@ Highlight last expanded string."
   :custom
   (google-translate-default-source-language "en")
   (google-translate-default-target-language "ja")
-  :bind ("\C-ct" . google-translate-smooth-translate))
+  :bind ("\C-c t" . google-translate-smooth-translate))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -2180,15 +2163,10 @@ Highlight last expanded string."
 ;;; ----------------------------------------------------------------------
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
-;; (when (require 'auto-async-byte-compile nil t)
-;;   (setq auto-async-byte-compile-exclude-files-regexp "/junk/")
-;;   (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode))
 (use-package auto-async-byte-compile
   :ensure t
-  :config
-  (setq auto-async-byte-compile-exclude-files-regexp "/junk/")
-  :hook
-  (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
+  :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
+  :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; eldoc-mode
@@ -2218,10 +2196,10 @@ Highlight last expanded string."
   :ensure t
   :diminish highlight-indent-guides-mode
   :hook ((yaml-mode python-mode) . highlight-indent-guides-mode)
-  :init
-  (setq highlight-indent-guides-auto-enabled t)
-  (setq highlight-indent-guides-responsive t)
-  (setq highlight-indent-guides-method 'character))
+  :custom
+  (highlight-indent-guides-auto-enabled t)
+  (highlight-indent-guides-responsive t)
+  (highlight-indent-guides-method 'character))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-mode
@@ -2337,6 +2315,7 @@ Highlight last expanded string."
   :bind
   ("C-x C-b" . ibuffer)
   :config
+  (add-to-list 'ibuffer-never-show-predicates "^\\*flycheck-posframe-buffer\\*")
   (define-ibuffer-column
     ;; ibuffer-formats に追加した文字
     coding
