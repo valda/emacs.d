@@ -525,6 +525,8 @@
 ;;; ----------------------------------------------------------------------
 (use-package dired
   :custom
+  (ls-lisp-ignore-case t)
+  (ls-lisp-dirs-first t)
   (dired-listing-switches "-aFl --group-directories-first")
   (dired-dwim-target t)
   (dired-recursive-copies 'always)
@@ -649,7 +651,7 @@
            (insert day))))))
 
 ;;; ----------------------------------------------------------------------
-;;; org-mode / org-roam
+;;; org-mode
 ;;; ----------------------------------------------------------------------
 (use-package org
   :ensure t
@@ -673,19 +675,22 @@
   (add-hook 'org-shiftdown-final-hook 'windmove-down)
   (add-hook 'org-shiftright-final-hook 'windmove-right))
 
-(use-package org-roam
-      :ensure t
-      :hook (after-init . org-roam-mode)
-      :diminish org-roam-mode
-      :custom
-      (org-roam-directory org-directory)
-      :bind (:map org-roam-mode-map
-              (("C-c n l" . org-roam)
-               ("C-c n f" . org-roam-find-file)
-               ("C-c n g" . org-roam-graph))
-              :map org-mode-map
-              (("C-c n i" . org-roam-insert))
-              (("C-c n I" . org-roam-insert-immediate))))
+;;; ----------------------------------------------------------------------
+;;; org-roam
+;;; ----------------------------------------------------------------------
+;; (use-package org-roam
+;;   :ensure t
+;;   :hook (after-init . org-roam-mode)
+;;   :diminish org-roam-mode
+;;   :custom
+;;   (org-roam-directory org-directory)
+;;   :bind (:map org-roam-mode-map
+;;               (("C-c n l" . org-roam)
+;;                ("C-c n f" . org-roam-find-file)
+;;                ("C-c n g" . org-roam-graph))
+;;               :map org-mode-map
+;;               (("C-c n i" . org-roam-insert))
+;;               (("C-c n I" . org-roam-insert-immediate))))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -1755,6 +1760,7 @@
 ;;; vterm
 ;;; ----------------------------------------------------------------------
 (use-package vterm
+  :if (not (eq window-system 'w32))
   :ensure t
   :defer t
   :custom
@@ -1779,6 +1785,7 @@
 ;;; vterm-toggle
 ;;; ----------------------------------------------------------------------
 (use-package vterm-toggle
+  :requires vterm
   :ensure t
   :defer t
   :bind (([f12] . vterm-toggle)
