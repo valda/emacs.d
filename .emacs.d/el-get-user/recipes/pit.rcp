@@ -1,5 +1,0 @@
-(:name pit
-       :type svn
-       :url "http://svn.coderepos.org/share/lang/elisp/pit/trunk/"
-       :description "Manipulate pit data"
-       :website "http://elim.hatenablog.com/entry/20081219/pit_el")

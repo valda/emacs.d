@@ -1,5 +1,0 @@
-(:name dabbrev-highlight
-       :type http
-       :website "http://www.namazu.org/~tsuchiya/elisp/index.html#dabbrev-highlight"
-       :description "Highlight strings refered `dabbrev-expand'"
-       :url "http://www.namazu.org/~tsuchiya/elisp/dabbrev-highlight.el")

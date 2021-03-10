@@ -93,44 +93,16 @@
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
 ;;; ----------------------------------------------------------------------
-;;; package.el
+;;; setting up package.el
 ;;; ----------------------------------------------------------------------
-(setq package-user-dir "~/.emacs.d/elpa")
+(custom-set-variables
+ '(package-user-dir "~/.emacs.d/elpa")
+ '(package-archives
+   '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
+     ("melpa"        . "https://melpa.org/packages/")
+     ("org"          . "http://orgmode.org/elpa/"))))
 (require 'package)
-;; (setq package-archives
-;;       '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
-;;         ("melpa"        . "https://melpa.org/packages/")
-;;         ("melpa-stable" . "https://stable.melpa.org/packages/")
-;;         ("org"          . "http://orgmode.org/elpa/"))
-;;       package-archive-priorities
-;;       '(("melpa-stable" . 10)
-;;         ("gnu"          . 5)
-;;         ("melpa"        . 0)
-;;         ("org"          . 20)))
-;; (setq package-menu-hide-low-priority nil)
-(setq package-archives
-      '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
-        ("melpa"        . "https://melpa.org/packages/")
-        ("org"          . "http://orgmode.org/elpa/"))
-      )
 (package-initialize)
-
-;; install packages by package.el
-(defvar package-el-installing-package-list
-  '(
-    diminish
-    use-package
-    )
-  "A list of packages to install by package.el at launch.")
-
-(require 'cl-macs)
-(let ((not-installed (cl-loop for x in package-el-installing-package-list
-                              when (not (package-installed-p x))
-                              collect x)))
-  (when not-installed
-    (package-refresh-contents)
-    (dolist (pkg not-installed)
-      (package-install pkg))))
 
 ;;; ----------------------------------------------------------------------
 ;;; install straight.el
@@ -148,15 +120,11 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;; (straight-use-package 'diminish)
-;; (straight-use-package 'use-package)
-;; (custom-set-variables
-;;  '(straight-use-package-by-default t))
-
 ;;; ----------------------------------------------------------------------
 ;;; use-package
 ;;; ----------------------------------------------------------------------
-(defvar use-package-enable-imenu-support t)
+(straight-use-package 'use-package)
+(straight-use-package 'diminish)
 (eval-when-compile
   (require 'use-package))
 (require 'diminish)
@@ -164,7 +132,8 @@
 (custom-set-variables
  '(use-package-verbose t)
  '(use-package-minimum-reported-time 0.001)
- '(use-package-compute-statistics t))
+ '(use-package-compute-statistics t)
+ '(use-package-enable-imenu-support t))
 
 ;;; ----------------------------------------------------------------------
 ;;; paradox
@@ -342,31 +311,20 @@
 (use-package smartrep
   :ensure t
   :commands smartrep-define-key
-  :config
-  (setq smartrep-mode-line-active-bg "DeepSkyBlue4"))
-
-;;; ----------------------------------------------------------------------
-;;; snippet.el
-;;; ----------------------------------------------------------------------
-(use-package snippet
-  :ensure t
-  :commands (snippet-insert))
+  :custom (smartrep-mode-line-active-bg "DeepSkyBlue4"))
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
 ;;; ----------------------------------------------------------------------
 (use-package yasnippet
   :ensure t
-  :defer t
   :diminish yas-minor-mode
-  :init
-  (yas-global-mode 1)
-  (add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
-  (add-to-list 'auto-mode-alist '("emacs\\.d/snippets/" . snippet-mode))
   :config
   ;; Remove Yasnippet's default tab key binding
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil))
+  (bind-keys :map yas-minor-mode-map
+             ("<tab>" . nil)
+             ("TAB" . nil))
+  (yas-global-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; abbrev/dabbrev
@@ -596,6 +554,16 @@
                        (dired-k))))
 
 ;;; ----------------------------------------------------------------------
+;;; Dropbox のパス
+;;; ----------------------------------------------------------------------
+(use-package f :ensure t)
+(setq my-dropbox-directory
+      (cond ((string-equal system-name "SILVER")
+             "D:/Dropbox/")
+            (t
+             "~/Dropbox/")))
+
+;;; ----------------------------------------------------------------------
 ;;; howm
 ;;; ----------------------------------------------------------------------
 (use-package howm
@@ -612,11 +580,7 @@
   (howm-reminder-normal-face ((t (:foreground "deep sky blue"))))
   :config
   (setq howm-compatible-to-ver1dot3 t)
-  (setq howm-directory
-        (cond ((string-equal system-name "SILVER")
-               "D:/Dropbox/Documents/howm/")
-              (t
-               "~/Dropbox/Documents/howm/")))
+  (setq howm-directory (f-join my-dropbox-directory "Documents/howm"))
   (add-hook 'find-file-hook
             (lambda ()
               (when (and
@@ -690,6 +654,19 @@
 (use-package org
   :ensure t
   :defer t
+  :bind
+  ("\C-c c" . org-capture)
+  :custom
+  (org-directory (f-join my-dropbox-directory "Documents/org"))
+  (org-default-notes-file (f-join org-directory "notes.org"))
+  (org-capture-templates
+   '(("n" "Note" entry (file+headline org-default-notes-file "Notes")
+      "* %?\nEntered on %U\n %i\n %a\n"
+      :empty-lines 1)
+     ("t" "Task" entry (file+headline org-default-notes-file "Tasks")
+      "** TODO %?\n   Entered on %U\n %i\n"
+      :empty-lines 1)
+     ))
   :config
   (add-hook 'org-shiftup-final-hook 'windmove-up)
   (add-hook 'org-shiftleft-final-hook 'windmove-left)
@@ -701,10 +678,7 @@
       :hook (after-init . org-roam-mode)
       :diminish org-roam-mode
       :custom
-      (org-roam-directory (cond ((string-equal system-name "SILVER")
-               "D:/Dropbox/Documents/org-files/")
-              (t
-               "~/Dropbox/Documents/org-files/")))
+      (org-roam-directory org-directory)
       :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
@@ -1507,9 +1481,9 @@
 ;;; ----------------------------------------------------------------------
 (use-package bm
   :ensure t
+  :custom
+  (bm-buffer-persistence t)
   :config
-  (setq-default bm-buffer-persistence t)
-  (setq bm-repository-file "~/.emacs.d/.bm-repository")
   (add-hook 'after-init-hook 'bm-repository-load)
   (add-hook 'find-file-hook 'bm-buffer-restore)
   (add-hook 'kill-buffer-hook 'bm-buffer-save)
@@ -1519,110 +1493,9 @@
                                 (bm-buffer-save-all)
                                 (bm-repository-save)))
   ;; M$ Visual Studio key setup.
-  (global-set-key (kbd "<C-f2>") 'bm-toggle)
-  (global-set-key (kbd "<f2>")   'bm-next)
-  (global-set-key (kbd "<S-f2>") 'bm-previous))
-
-;;; ----------------------------------------------------------------------
-;;; helm
-;;; ----------------------------------------------------------------------
-;; (use-package helm
-;;   :ensure t
-;;   :diminish (helm-mode helm-migemo-mode)
-;;   :bind
-;;   ("C-;"     . helm-mini)
-;;   ("C-c ;"   . helm-mini)
-;;   ("M-x"     . helm-M-x)
-;;   ("C-x b"   . helm-buffers-list)
-;;   ("M-y"     . helm-show-kill-ring)
-;;   ("C-c d"   . helm-browse-project)
-;;   ("C-x C-r" . helm-recentf)
-;;   ("C-x C-f" . helm-find-files)
-;;   (:map helm-find-files-map
-;;         ("C-<backspace>" . nil)
-;;         ("TAB" . helm-execute-persistent-action))
-;;   :custom
-;;   (helm-ff-auto-update-initial-value nil)
-;;   (helm-input-idle-delay 0.2)
-;;   (helm-buffer-max-length 50)
-;;   (helm-inherit-input-method nil)
-;;   (helm-candidate-number-limit 100)
-;;   (helm-truncate-lines t)
-;;   (helm-mini-default-sources '(helm-source-buffers-list
-;;                                helm-source-recentf
-;;                                helm-source-files-in-current-dir
-;;                                helm-source-buffer-not-found))
-;;   :config
-;;   (require 'helm-config)
-;;   (require 'helm-buffers)
-;;   (require 'helm-files)
-;;   (helm-migemo-mode +1))
-
-;; (use-package helm-descbinds
-;;   :ensure t
-;;   :after helm
-;;   :config (helm-descbinds-mode +1))
-
-;; (use-package helm-bm
-;;   :ensure t
-;;   :bind ("C-c b" . helm-bm))
-
-;; (use-package helm-ls-git
-;;   :ensure t
-;;   :after helm)
-
-;; (use-package helm-git-grep
-;;   :ensure t
-;;   :bind ("C-c C-g" . helm-git-grep-at-point))
-
-;; (use-package helm-c-yasnippet
-;;   :ensure t
-;;   :bind ("C-c y" . helm-yas-complete)
-;;   :config
-;;   (setq helm-yas-space-match-any-greedy t))
-
-;; (use-package helm-gtags
-;;   :ensure t
-;;   :diminish helm-gtags-mode
-;;   :hook (prog-mode . helm-gtags-mode)
-;;   :config
-;;   (setq helm-gtags-auto-update t)
-;;   (bind-key "M-t" 'helm-gtags-find-tag    helm-gtags-mode-map)
-;;   (bind-key "M-r" 'helm-gtags-find-rtag   helm-gtags-mode-map)
-;;   (bind-key "M-s" 'helm-gtags-find-symbol helm-gtags-mode-map)
-;;   (bind-key "M-," 'helm-gtags-pop-stack   helm-gtags-mode-map)
-;;   (smartrep-define-key
-;;       helm-gtags-mode-map "C-c" '(("<" . 'helm-gtags-previous-history)
-;;                                   (">" . 'helm-gtags-next-history))))
-
-;; (use-package helm-flycheck
-;;   :ensure t
-;;   :after (flycheck)
-;;   :config
-;;   (bind-key "C-c ! h" 'helm-flycheck flycheck-mode-map))
-
-;; (use-package helm-swoop
-;;   :ensure t
-;;   :defer t
-;;   :custom
-;;   (helm-multi-swoop-edit-save t)
-;;   :bind
-;;   ("M-i"     . helm-swoop)
-;;   ("M-I"     . helm-swoop-back-to-last-point)
-;;   ("C-c M-i" . helm-multi-swoop)
-;;   ("C-x M-i" . helm-multi-swoop-all)
-;;   (:map isearch-mode-map
-;;         ("M-i"     . helm-swoop-from-isearch))
-;;   :config
-;;   (bind-key "M-i" 'helm-multi-swoop-all-from-helm-swoop helm-swoop-map))
-
-;; (use-package helm-ag
-;;   :ensure t
-;;   :custom
-;;   (helm-ag-insert-at-point 'symbol))
-
-;; (use-package helm-rg
-;;   :ensure t)
+  (bind-key "<C-f2>" 'bm-toggle)
+  (bind-key "<f2>"   'bm-next)
+  (bind-key "<S-f2>" 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
 ;;; ivy

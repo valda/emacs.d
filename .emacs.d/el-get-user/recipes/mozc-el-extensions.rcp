@@ -1,5 +1,0 @@
-(:name mozc-el-extensions
-       :type github
-       :pkgname "iRi-E/mozc-el-extensions"
-       :description "mozc.el extensions"
-       :website "https://github.com/iRi-E/mozc-el-extensions")

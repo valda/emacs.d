@@ -1,4 +1,0 @@
-(:name tempbuf
-       :description "Kill unused buffers in the background"
-       :type emacswiki
-       :website "https://www.emacswiki.org/emacs/tempbuf.el")

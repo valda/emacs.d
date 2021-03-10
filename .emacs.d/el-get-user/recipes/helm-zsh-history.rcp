@@ -1,4 +1,0 @@
-(:name helm-zsh-history
-       :description "Find zsh history by helm"
-       :type github
-       :pkgname "Lompik/helm-zsh-history")

@@ -1,5 +1,0 @@
-(:name emacs-rails
-       :description "Minor mode for editing RubyOnRails code in Emacs"
-       :type github
-       :pkgname "remvee/emacs-rails"
-       :feature "emacs-rails")
