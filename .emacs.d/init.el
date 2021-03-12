@@ -310,8 +310,8 @@
 ;;; ----------------------------------------------------------------------
 (use-package smartrep
   :ensure t
-  :commands smartrep-define-key
-  :custom (smartrep-mode-line-active-bg "DeepSkyBlue4"))
+  :custom
+  (smartrep-mode-line-active-bg "DeepSkyBlue4"))
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
@@ -419,15 +419,17 @@
 ;;; ----------------------------------------------------------------------
 ;;; windmove
 ;;; ----------------------------------------------------------------------
-(windmove-default-keybindings)
+(use-package windmove
+  :config
+  (windmove-default-keybindings))
 
 ;;; ----------------------------------------------------------------------
 ;;; winner-mode
 ;;; ----------------------------------------------------------------------
 (winner-mode t)
 (smartrep-define-key
-    winner-mode-map "C-c" '(("<left>" . 'winner-undo)
-                            ("<right>" . 'winner-redo)))
+    winner-mode-map "C-c" '(("/" . 'winner-undo)
+                            ("." . 'winner-redo)))
 
 ;;; ----------------------------------------------------------------------
 ;;; nswbuff
@@ -459,7 +461,7 @@
   (nswbuff-display-intermediate-buffers t)
   :init
   (smartrep-define-key
-      global-map "C-x" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
+      global-map "C-c" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
                          ("<right>" . 'nswbuff-switch-to-next-buffer))))
 
 ;;; ----------------------------------------------------------------------
@@ -508,10 +510,10 @@
   :custom
   (migemo-command "cmigemo")
   (migemo-options '("-q" "--emacs"))
-  (cond ((eq window-system 'w32)
-         (migemo-dictionary "./dict/utf-8/migemo-dict"))
-        (t
-         (migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict")))
+  (migemo-dictionary (cond ((eq window-system 'w32)
+                            "./dict/utf-8/migemo-dict")
+                           (t
+                            "/usr/share/cmigemo/utf-8/migemo-dict")))
   (migemo-coding-system 'utf-8-unix)
   (migemo-use-pattern-alist nil)
   (migemo-use-frequent-pattern-alist t)
@@ -521,19 +523,17 @@
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
-;;; dired
+;;; dired 関係
 ;;; ----------------------------------------------------------------------
-(use-package dired
+(use-package dired-x
   :custom
   (ls-lisp-ignore-case t)
   (ls-lisp-dirs-first t)
+
   (dired-listing-switches "-aFl --group-directories-first")
   (dired-dwim-target t)
   (dired-recursive-copies 'always)
-  (dired-isearch-filenames t))
-
-(use-package dired-x
-  :after dired
+  (dired-isearch-filenames t)
   :config
   (add-hook 'dired-mode-hook
             (lambda ()
@@ -653,44 +653,42 @@
 ;;; ----------------------------------------------------------------------
 ;;; org-mode
 ;;; ----------------------------------------------------------------------
+;; 組み込みの org を使わない
+(assq-delete-all 'org package--builtins)
 (use-package org
   :ensure t
   :defer t
   :bind
   ("\C-c c" . org-capture)
+  ("\C-c a" . org-agenda)
   :custom
   (org-directory (f-join my-dropbox-directory "Documents/org"))
   (org-default-notes-file (f-join org-directory "notes.org"))
   (org-capture-templates
    '(("n" "Note" entry (file+headline org-default-notes-file "Notes")
-      "* %?\nEntered on %U\n %i\n %a\n"
+      "* %?\n   Entered on %U\n %i\n %a\n"
       :empty-lines 1)
-     ("t" "Task" entry (file+headline org-default-notes-file "Tasks")
-      "** TODO %?\n   Entered on %U\n %i\n"
+     ("t" "Task" entry (file+headline (lambda() (concat org-directory "/tasks.org")) "Inbox")
+      "* TODO %?\n   Entered on %U\n %i\n"
       :empty-lines 1)
      ))
+  (org-agenda-files `(,org-directory))
+  (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
+  (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
+  (org-use-speed-commands t)
   :config
-  (add-hook 'org-shiftup-final-hook 'windmove-up)
-  (add-hook 'org-shiftleft-final-hook 'windmove-left)
-  (add-hook 'org-shiftdown-final-hook 'windmove-down)
-  (add-hook 'org-shiftright-final-hook 'windmove-right))
+  (bind-keys :map org-mode-map
+             ([S-up] . nil)
+             ([S-down] . nil)
+             ([S-left] . nil)
+             ([S-right] . nil)))
 
-;;; ----------------------------------------------------------------------
-;;; org-roam
-;;; ----------------------------------------------------------------------
-;; (use-package org-roam
-;;   :ensure t
-;;   :hook (after-init . org-roam-mode)
-;;   :diminish org-roam-mode
-;;   :custom
-;;   (org-roam-directory org-directory)
-;;   :bind (:map org-roam-mode-map
-;;               (("C-c n l" . org-roam)
-;;                ("C-c n f" . org-roam-find-file)
-;;                ("C-c n g" . org-roam-graph))
-;;               :map org-mode-map
-;;               (("C-c n i" . org-roam-insert))
-;;               (("C-c n I" . org-roam-insert-immediate))))
+(use-package
+  org-mobile-sync
+  :ensure t
+  :after org
+  :config
+  (org-mobile-sync-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -835,6 +833,7 @@
 ;;; moccur
 ;;; ----------------------------------------------------------------------
 (use-package color-moccur
+  :ensure t
   :bind (("M-o"         . occur-by-moccur)
          ("C-c C-x C-o" . moccur))
   :custom
@@ -848,6 +847,7 @@
               (bind-key "O" 'dired-do-moccur dired-mode-map))))
 
 (use-package moccur-edit
+  ;;:straight (:host github :repo "myuhe/moccur-edit.el")
   :straight t
   :after color-moccur
   :config
@@ -879,10 +879,10 @@
   (magit-log-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
   :config
   (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
-  (define-key magit-status-mode-map [C-tab] nil)
-  (define-key magit-status-mode-map [C-iso-lefttab] nil)
-  (define-key magit-diff-mode-map [C-tab] nil)
-  (define-key magit-diff-mode-map [C-iso-lefttab] nil))
+  (bind-key [C-tab]         nil magit-status-mode-map)
+  (bind-key [C-iso-lefttab] nil magit-status-mode-map)
+  (bind-key [C-tab]         nil magit-diff-mode-map)
+  (bind-key [C-iso-lefttab] nil magit-diff-mode-map))
 
 ;;; ----------------------------------------------------------------------
 ;;; enhanced-ruby-mode
@@ -1025,14 +1025,6 @@
 ;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
-(defun my/web-mode-setup ()
-  (setq-local company-backends
-              (append '(company-web-html) company-backends))
-  (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?% "w"))
-  (when (string-match "\\.php" (buffer-file-name (current-buffer)))
-    (modify-syntax-entry ?? "w")))
-
 (use-package web-mode
   :ensure t
   :mode ("\\.html?\\'"
@@ -1046,6 +1038,14 @@
   (web-mode-enable-auto-indentation nil)
   :config
   (bind-key "C-'" 'company-web-html web-mode-map)
+  ;;(bind-key "C-c C-r" nil web-mode-map)
+  (defun my/web-mode-setup ()
+    (setq-local company-backends
+                (append '(company-web-html) company-backends))
+    (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
+      (modify-syntax-entry ?% "w"))
+    (when (string-match "\\.php" (buffer-file-name (current-buffer)))
+      (modify-syntax-entry ?? "w")))
   (add-hook 'web-mode-hook #'my/web-mode-setup))
 
 ;;; ----------------------------------------------------------------------
@@ -1061,7 +1061,6 @@
   (js2-highlight-external-variables nil)
   (js2-include-jslint-globals nil)
   :config
-  (bind-key "C-c C-r" nil web-mode-map)
   (add-hook 'js2-mode-hook
             (lambda()
               (setq js2-basic-offset 2)
@@ -1361,7 +1360,7 @@
   (recentf-mode 1))
 
 (use-package recentf-ext
-  :ensure t)
+  :ensure t :after recentf)
 
 ;;; ----------------------------------------------------------------------
 ;;; session
@@ -1393,8 +1392,8 @@
 ;;; ----------------------------------------------------------------------
 (use-package elscreen
   :ensure t
-  :init
-  (setq elscreen-display-tab nil)
+  :custom
+  (elscreen-display-tab nil)
   :config
   (elscreen-start)
   (global-unset-key "\C-z")
@@ -1511,9 +1510,9 @@
   :bind
   ("C-;"     . ivy-switch-buffer)
   ("C-c ;"   . ivy-switch-buffer)
-  ("C-c C-r" . ivy-resume)
   ("<f6>"    . ivy-resume)
   :custom
+  (bind-key* "C-c C-r" 'ivy-resume)
   (ivy-use-virtual-buffers t)
   (ivy-virtual-abbreviate 'abbreviate)
   (ivy-height 20)
@@ -1526,8 +1525,8 @@
   :ensure t
   :defer t
   :bind
-  ("M-i" . swiper-thing-at-point)
-  ("M-I" . swiper-all-thing-at-point)
+  ("M-i" . swiper)
+  ("M-I" . swiper-thing-at-point)
   (:map isearch-mode-map
         ("M-i" . swiper-from-isearch)))
 
@@ -1785,7 +1784,7 @@
 ;;; vterm-toggle
 ;;; ----------------------------------------------------------------------
 (use-package vterm-toggle
-  :requires vterm
+  :if (not (eq window-system 'w32))
   :ensure t
   :defer t
   :bind (([f12] . vterm-toggle)
