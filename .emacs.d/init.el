@@ -37,7 +37,8 @@
  '(ring-bell-function 'ignore)
  '(search-default-regexp-mode nil)
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(ediff-split-window-function 'split-window-horizontally))
+ '(ediff-split-window-function 'split-window-horizontally)
+ '(use-dialog-box nil))
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -98,9 +99,9 @@
 (custom-set-variables
  '(package-user-dir "~/.emacs.d/elpa")
  '(package-archives
-   '(("gnu"          . "http://mirrors.163.com/elpa/gnu/")
-     ("melpa"        . "https://melpa.org/packages/")
-     ("org"          . "http://orgmode.org/elpa/"))))
+   '(("gnu"   . "https://elpa.gnu.org/packages/")
+     ("melpa" . "https://melpa.org/packages/")
+     ("org"   . "https://orgmode.org/elpa/"))))
 (require 'package)
 (package-initialize)
 
@@ -306,14 +307,6 @@
        (my-mozc-init)))
 
 ;;; ----------------------------------------------------------------------
-;;; smartrep.el
-;;; ----------------------------------------------------------------------
-(use-package smartrep
-  :ensure t
-  :custom
-  (smartrep-mode-line-active-bg "DeepSkyBlue4"))
-
-;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
 ;;; ----------------------------------------------------------------------
 (use-package yasnippet
@@ -420,49 +413,77 @@
 ;;; windmove
 ;;; ----------------------------------------------------------------------
 (use-package windmove
-  :config
-  (windmove-default-keybindings))
+  :config (windmove-default-keybindings))
+
+;;; ----------------------------------------------------------------------
+;;; buffer-move
+;;; ----------------------------------------------------------------------
+(use-package buffer-move
+  :ensure t
+  :bind (([C-S-up]     . buf-move-up)
+         ([C-S-down]   . buf-move-down)
+         ([C-S-left]   . buf-move-left)
+         ([C-S-right]  . buf-move-right)))
+
+;;; ----------------------------------------------------------------------
+;;; hydra
+;;; ----------------------------------------------------------------------
+(use-package hydra :ensure t)
+(defhydra hydra-buff (global-map "C-x")
+  "Switch buffer"
+  ("<left>" previous-buffer "previous")
+  ("<right>" next-buffer "next"))
+(defhydra hydra-resize-window nil
+  "Resize Window"
+  ("<up>" enlarge-window "enlarge vertically")
+  ("<down>" shrink-window "shrink vertically")
+  ("<left>" shrink-window-horizontally "shrink horizontally")
+  ("<right>" enlarge-window-horizontally "enlarge horizontally"))
 
 ;;; ----------------------------------------------------------------------
 ;;; winner-mode
 ;;; ----------------------------------------------------------------------
-(winner-mode t)
-(smartrep-define-key
-    winner-mode-map "C-c" '(("/" . 'winner-undo)
-                            ("." . 'winner-redo)))
+(use-package winner
+  :custom (winner-dont-bind-my-keys t)
+  :config
+  (winner-mode t)
+  (defhydra hydra-winner (winner-mode-map "C-c")
+    "Winner"
+    ("<left>" winner-undo "undo")
+    ("<right>" winner-redo "redo")))
 
 ;;; ----------------------------------------------------------------------
 ;;; nswbuff
 ;;; ----------------------------------------------------------------------
-(use-package nswbuff
-  :ensure t
-  :commands
-  (nswbuff-switch-to-next-buffer nswbuff-switch-to-previous-buffer)
-  :bind
-  ([C-tab] . nswbuff-switch-to-next-buffer)
-  ([C-iso-lefttab] . nswbuff-switch-to-previous-buffer)
-  :custom
-  (nswbuff-exclude-buffer-regexps
-   '("^ .*"
-     "^\\*Backtrace\\*"
-     "^\\*[Ee]diff.*\\*"
-     "^\\*Flycheck.*\\*"
-     "^\\*Help\\*"
-     "^\\*Ibuffer\\*"
-     "^\\*Messages\\*"
-     "^\\*Moccur\\*"
-     "^\\*Rubocop.*\\*"
-     "^\\*ansi-term.*\\*"
-     "^\\*helm.*\\*"
-     "^\\*magit.*"
-     "^\\*rspec-compilation\\*"
-     "^magit-process.*"))
-  (nswbuff-clear-delay 3)
-  (nswbuff-display-intermediate-buffers t)
-  :init
-  (smartrep-define-key
-      global-map "C-c" '(("<left>" . 'nswbuff-switch-to-previous-buffer)
-                         ("<right>" . 'nswbuff-switch-to-next-buffer))))
+;; (use-package nswbuff
+;;   :ensure t
+;;   :commands
+;;   (nswbuff-switch-to-next-buffer nswbuff-switch-to-previous-buffer)
+;;   :bind
+;;   ([C-tab] . nswbuff-switch-to-next-buffer)
+;;   ([C-iso-lefttab] . nswbuff-switch-to-previous-buffer)
+;;   :custom
+;;   (nswbuff-exclude-buffer-regexps
+;;    '("^ .*"
+;;      "^\\*Backtrace\\*"
+;;      "^\\*[Ee]diff.*\\*"
+;;      "^\\*Flycheck.*\\*"
+;;      "^\\*Help\\*"
+;;      "^\\*Ibuffer\\*"
+;;      "^\\*Messages\\*"
+;;      "^\\*Moccur\\*"
+;;      "^\\*Rubocop.*\\*"
+;;      "^\\*ansi-term.*\\*"
+;;      "^\\*helm.*\\*"
+;;      "^\\*rspec-compilation\\*"
+;;      "^\\*magit.*"
+;;      "^magit-process.*"
+;;      "^\\*git-gutter:diff\\*"
+;;      "^\\*straight-process\\*"
+;;      "^\\*Calendar\\*"
+;;      "^\\*Paradox Report\\*"))
+;;   (nswbuff-clear-delay 3)
+;;   (nswbuff-display-intermediate-buffers t))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -498,15 +519,15 @@
 (use-package undo-tree
   :ensure t
   :diminish undo-tree-mode
-  :config
-  (global-undo-tree-mode)
-  (bind-key "C-." 'undo-tree-redo))
+  :bind ("C-." . 'undo-tree-redo)
+  :config (global-undo-tree-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; migemo
 ;;; ----------------------------------------------------------------------
 (use-package migemo
   :ensure t
+  :hook (after-init . migemo-init)
   :custom
   (migemo-command "cmigemo")
   (migemo-options '("-q" "--emacs"))
@@ -518,9 +539,7 @@
   (migemo-use-pattern-alist nil)
   (migemo-use-frequent-pattern-alist t)
   (migemo-pattern-alist-length 1024)
-  (migemo-isearch-min-length 2)
-  :config
-  (migemo-init))
+  (migemo-isearch-min-length 2))
 
 ;;; ----------------------------------------------------------------------
 ;;; dired 関係
@@ -577,12 +596,29 @@
   :bind (("\C-c,," . howm-menu)
          ("\C-c,c" . howm-create))
   :mode ("\\.howm\\'" . howm-mode)
+  :custom
+  (howm-directory (f-join my-dropbox-directory "Documents/howm"))
+  (howm-menu-lang 'ja)
+  (howm-process-coding-system 'utf-8)
+  ;; 「最近のメモ」一覧時にタイトル表示
+  (howm-list-recent-title t)
+  ;; 全メモ一覧時にタイトル表示
+  (howm-list-all-title t)
+  ;; メニューを 2 時間キャッシュ
+  (howm-menu-expiry-hours 2)
+  ;; howm の時は auto-fill で
+  ;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
+  ;; RET でファイルを開く際, 一覧バッファを消す
+  ;; C-u RET なら残る
+  (howm-view-summary-persistent nil)
+  ;; 検索しないファイルの正規表現
+  (howm-excluded-file-regexp "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
+  ;; howmメニューの完了済みToDoは非表示にする
+  (howm-todo-menu-types "[-+~!]")
   :custom-face
   (howm-mode-title-face ((t (:foreground "cyan"))))
   (howm-reminder-normal-face ((t (:foreground "deep sky blue"))))
   :config
-  (setq howm-compatible-to-ver1dot3 t)
-  (setq howm-directory (f-join my-dropbox-directory "Documents/howm"))
   (add-hook 'find-file-hook
             (lambda ()
               (when (and
@@ -590,29 +626,6 @@
                      (string-match (expand-file-name howm-directory)
                                    (expand-file-name buffer-file-name)))
                 (howm-mode))))
-  (setq howm-menu-lang 'ja)
-  ;; メモは UTF-8
-  (add-to-list 'auto-coding-alist '("\\.howm\\'" . utf-8-unix))
-  (setq howm-process-coding-system 'utf-8)
-  (add-hook 'howm-create-file-hook
-            (lambda ()
-              (set-buffer-file-coding-system 'utf-8)))
-  ;; 「最近のメモ」一覧時にタイトル表示
-  (setq howm-list-recent-title t)
-  ;; 全メモ一覧時にタイトル表示
-  (setq howm-list-all-title t)
-  ;; メニューを 2 時間キャッシュ
-  (setq howm-menu-expiry-hours 2)
-  ;; howm の時は auto-fill で
-  ;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
-  ;; RET でファイルを開く際, 一覧バッファを消す
-  ;; C-u RET なら残る
-  (setq howm-view-summary-persistent nil)
-  ;; 検索しないファイルの正規表現
-  (setq howm-excluded-file-regexp
-        "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
-  ;; howmメニューの完了済みToDoは非表示にする
-  (setq howm-todo-menu-types "[-+~!]")
   ;; いちいち消すのも面倒なので
   ;; 内容が 0 ならファイルごと削除する
   (defun delete-file-if-no-contents ()
@@ -675,16 +688,38 @@
   (org-agenda-files `(,org-directory))
   (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
+  (org-replace-disputed-keys t)
   (org-use-speed-commands t)
+  (org-todo-keywords '((sequence "TODO" "SOMEDAY" "WAIT" "|" "DONE")))
   :config
   (bind-keys :map org-mode-map
-             ([S-up] . nil)
-             ([S-down] . nil)
-             ([S-left] . nil)
-             ([S-right] . nil)))
+             ([S-C-up] . nil)
+             ([S-C-down] . nil)
+             ("C-c ," . nil))
+  (defhydra hydra-org (org-mode-map "ESC")
+    "Org meta"
+    ("<up>"      org-metaup    "up")
+    ("<down>"    org-metadown  "down")
+    ("<left>"    org-metaleft  "left")
+    ("<right>"   org-metaright "right")
+    ("<S-up>"    org-shiftmetaup    "shift-up")
+    ("<S-down>"  org-shiftmetadown  "shift-down")
+    ("<S-left>"  org-shiftmetaleft  "shift-left")
+    ("<S-right>" org-shiftmetaright "shift-right")
+    ("q" nil "quit" :exit t))
+  (eval-after-load 'org-agenda
+    (bind-keys :map org-agenda-mode-map
+               ([S-C-up] . nil)
+               ([S-C-down] . nil)
+             )))
 
-(use-package
-  org-mobile-sync
+(use-package org-bullets
+  :ensure t
+  :custom (org-bullets-bullet-list '("✿" "◉" "○" "►" "•"))
+  :hook (org-mode . org-bullets-mode))
+
+(use-package org-mobile-sync
+  :disabled t
   :ensure t
   :after org
   :config
@@ -1395,21 +1430,14 @@
   :custom
   (elscreen-display-tab nil)
   :config
-  (elscreen-start)
-  (global-unset-key "\C-z")
-  (global-unset-key "\C-t")
-  (cond (window-system
-         (elscreen-set-prefix-key "\C-z")
-         (define-key elscreen-map "\C-z" 'elscreen-toggle)
-         (define-key elscreen-map "z" 'iconify-frame))
-        (t
-         (elscreen-set-prefix-key "\C-t")
-         (define-key elscreen-map "\C-t" 'elscreen-toggle)))
-  (smartrep-define-key
-      global-map elscreen-prefix-key '(("p" . 'elscreen-previous)
-                                       ("n" . 'elscreen-next)
-                                       ("<left>" . 'elscreen-previous)
-                                       ("<right>" . 'elscreen-next))))
+  (elscreen-set-prefix-key "\C-z")
+  (bind-key "\C-z" 'elscreen-toggle elscreen-map)
+  (defhydra hydra-switch-elscreen (global-map "\C-z")
+    "Switch ElScreen"
+    ("<left>"  elscreen-previous "previous")
+    ("<right>" elscreen-next     "next")
+    ("q" nil "quit" :exit t))
+  (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -1573,13 +1601,15 @@
   :hook (prog-mode . counsel-gtags-mode)
   :custom (counsel-gtags-auto-update t)
   :config
-  (bind-key "M-t" 'counsel-gtags-find-definition counsel-gtags-mode-map)
-  (bind-key "M-r" 'counsel-gtags-find-reference  counsel-gtags-mode-map)
-  (bind-key "M-s" 'counsel-gtags-find-symbol     counsel-gtags-mode-map)
-  (bind-key "M-," 'counsel-gtags-go-backward     counsel-gtags-mode-map)
-  (smartrep-define-key
-      counsel-gtags-mode-map "C-c" '(("<" . 'counsel-gtags-go-backward)
-                                     (">" . 'counsel-gtags-go-forward))))
+  (bind-keys :map counsel-gtags-mode-map
+             ("M-t" . counsel-gtags-find-definition)
+             ("M-r" . counsel-gtags-find-reference)
+             ("M-s" . counsel-gtags-find-symbol)
+             ("M-," . counsel-gtags-go-backward))
+  (defhydra hydra-counsel-gtags (counsel-gtags-mode-map "C-c")
+    "Gtags context stack"
+    ("<" counsel-gtags-go-backward "go backward")
+    (">" counsel-gtags-go-forward "go forward")))
 
 ;;; ivy インターフェイスで bm.el の bookmark を選択
 ;;; https://www.reddit.com/r/emacs/comments/700xck/ivy_with_bmel_bookmark_manager/
@@ -1737,6 +1767,7 @@
                   ("*git-gutter:diff*" :height 0.4 :stick t)
                   (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2))
                 popwin:special-display-config))
+
   (bind-key "C-c l" 'popwin:display-last-buffer))
 
 ;;; ----------------------------------------------------------------------
@@ -1750,10 +1781,14 @@
   :config
   (run-with-idle-timer 1 t 'git-gutter)
   (global-git-gutter-mode t)
-  (bind-key "C-x v =" 'git-gutter:popup-hunk)
-  (smartrep-define-key
-      global-map "C-x v" '(("p" . 'git-gutter:previous-hunk)
-                           ("n" . 'git-gutter:next-hunk))))
+  (defhydra hydra-git-gutter nil
+    "git hunk"
+    ("p" git-gutter:previous-hunk "previous")
+    ("n" git-gutter:next-hunk "next")
+    ("s" git-gutter:stage-hunk "stage" :exit t)
+    ("r" git-gutter:revert-hunk "revert" :exit t)
+    ("SPC" git-gutter:popup-hunk "toggle diffinfo" :exit t))
+  (bind-key "C-x v" 'hydra-git-gutter/body))
 
 ;;; ----------------------------------------------------------------------
 ;;; vterm
@@ -2063,16 +2098,6 @@
                 'turn-on-tempbuf-mode))))
 
 ;;; ----------------------------------------------------------------------
-;;; buffer-move
-;;; ----------------------------------------------------------------------
-(use-package buffer-move
-  :ensure t
-  :bind (([C-S-up]     . buf-move-up)
-         ([C-S-down]   . buf-move-down)
-         ([C-S-left]   . buf-move-left)
-         ([C-S-right]  . buf-move-right)))
-
-;;; ----------------------------------------------------------------------
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
 (use-package nyan-mode
@@ -2225,12 +2250,6 @@
        (global-set-key "\C-h" (quote delete-backward-char))))
 (define-key isearch-mode-map [(control h)] 'isearch-delete-char)
 (define-key isearch-mode-map [backspace] 'isearch-delete-char)
-(smartrep-define-key
-    global-map "C-x" '(("^" . 'enlarge-window)
-                       ("_" . 'shrink-window)
-                       ("{" . 'shrink-window-horizontally)
-                       ("}" . 'enlarge-window-horizontally)))
-(global-unset-key "\M-t")
 
 ;;; ----------------------------------------------------------------------
 ;;; narrowing などの操作を有効化
