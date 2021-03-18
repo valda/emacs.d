@@ -1,15 +1,6 @@
 ;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
 
 ;;; ----------------------------------------------------------------------
-;;; gnuserv
-;;; ----------------------------------------------------------------------
-(unless (require 'gnuserv-compat nil t)
-  (require 'gnuserv nil t))
-(when (fboundp 'server-start)
-  (server-start)
-  (setq gnuserv-frame (selected-frame)))
-
-;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
 (custom-set-variables
@@ -198,7 +189,20 @@
   (setq default-input-method "W32-IME")
   (setq-default w32-ime-mode-line-state-indicator "[--]")
   (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  (use-package tr-ime
+    :ensure t
+    :config (tr-ime-advanced-install))
   (w32-ime-initialize)
+  ;; IME 制御（yes/no などの入力の時に IME を off にする）MELPA 掲載版用
+  (w32-ime-wrap-function-to-control-ime 'universal-argument)
+  (w32-ime-wrap-function-to-control-ime 'read-string)
+  (w32-ime-wrap-function-to-control-ime 'read-char)
+  (w32-ime-wrap-function-to-control-ime 'read-from-minibuffer)
+  (w32-ime-wrap-function-to-control-ime 'y-or-n-p)
+  (w32-ime-wrap-function-to-control-ime 'yes-or-no-p)
+  (w32-ime-wrap-function-to-control-ime 'map-y-or-n-p)
+  (w32-ime-wrap-function-to-control-ime 'register-read-with-preview)
+  (modify-all-frames-parameters '((ime-font . "Cica-14")))
 
   ;; 日本語入力時にカーソルの色を変える設定
   (add-hook 'w32-ime-on-hook (lambda () (set-cursor-color "red")))
@@ -532,7 +536,7 @@
   (migemo-command "cmigemo")
   (migemo-options '("-q" "--emacs"))
   (migemo-dictionary (cond ((eq window-system 'w32)
-                            "./dict/utf-8/migemo-dict")
+                            "~/scoop/apps/cmigemo/current/cmigemo-default-win32/dict/utf-8/migemo-dict")
                            (t
                             "/usr/share/cmigemo/utf-8/migemo-dict")))
   (migemo-coding-system 'utf-8-unix)
@@ -2277,6 +2281,13 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
+
+;;; ----------------------------------------------------------------------
+;;; gnuserv
+;;; ----------------------------------------------------------------------
+(require 'server)
+(unless (server-running-p)
+ (server-start))
 
 ;;; ----------------------------------------------------------------------
 (if (not (eq window-system 'w32))
