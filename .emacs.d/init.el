@@ -706,7 +706,7 @@
     ("<S-down>"  org-shiftmetadown  "shift-down")
     ("<S-left>"  org-shiftmetaleft  "shift-left")
     ("<S-right>" org-shiftmetaright "shift-right")
-    ("q" nil "quit" :exit t))
+    ("q" nil "abort" :exit t))
   (eval-after-load 'org-agenda
     (bind-keys :map org-agenda-mode-map
                ([S-C-up] . nil)
@@ -1436,7 +1436,7 @@
     "Switch ElScreen"
     ("<left>"  elscreen-previous "previous")
     ("<right>" elscreen-next     "next")
-    ("q" nil "quit" :exit t))
+    ("k"       elscreen-kill     "kill"))
   (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
@@ -1604,10 +1604,9 @@
   (bind-keys :map counsel-gtags-mode-map
              ("M-t" . counsel-gtags-find-definition)
              ("M-r" . counsel-gtags-find-reference)
-             ("M-s" . counsel-gtags-find-symbol)
-             ("M-," . counsel-gtags-go-backward))
-  (defhydra hydra-counsel-gtags (counsel-gtags-mode-map "C-c")
-    "Gtags context stack"
+             ("M-s" . counsel-gtags-find-symbol))
+  (defhydra hydra-counsel-gtags (counsel-gtags-mode-map "ESC")
+    "Exploring the gtags context stack"
     ("<" counsel-gtags-go-backward "go backward")
     (">" counsel-gtags-go-forward "go forward")))
 
@@ -1748,27 +1747,46 @@
   :defer t)
 
 ;;; ----------------------------------------------------------------------
-;;; popwin.el
+;;; shackle
 ;;; ----------------------------------------------------------------------
-(use-package popwin
+(use-package shackle
   :ensure t
   :config
-  (popwin-mode 1)
-  (setq popwin:adjust-other-windows t)
-  (setq popwin:special-display-config
-        (append '(("*Backtrace*" :height 0.3)
-                  ("*Kill Ring*" :height 0.4 :noselect t)
-                  ("*Apropos*" :height 0.4)
-                  ("*Help*" :height 0.4)
-                  ("*sdic*" :height 0.3)
-                  ("*Warnings*" :height 0.3)
-                  ("*Google Translate*" :height 0.3)
-                  ("^\\*helm" :regexp t :height 0.4)
-                  ("*git-gutter:diff*" :height 0.4 :stick t)
-                  (" *auto-async-byte-compile*" :dedicated t :noselect t :height 0.2))
-                popwin:special-display-config))
+  ;; (setq shackle-default-rule '(:align below :size 0.4))
+  (setq shackle-rules
+        '(
+          (compilation-mode :align below)
+          ("*Messages*" :align below :size 0.3)
+          ("*Backtrace*" :align below :size 0.3 :noselect t)
+          ("*Apropos*" :align below :size 0.4 :select t)
+          (help-mode :align below :select :popup)
+          ("*Warnings*" :align below :size 0.3)
+          ("*Org Select*" :align below :size 0.3)
+          (magit-status-mode :other t :select t)
+          ("*rg*" :other t :select t :inhibit-window-quit t)
+          ("*git-gutter:diff*" :align below :size 0.4)
+          ))
+  (shackle-mode 1))
 
-  (bind-key "C-c l" 'popwin:display-last-buffer))
+;;; ----------------------------------------------------------------------
+;;; popper.el
+;;; ----------------------------------------------------------------------
+(use-package popper
+  :ensure t
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :custom
+  (popper-display-control nil)
+  :config
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          help-mode
+          compilation-mode
+          "*Apropos*"
+          "*git-gutter:diff*"))
+  (popper-mode +1))
 
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
@@ -1785,10 +1803,10 @@
     "git hunk"
     ("p" git-gutter:previous-hunk "previous")
     ("n" git-gutter:next-hunk "next")
-    ("s" git-gutter:stage-hunk "stage" :exit t)
-    ("r" git-gutter:revert-hunk "revert" :exit t)
-    ("SPC" git-gutter:popup-hunk "toggle diffinfo" :exit t))
-  (bind-key "C-x v" 'hydra-git-gutter/body))
+    ("s" git-gutter:stage-hunk "stage")
+    ("r" git-gutter:revert-hunk "revert")
+    ("d" git-gutter:popup-hunk "diff"))
+  (bind-key "C-c g" 'hydra-git-gutter/body))
 
 ;;; ----------------------------------------------------------------------
 ;;; vterm
