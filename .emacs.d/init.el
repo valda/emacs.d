@@ -729,12 +729,21 @@
     (bind-keys :map org-agenda-mode-map
                ([S-C-up] . nil)
                ([S-C-down] . nil)))
-  ;; "*Org Select*" とか "CAPTURE-*.org" を shackle で制御させたいので org-switch-to-buffer-other-window をバイパスする
+  ;; "*Org Select*" とか " *Agenda Commands*" を shackle で制御したいので、
+  ;; org-switch-to-buffer-other-window をバイパスしたり delete-other-windows を呼べなくする
   (defun bypass-org-switch-to-buffer-other-window (orig-fun &rest args)
     (cl-letf (((symbol-function 'org-switch-to-buffer-other-window)
                (symbol-function 'switch-to-buffer-other-window)))
       (apply orig-fun args)))
-  (advice-add 'org-capture :around #'bypass-org-switch-to-buffer-other-window))
+  (defun skip-delete-other-windows (orig-fun &rest args)
+    (cl-letf (((symbol-function 'delete-other-windows)
+               (lambda (&rest args) nil)))
+      (apply orig-fun args)))
+  (advice-add 'org-capture :around #'bypass-org-switch-to-buffer-other-window)
+  (advice-add 'org-capture :around #'skip-delete-other-windows)
+  (advice-add 'org-agenda :around #'bypass-org-switch-to-buffer-other-window)
+  (advice-add 'org-agenda :around #'skip-delete-other-windows))
+
 
 (use-package org-bullets
   :ensure t
@@ -1804,6 +1813,8 @@
           ("*Warnings*" :align below :size 0.3)
           ("*Org Select*" :align below :size 0.3)
           ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.3)
+          ;;("*Org Agenda*" :other t :select t)
+          (" *Agenda Commands*" :align below :size 0.3)
           ("*rg*" :other t :select t :inhibit-window-quit t)
           ("*git-gutter:diff*" :align below :size 0.4)
           ("\\(Messages\\|Output\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
