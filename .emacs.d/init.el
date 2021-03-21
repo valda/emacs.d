@@ -690,6 +690,7 @@
       :empty-lines 1)
      ))
   (org-agenda-files `(,org-directory))
+  (org-agenda-include-diary t)
   (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
   (org-replace-disputed-keys t)
@@ -701,9 +702,18 @@
   (org-refile-use-outline-path t)
   :config
   (bind-keys :map org-mode-map
-             ([S-C-up] . nil)
+             ([S-C-up]   . nil)
              ([S-C-down] . nil)
-             ("C-c ," . nil))
+             ("C-c ,"    . nil)
+             :map org-read-date-minibuffer-local-map
+             ([S-up]    . (lambda () (interactive)
+                            (org-eval-in-calendar '(calendar-backward-week 1))))
+             ([S-down]  . (lambda () (interactive)
+                            (org-eval-in-calendar '(calendar-forward-week 1))))
+             ([S-left]  . (lambda () (interactive)
+                            (org-eval-in-calendar '(calendar-backward-day 1))))
+             ([S-right] . (lambda () (interactive)
+                            (org-eval-in-calendar '(calendar-forward-day 1)))))
   (defhydra hydra-org (org-mode-map "ESC")
     "Org meta"
     ("<up>"      org-metaup    "up")
@@ -718,7 +728,13 @@
   (with-eval-after-load 'org-agenda
     (bind-keys :map org-agenda-mode-map
                ([S-C-up] . nil)
-               ([S-C-down] . nil))))
+               ([S-C-down] . nil)))
+  ;; "*Org Select*" とか "CAPTURE-*.org" を shackle で制御させたいので org-switch-to-buffer-other-window をバイパスする
+  (defun bypass-org-switch-to-buffer-other-window (orig-fun &rest args)
+    (cl-letf (((symbol-function 'org-switch-to-buffer-other-window)
+               (symbol-function 'switch-to-buffer-other-window)))
+      (apply orig-fun args)))
+  (advice-add 'org-capture :around #'bypass-org-switch-to-buffer-other-window))
 
 (use-package org-bullets
   :ensure t
@@ -731,6 +747,24 @@
   :after org
   :config
   (org-mobile-sync-mode 1))
+
+;;; ----------------------------------------------------------------------
+;;; calendar / japanese-holidays
+;;; ----------------------------------------------------------------------
+(use-package japanese-holidays
+  :ensure t
+  :after calendar
+  :custom
+  (calendar-mark-holidays-flag t)    ; 祝日をカレンダーに表示
+  (japanese-holiday-weekend '(0 6))  ; 土日を祝日として表示
+  (japanese-holiday-weekend-marker   ; 土曜日を水色で表示
+   '(holiday nil nil nil nil nil japanese-holiday-saturday))
+  :config
+  (setq calendar-holidays ; 他の国の祝日も表示させたい場合は適当に調整
+        (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+  (add-hook 'calendar-today-visible-hook 'japanese-holiday-mark-weekend)
+  (add-hook 'calendar-today-invisible-hook 'japanese-holiday-mark-weekend)
+  (add-hook 'calendar-today-visible-hook 'calendar-mark-today))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -1764,11 +1798,12 @@
           (compilation-mode :align below)
           (help-mode :align below :select t :popup t)
           (magit-status-mode :other t :select t)
-          (calendar-mode :align below)
+          (calendar-mode :align below :popup t)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
           ("*Apropos*" :align below :size 0.4 :select t)
           ("*Warnings*" :align below :size 0.3)
           ("*Org Select*" :align below :size 0.3)
+          ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.3)
           ("*rg*" :other t :select t :inhibit-window-quit t)
           ("*git-gutter:diff*" :align below :size 0.4)
           ("\\(Messages\\|Output\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
