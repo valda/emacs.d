@@ -685,7 +685,7 @@
    '(("n" "Note" entry (file+headline org-default-notes-file "Notes")
       "* %?\n   Entered on %U\n %i\n %a\n"
       :empty-lines 1)
-     ("t" "Task" entry (file+headline (lambda() (concat org-directory "/agenda.org")) "Inbox")
+     ("t" "Task" entry (file+headline (lambda() (f-join org-directory "tasks.org")) "Inbox")
       "* TODO %?\n   Entered on %U\n %i\n"
       :empty-lines 1)
      ))
@@ -743,7 +743,6 @@
   (advice-add 'org-capture :around #'skip-delete-other-windows)
   (advice-add 'org-agenda :around #'bypass-org-switch-to-buffer-other-window)
   (advice-add 'org-agenda :around #'skip-delete-other-windows))
-
 
 (use-package org-bullets
   :ensure t
@@ -1868,49 +1867,45 @@
   (bind-key "C-c g" 'hydra-git-gutter/body))
 
 ;;; ----------------------------------------------------------------------
-;;; vterm
+;;; vterm / vterm-toggle
 ;;; ----------------------------------------------------------------------
-(use-package vterm
-  :if (not (eq window-system 'w32))
-  :ensure t
-  :defer t
-  :custom
-  (vterm-max-scrollback 10000)
-  (vterm-buffer-name-string "vterm: %s")
-  (vterm-keymap-exceptions
-   '("C-c"
-     ;; "C-x"
-     "C-u"
-     "C-g"
-     ;; "C-h"
-     "C-l"
-     ;; "M-x"
-     "M-o"
-     "C-v"
-     "M-v"
-     "C-y"
-     "M-y"
-     "<f12>")))
+(unless (eq window-system 'w32)
+  (use-package vterm
+    :ensure t
+    :defer t
+    :custom
+    (vterm-max-scrollback 10000)
+    (vterm-buffer-name-string "vterm: %s")
+    (vterm-keymap-exceptions
+     '("C-c"
+       ;; "C-x"
+       "C-u"
+       "C-g"
+       ;; "C-h"
+       "C-l"
+       ;; "M-x"
+       "M-o"
+       "C-v"
+       "M-v"
+       "C-y"
+       "M-y"
+       "<f12>")))
 
-;;; ----------------------------------------------------------------------
-;;; vterm-toggle
-;;; ----------------------------------------------------------------------
-(use-package vterm-toggle
-  :if (not (eq window-system 'w32))
-  :ensure t
-  :defer t
-  :bind (([f12] . vterm-toggle)
-         ([C-f12] . vterm-toggle-cd))
-  :custom
-  (vterm-toggle-scope 'project)
-  :config
-  ;; Show vterm buffer in the window located at bottom
-  (add-to-list 'display-buffer-alist
-               '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode)))
-                 (display-buffer-reuse-window display-buffer-in-direction)
-                 (direction . bottom)
-                 (reusable-frames . visible)
-                 (window-height . 0.4))))
+  (use-package vterm-toggle
+    :ensure t
+    :defer t
+    :bind (([f12] . vterm-toggle)
+           ([C-f12] . vterm-toggle-cd))
+    :custom
+    (vterm-toggle-scope 'project)
+    :config
+    ;; Show vterm buffer in the window located at bottom
+    (add-to-list 'display-buffer-alist
+                 '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode)))
+                   (display-buffer-reuse-window display-buffer-in-direction)
+                   (direction . bottom)
+                   (reusable-frames . visible)
+                   (window-height . 0.4)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
