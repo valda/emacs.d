@@ -653,7 +653,7 @@
       (kill-buffer nil)))
   (define-key howm-mode-map "\C-c\C-c" 'my-save-and-kill-buffer-howm)
   ;; 日付けの入力が面倒
-  (eval-after-load "calendar"
+  (with-eval-after-load 'calendar
     '(progn
        (define-key calendar-mode-map "\C-m" 'my-insert-day)
        (defun my-insert-day ()
@@ -685,7 +685,7 @@
    '(("n" "Note" entry (file+headline org-default-notes-file "Notes")
       "* %?\n   Entered on %U\n %i\n %a\n"
       :empty-lines 1)
-     ("t" "Task" entry (file+headline (lambda() (concat org-directory "/tasks.org")) "Inbox")
+     ("t" "Task" entry (file+headline (lambda() (concat org-directory "/agenda.org")) "Inbox")
       "* TODO %?\n   Entered on %U\n %i\n"
       :empty-lines 1)
      ))
@@ -695,6 +695,10 @@
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
   (org-todo-keywords '((sequence "TODO" "SOMEDAY" "WAIT" "|" "DONE")))
+  (org-refile-targets '((nil :maxlevel . 2)
+                        (org-agenda-files :maxlevel . 2)))
+  (org-outline-path-complete-in-steps nil)
+  (org-refile-use-outline-path t)
   :config
   (bind-keys :map org-mode-map
              ([S-C-up] . nil)
@@ -711,11 +715,10 @@
     ("<S-left>"  org-shiftmetaleft  "shift-left")
     ("<S-right>" org-shiftmetaright "shift-right")
     ("q" nil "abort" :exit t))
-  (eval-after-load 'org-agenda
+  (with-eval-after-load 'org-agenda
     (bind-keys :map org-agenda-mode-map
                ([S-C-up] . nil)
-               ([S-C-down] . nil)
-             )))
+               ([S-C-down] . nil))))
 
 (use-package org-bullets
   :ensure t
@@ -1126,9 +1129,9 @@
   :ensure t
   :defer t
   :init
-  (eval-after-load 'js2-mode
+  (with-eval-after-load 'js2-mode
     '(add-hook 'js2-mode-hook #'add-node-modules-path))
-  (eval-after-load 'rjsx-mode
+  (with-eval-after-load 'rjsx-mode
     '(add-hook 'rjsx-mode-hook #'add-node-modules-path)))
 
 ;;; ----------------------------------------------------------------------
@@ -1440,7 +1443,7 @@
     "Switch ElScreen"
     ("<left>"  elscreen-previous "previous")
     ("<right>" elscreen-next     "next")
-    ("k"       elscreen-kill     "kill"))
+    ("K"       elscreen-kill     "kill"))
   (elscreen-start))
 
 ;;; ----------------------------------------------------------------------
@@ -1756,21 +1759,24 @@
 (use-package shackle
   :ensure t
   :config
-  ;; (setq shackle-default-rule '(:align below :size 0.4))
   (setq shackle-rules
         '(
           (compilation-mode :align below)
-          ("*Messages*" :align below :size 0.3)
+          (help-mode :align below :select t :popup t)
+          (magit-status-mode :other t :select t)
+          (calendar-mode :align below)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
           ("*Apropos*" :align below :size 0.4 :select t)
-          (help-mode :align below :select :popup)
           ("*Warnings*" :align below :size 0.3)
           ("*Org Select*" :align below :size 0.3)
-          (magit-status-mode :other t :select t)
           ("*rg*" :other t :select t :inhibit-window-quit t)
           ("*git-gutter:diff*" :align below :size 0.4)
+          ("\\(Messages\\|Output\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
           ))
   (shackle-mode 1))
+
+;;;; test
+;; (display-buffer (get-buffer-create "*Output*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; popper.el
@@ -1785,11 +1791,14 @@
   :config
   (setq popper-reference-buffers
         '("\\*Messages\\*"
+          "\\*Backtrace\\*"
           "Output\\*$"
+          "Report\\*$"
           help-mode
           compilation-mode
-          "*Apropos*"
-          "*git-gutter:diff*"))
+          "\\*Apropos\\*"
+          "\\*git-gutter:diff\\*"
+          ))
   (popper-mode +1))
 
 ;;; ----------------------------------------------------------------------
@@ -1898,7 +1907,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
 ;;; ----------------------------------------------------------------------
-(eval-after-load "japan-util"
+(with-eval-after-load 'japan-util
   '(progn
      (put-char-code-property ?ー 'jisx0201 ?ｰ)
      (put-char-code-property ?ー 'ascii nil)
@@ -2099,21 +2108,19 @@
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
   :straight (:host github :repo "valda/tempbuf")
-  :hook ((dired-mode
-          ;;magit-mode
+  :hook ((
+          dired-mode
           custom-mode-hook
           w3-mode-hook
           Man-mode-hook
           view-mode-hook
-          helm-major-mode-hook)
+          compilation-mode-hook
+          calendar-mode-hook
+          )
          . turn-on-tempbuf-mode)
   :custom
   (tempbuf-kill-message nil)
   :init
-  (add-hook 'compilation-mode-hook
-            (lambda ()
-              (when (string-match "*RuboCop " (buffer-name))
-                'turn-on-tempbuf-mode)))
   (add-hook 'fundamental-mode-hook
             (lambda ()
               (when (string-match "*Flycheck error messages*" (buffer-name))
