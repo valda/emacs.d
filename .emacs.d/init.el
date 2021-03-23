@@ -323,6 +323,9 @@
              ("TAB" . nil))
   (yas-global-mode 1))
 
+(use-package yasnippet-snippets
+  :ensure t)
+
 ;;; ----------------------------------------------------------------------
 ;;; abbrev/dabbrev
 ;;; ----------------------------------------------------------------------
@@ -682,22 +685,22 @@
   (org-directory (f-join my-dropbox-directory "Documents/org"))
   (org-default-notes-file (f-join org-directory "notes.org"))
   (org-capture-templates
-   '(("n" "Note" entry (file+headline org-default-notes-file "Notes")
-      "* %?\n   Entered on %U\n %i\n %a\n"
-      :empty-lines 1)
-     ("t" "Task" entry (file+headline (lambda() (f-join org-directory "tasks.org")) "Inbox")
-      "* TODO %?\n   Entered on %U\n %i\n"
-      :empty-lines 1)
+   '(("t" "Task" entry (file+headline org-default-notes-file "Tasks")
+      "* TODO %?\n  %i\n")
+     ("m" "Memo" entry (file+headline org-default-notes-file "Memos")
+      "* %?\n  Entered on %U\n %i\n %a\n" :empty-lines 1)
      ))
   (org-agenda-files `(,org-directory))
   (org-agenda-include-diary t)
+  (org-agenda-window-setup 'current-window)
   (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
-  (org-todo-keywords '((sequence "TODO" "SOMEDAY" "WAIT" "|" "DONE")))
+  (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w)" "|" "DONE(d)" "CANCELED(c@)")))
+  (org-use-fast-todo-selection 'expert)
   (org-refile-targets '((nil :maxlevel . 2)
-                        (org-agenda-files :maxlevel . 2)))
+                        (org-agenda-files :maxlevel . 1)))
   (org-outline-path-complete-in-steps nil)
   (org-refile-use-outline-path t)
   :config
@@ -1814,6 +1817,7 @@
           ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.3)
           ;;("*Org Agenda*" :other t :select t)
           (" *Agenda Commands*" :align below :size 0.3)
+          (" *Org todo*" :align below :size 0.3 :popup t)
           ("*rg*" :other t :select t :inhibit-window-quit t)
           ("*git-gutter:diff*" :align below :size 0.4)
           ("\\(Messages\\|Output\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
@@ -1821,7 +1825,7 @@
   (shackle-mode 1))
 
 ;;;; test
-;; (display-buffer (get-buffer-create "*Output*"))
+;; (display-buffer (get-buffer-create " *Org todo*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; popper.el
