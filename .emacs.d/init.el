@@ -29,7 +29,8 @@
  '(search-default-regexp-mode nil)
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(ediff-split-window-function 'split-window-horizontally)
- '(use-dialog-box nil))
+ '(use-dialog-box nil)
+ '(compilation-scroll-output 'first-error))
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -1806,7 +1807,8 @@
   :config
   (setq shackle-rules
         '(
-          (compilation-mode :align below)
+          (compilation-mode :align below :size 0.4)
+          (rspec-compilation-mode :align below :size 0.4)
           (help-mode :align below :select t :popup t)
           (magit-status-mode :other t :select t)
           (calendar-mode :align below :popup t)
@@ -1839,13 +1841,16 @@
   (popper-display-control nil)
   :config
   (setq popper-reference-buffers
-        '("\\*Messages\\*"
+        '(
+          compilation-mode
+          rspec-compilation-mode
+          help-mode
           "\\*Backtrace\\*"
+          "\\*Apropos\\*"
+          "\\*Warnings\\*"
+          "\\*Messages\\*"
           "Output\\*$"
           "Report\\*$"
-          help-mode
-          compilation-mode
-          "\\*Apropos\\*"
           "\\*git-gutter:diff\\*"
           ))
   (popper-mode +1))
