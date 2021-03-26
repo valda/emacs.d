@@ -701,6 +701,7 @@
   (org-agenda-files `(,org-directory))
   (org-agenda-include-diary t)
   (org-agenda-window-setup 'current-window)
+  (org-agenda-format-date "%Y/%m/%d (%a)")
   (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
   (org-replace-disputed-keys t)
@@ -985,6 +986,10 @@
   (bind-key [C-iso-lefttab] nil magit-status-mode-map)
   (bind-key [C-tab]         nil magit-diff-mode-map)
   (bind-key [C-iso-lefttab] nil magit-diff-mode-map))
+
+(add-hook 'git-commit-mode-hook (lambda ()
+                                  (setq-local fill-column 80)
+                                  (display-fill-column-indicator-mode t)))
 
 ;;; ----------------------------------------------------------------------
 ;;; enhanced-ruby-mode
