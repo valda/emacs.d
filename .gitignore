@@ -3,134 +3,34 @@
 *.log
 *.stackdump
 *~
-.VirtualBox
-.android
-.bash_history
-.dvdcss
-.emacs.d/.emacs.desktop
-.emacs.d/.emacs.desktop.lock
-.emacs.d/.lsp-session-v1
-.emacs.d/.org-id-locations
-.emacs.d/.session
-.emacs.d/ac-comphist.dat
-.emacs.d/amx-items
-.emacs.d/anything-c-adaptive-history
-.emacs.d/bm-repository
-.emacs.d/bookmarks
-.emacs.d/company-statistics-cache.el
-.emacs.d/custom.el
-.emacs.d/el-get-backup-*/
-.emacs.d/el-get/
-.emacs.d/elpa/
-.emacs.d/elscreen
-.emacs.d/ido.last
-.emacs.d/network-security.data
-.emacs.d/org-roam.db
-.emacs.d/projectile-bookmarks.eld
-.emacs.d/recentf
-.emacs.d/request/
-.emacs.d/server/server
-.emacs.d/session.*
-.emacs.d/straight/
-.emacs.d/tramp
-.emacs.d/transient/
-.emacs.d/tutorial/
-.emacs.d/url/cache
-.emacs.d/url/cookies
-.eshell/history
-.eshell/lastdir
-.fastri-index
-.fluxbox/fbrun_history
-.fluxbox/lastwallpaper
-.gem
-.gimp-2.*
-.gitconfig
-.gnupg
-.howm-history
-.howm-keys
-.irb_history
-.kkcrc
-.lesshst
-.migemo-pattern
-.mikutter/
-.mlterm/challenge
-.mozilla/extensions/
-.mozilla/firefox/
-.mozilla/native-messaging-hosts/
-.mozilla/plugins/
-.mozilla/userChrome.js/uAutoPagerize.json
-.navi2ch
-.netrc
-.pit
-.rainlendar2/
+.emacs.desktop
+.emacs.desktop.lock
+.lsp-session-v1
+.org-id-locations
 .recentf
-.recently-used.xbel
-.rnd
 .session
-.smplayer
-.ssh
-.subversion
-.thumbnails
-.unison/
-.viminfo
-.wl
-.zcompdump
-.zsh-history
-Access Connections/
-Alcohol 52%/
-AppData/
-Application Data/
-Bluetooth 交換フォルダ/
-Contacts/
-Cookies/
-Desktop/
-Documents/
-Downloads/
-Dropbox/
-Favorites/
-Fuji Xerox/
-Launchy/
-Links/
-Local Settings/
-Music/
-My Documents/
-My Dropbox/
-My Music/
-My Pictures/
-My Videos/
-My Virtual Machines/
-NTUSER.DAT*
-NetHood/
-Pictures/
-PrintHood/
-Recent/
-Saved Games/
-Searches/
-SendTo/
-SharedFolder/
-Videos/
-VirtualBox VMs/
-Visual Studio 2005/
-Visual Studio Projects/
-_viminfo
-bak/
-bin/
-chrome/keybindings.html
-chrome/uAutoPagerize.json
-desktop.ini
-disable_compressefolder_for_win7/
-emacs23-build/
-fontconfig/
-mplayer/
-ntuser.dat*
-ntuser.ini
-opt/
-src/
-test/
-tmp/
-tst
-wc/
-workspace/
-スタート メニュー/
-マイ壁紙/
-伊集院/
+ac-comphist.dat
+amx-items
+anything-c-adaptive-history
+bm-repository
+bookmarks
+company-statistics-cache.el
+custom.el
+el-get-backup-*/
+el-get/
+elpa/
+elscreen
+ido.last
+network-security.data
+org-roam.db
+projectile-bookmarks.eld
+recentf
+request/
+server/server
+session.*
+straight/
+tramp
+transient/
+tutorial/
+url/cache
+url/cookies
