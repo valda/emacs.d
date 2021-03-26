@@ -39,6 +39,7 @@
 (blink-cursor-mode -1)
 (delete-selection-mode t)
 (show-paren-mode t)
+(defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
@@ -144,6 +145,7 @@
 ;;; monokai-theme
 ;;; ----------------------------------------------------------------------
 (use-package monokai-theme
+  :disabled t
   :ensure t
   :config
   (load-theme 'monokai t)
@@ -155,33 +157,30 @@
                         :background monokai-blue
                         :foreground monokai-background)
     (set-face-attribute 'mozc-cand-posframe-footer-face nil
-                        :foreground monokai-foreground)))
+                        :foreground monokai-foreground))
+  (with-eval-after-load 'flycheck-posframe
+    (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)))
 
 ;;; ---------------------------------------------------------------------
-;;; doom-theme
+;;; solarized-theme
 ;;; ----------------------------------------------------------------------
-(use-package doom-themes
-  :disabled t
+(use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'doom-one t)
-  ;;(load-theme 'doom-vibrant t)
+  (load-theme 'solarized-dark-high-contrast t)
+  (custom-set-faces
+   '(mode-line ((t (:underline nil))))
+   '(mode-line-inactive ((t (:underline nil)))))
   (with-eval-after-load 'mozc-cand-posframe
     (set-face-attribute 'mozc-cand-posframe-normal-face nil
-                        :background (face-background 'tooltip)
-                        :foreground (face-foreground 'tooltip))
+                        :background 'unspecified :foreground 'unspecified
+                        :inherit 'company-tooltip)
     (set-face-attribute 'mozc-cand-posframe-focused-face nil
-                        :background (face-background 'company-tooltip-selection)
-                        :foreground (face-foreground 'tooltip)
-                        :weight (face-attribute 'company-tooltip-selection :weight))
+                        :background 'unspecified :foreground 'unspecified
+                        :inherit 'company-tooltip-selection)
     (set-face-attribute 'mozc-cand-posframe-footer-face nil
-                        :foreground (face-foreground 'tooltip))))
-
-(use-package doom-modeline
-  :disabled t
-  :ensure t
-  :config
-  (doom-modeline-mode t))
+                        :background 'unspecified :foreground 'unspecified
+                        :inherit '(company-tooltip-annotation company-tooltip))))
 
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
@@ -437,16 +436,24 @@
 ;;; hydra
 ;;; ----------------------------------------------------------------------
 (use-package hydra :ensure t)
-(defhydra hydra-buff (global-map "C-x")
-  "Switch buffer"
-  ("<left>" previous-buffer "previous")
-  ("<right>" next-buffer "next"))
 (defhydra hydra-resize-window nil
   "Resize Window"
   ("<up>" enlarge-window "enlarge vertically")
   ("<down>" shrink-window "shrink vertically")
   ("<left>" shrink-window-horizontally "shrink horizontally")
   ("<right>" enlarge-window-horizontally "enlarge horizontally"))
+
+;;; ----------------------------------------------------------------------
+;;; iflipb
+;;; ----------------------------------------------------------------------
+(use-package iflipb
+  :ensure t
+  :commands (iflipb-next-buffer iflipb-previous-buffer iflipb-kill-buffer)
+  :init
+  (defhydra hydra-buff (global-map "C-x")
+    "iflipb"
+    ("<left>" iflipb-previous-buffer "previous buffer")
+    ("<right>" iflipb-next-buffer "next buffer")))
 
 ;;; ----------------------------------------------------------------------
 ;;; winner-mode
@@ -698,7 +705,11 @@
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
-  (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w)" "|" "DONE(d)" "CANCELED(c@)")))
+  (org-log-done t)
+  (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w@/!)" "|" "DONE(d!/!)" "CANCELED(c@/!)")))
+  (org-todo-keyword-faces '(("SOMEDAY"   . (:foreground "CadetBlue4" :weight bold))
+                            ("WAITING"   . (:foreground "orange3" :weight bold))
+                            ("CANCELLED" . org-done)))
   (org-use-fast-todo-selection 'expert)
   (org-refile-targets '((nil :maxlevel . 2)
                         (org-agenda-files :maxlevel . 1)))
@@ -718,17 +729,6 @@
                             (org-eval-in-calendar '(calendar-backward-day 1))))
              ([S-right] . (lambda () (interactive)
                             (org-eval-in-calendar '(calendar-forward-day 1)))))
-  (defhydra hydra-org (org-mode-map "ESC")
-    "Org meta"
-    ("<up>"      org-metaup    "up")
-    ("<down>"    org-metadown  "down")
-    ("<left>"    org-metaleft  "left")
-    ("<right>"   org-metaright "right")
-    ("<S-up>"    org-shiftmetaup    "shift-up")
-    ("<S-down>"  org-shiftmetadown  "shift-down")
-    ("<S-left>"  org-shiftmetaleft  "shift-left")
-    ("<S-right>" org-shiftmetaright "shift-right")
-    ("q" nil "abort" :exit t))
   (with-eval-after-load 'org-agenda
     (bind-keys :map org-agenda-mode-map
                ([S-C-up] . nil)
@@ -771,12 +771,26 @@
   (japanese-holiday-weekend '(0 6))  ; 土日を祝日として表示
   (japanese-holiday-weekend-marker   ; 土曜日を水色で表示
    '(holiday nil nil nil nil nil japanese-holiday-saturday))
+  (calendar-month-header '(propertize
+                           (format "%d年 %s月" year month)
+                           'font-lock-face 'calendar-month-header))
   :config
   (setq calendar-holidays ; 他の国の祝日も表示させたい場合は適当に調整
-        (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+   (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+  (let ((array ["日" "月" "火" "水" "木" "金" "土"]))
+    (setq calendar-day-header-array array
+          calendar-day-name-array array))
   (add-hook 'calendar-today-visible-hook 'japanese-holiday-mark-weekend)
   (add-hook 'calendar-today-invisible-hook 'japanese-holiday-mark-weekend)
-  (add-hook 'calendar-today-visible-hook 'calendar-mark-today))
+  (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
+  (defun my/japanese-holiday-show (&rest _args)
+    (let* ((date (calendar-cursor-to-date t))
+           (calendar-date-display-form '((format "%s年 %s月 %s日（%s）" year month day dayname)))
+           (date-string (calendar-date-string date))
+           (holiday-list (calendar-check-holidays date)))
+      (when holiday-list
+        (message "%s: %s" date-string (mapconcat #'identity holiday-list "; ")))))
+  (add-hook 'calendar-move-hook 'my/japanese-holiday-show))
 
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
@@ -1522,7 +1536,6 @@
   :custom-face
   (flycheck-posframe-border-face ((t (:foreground "gray30"))))
   :config
-  (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)
   (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
 
 ;;; ----------------------------------------------------------------------
@@ -2111,7 +2124,7 @@
 (use-package rainbow-mode
   :ensure t
   :diminish rainbow-mode
-  :hook ((prog-mode text-mode) . rainbow-mode))
+  :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-delimiters
@@ -2274,6 +2287,18 @@
               (neotree-dir project-dir))
           (if file-name
               (neotree-find file-name)))))))
+
+;;; ----------------------------------------------------------------------
+;;; which-key
+;;; ----------------------------------------------------------------------
+(use-package which-key
+  :ensure t
+  :custom
+  (which-key-idle-delay 3.0)
+  (which-key-idle-secondary-delay 0.5)
+  :config
+  (which-key-setup-side-window-bottom)
+  (which-key-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; hide-mode-line
