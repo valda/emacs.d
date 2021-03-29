@@ -90,7 +90,7 @@
 ;;; setting up package.el
 ;;; ----------------------------------------------------------------------
 (custom-set-variables
- '(package-user-dir "~/.emacs.d/elpa")
+ '(package-user-dir (expand-file-name "elpa" user-emacs-directory))
  '(package-archives
    '(("gnu"   . "https://elpa.gnu.org/packages/")
      ("melpa" . "https://melpa.org/packages/")
@@ -145,7 +145,7 @@
 ;;; monokai-theme
 ;;; ----------------------------------------------------------------------
 (use-package monokai-theme
-  :disabled t
+  :disabled
   :ensure t
   :config
   (load-theme 'monokai t)
@@ -167,7 +167,6 @@
 (use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'solarized-dark-high-contrast t)
   (custom-set-faces
    '(mode-line ((t (:underline nil))))
    '(mode-line-inactive ((t (:underline nil)))))
@@ -180,7 +179,17 @@
                         :inherit 'company-tooltip-selection)
     (set-face-attribute 'mozc-cand-posframe-footer-face nil
                         :background 'unspecified :foreground 'unspecified
-                        :inherit '(company-tooltip-annotation company-tooltip))))
+                        :inherit '(company-tooltip-annotation company-tooltip)))
+  (load-theme 'solarized-dark-high-contrast t))
+
+;;; ----------------------------------------------------------------------
+;;; nyan-mode
+;;; ----------------------------------------------------------------------
+(use-package nyan-mode
+  :ensure t
+  :hook after-init
+  :custom (nyan-bar-length 16)
+  :config (nyan-start-animation))
 
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
@@ -327,29 +336,18 @@
   :ensure t)
 
 ;;; ----------------------------------------------------------------------
-;;; abbrev/dabbrev
-;;; ----------------------------------------------------------------------
-(setq save-abbrevs t)
-(setq abbrev-file-name (expand-file-name "~/.emacs.d/.abbrev_defs"))
-(quietly-read-abbrev-file)
-(setq-default abbrev-mode nil)
-
-;;; ----------------------------------------------------------------------
 ;;; hippie-expand
 ;;; ----------------------------------------------------------------------
-(defun try-complete-abbrev (old)
-  (if (expand-abbrev) t nil))
 (custom-set-variables
- '(hippie-expand-try-functions-list
-      '(yas/hippie-try-expand
-        try-complete-abbrev
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-file-name-partially
-        try-complete-file-name))
  '(dabbrev-case-fold-search t)
- '(dabbrev-case-replace t))
+ '(dabbrev-case-replace t)
+ '(hippie-expand-try-functions-list
+   '(yas/hippie-try-expand
+     try-expand-dabbrev
+     try-expand-dabbrev-all-buffers
+     try-expand-dabbrev-from-kill
+     try-complete-file-name-partially
+     try-complete-file-name)))
 (bind-key "/" 'hippie-expand esc-map)
 
 ;;; ----------------------------------------------------------------------
@@ -466,39 +464,6 @@
     "Winner"
     ("<left>" winner-undo "undo")
     ("<right>" winner-redo "redo")))
-
-;;; ----------------------------------------------------------------------
-;;; nswbuff
-;;; ----------------------------------------------------------------------
-;; (use-package nswbuff
-;;   :ensure t
-;;   :commands
-;;   (nswbuff-switch-to-next-buffer nswbuff-switch-to-previous-buffer)
-;;   :bind
-;;   ([C-tab] . nswbuff-switch-to-next-buffer)
-;;   ([C-iso-lefttab] . nswbuff-switch-to-previous-buffer)
-;;   :custom
-;;   (nswbuff-exclude-buffer-regexps
-;;    '("^ .*"
-;;      "^\\*Backtrace\\*"
-;;      "^\\*[Ee]diff.*\\*"
-;;      "^\\*Flycheck.*\\*"
-;;      "^\\*Help\\*"
-;;      "^\\*Ibuffer\\*"
-;;      "^\\*Messages\\*"
-;;      "^\\*Moccur\\*"
-;;      "^\\*Rubocop.*\\*"
-;;      "^\\*ansi-term.*\\*"
-;;      "^\\*helm.*\\*"
-;;      "^\\*rspec-compilation\\*"
-;;      "^\\*magit.*"
-;;      "^magit-process.*"
-;;      "^\\*git-gutter:diff\\*"
-;;      "^\\*straight-process\\*"
-;;      "^\\*Calendar\\*"
-;;      "^\\*Paradox Report\\*"))
-;;   (nswbuff-clear-delay 3)
-;;   (nswbuff-display-intermediate-buffers t))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -755,7 +720,7 @@
   :hook (org-mode . org-bullets-mode))
 
 (use-package org-mobile-sync
-  :disabled t
+  :disabled
   :ensure t
   :after org
   :config
@@ -1117,7 +1082,7 @@
   )
 
 (use-package php-mode
-  :disabled t
+  :disabled
   :ensure t
   :magic "\\`<\\?php$"
   :config
@@ -1335,7 +1300,7 @@
 ;;; mmm-mode
 ;;; ----------------------------------------------------------------------
 (use-package mmm-mode
-  :disabled t
+  :disabled
   :ensure t
   :config
   (setq mmm-global-mode 'maybe)
@@ -1464,9 +1429,9 @@
 ;;; ----------------------------------------------------------------------
 (use-package recentf
   :custom
-  (recentf-save-file "~/.emacs.d/.recentf")
+  (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
   (recentf-max-saved-items 2000)
-  (recentf-exclude '(".recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "bookmarks"))
+  (recentf-exclude '("recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "bookmarks"))
   (recentf-auto-cleanup 'never)
   :config
   (advice-add 'recentf-save-list
@@ -1793,6 +1758,9 @@
   :ensure t
   :config
   (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
+  (add-hook 'projectile-rails-mode-hook
+            #'(lambda ()
+                (setq-local yas-extra-modes '(rails-mode))))
   (projectile-rails-global-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -2205,15 +2173,6 @@
                 'turn-on-tempbuf-mode))))
 
 ;;; ----------------------------------------------------------------------
-;;; nyan-mode
-;;; ----------------------------------------------------------------------
-(use-package nyan-mode
-  :ensure t
-  :hook after-init
-  :custom (nyan-bar-length 16)
-  :config (nyan-start-animation))
-
-;;; ----------------------------------------------------------------------
 ;;; all-the-icons
 ;;; ----------------------------------------------------------------------
 (use-package all-the-icons
@@ -2308,6 +2267,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package which-key
   :ensure t
+  :diminish which-key-mode
   :custom
   (which-key-idle-delay 3.0)
   (which-key-idle-secondary-delay 0.5)
@@ -2397,7 +2357,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; load custom.el
 ;;; ----------------------------------------------------------------------
-(setq custom-file (concat user-emacs-directory "custom.el"))
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load custom-file))
 

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: render partial
+# key: rp
+# --
+render partial: '$1', locals: { $2 }
