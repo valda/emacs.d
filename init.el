@@ -1156,9 +1156,18 @@
   (add-hook 'web-mode-hook #'my/web-mode-setup))
 
 ;;; ----------------------------------------------------------------------
+;;; js-mode
+;;; ----------------------------------------------------------------------
+(custom-set-variables
+ '(js-chain-indent t)
+ '(js-indent-level 2)
+ '(js-indent-first-init 'dynamic))
+
+;;; ----------------------------------------------------------------------
 ;;; js2-mode
 ;;; ----------------------------------------------------------------------
 (use-package js2-mode
+  :if (< emacs-major-version 27)
   :ensure t
   :defer t
   :custom
@@ -1184,6 +1193,7 @@
 ;;; rjsx-mode
 ;;; ----------------------------------------------------------------------
 (use-package rjsx-mode
+  :if (< emacs-major-version 27)
   :ensure t
   :mode (".*\\.jsx\\'" ".*\\.js\\'"))
 
@@ -2370,6 +2380,14 @@
 (put 'dired-find-alternate-file 'disabled nil)
 
 ;;; ----------------------------------------------------------------------
+;;; exec-path-from-shell
+;;; ----------------------------------------------------------------------
+(use-package exec-path-from-shell
+  :unless (eq window-system 'w32)
+  :ensure t
+  :config (exec-path-from-shell-initialize))
+
+;;; ----------------------------------------------------------------------
 ;;; gnuserv
 ;;; ----------------------------------------------------------------------
 (require 'server)
@@ -2377,10 +2395,13 @@
  (server-start))
 
 ;;; ----------------------------------------------------------------------
-(if (not (eq window-system 'w32))
-    (use-package exec-path-from-shell
-      :ensure t
-      :config (exec-path-from-shell-initialize)))
+;;; load custom.el
+;;; ----------------------------------------------------------------------
+(setq custom-file (concat user-emacs-directory "custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
 (cd "~")
 
-;;; end of file ;;;
+(provide 'init)
+;;; init.el ends here
