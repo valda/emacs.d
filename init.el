@@ -1541,6 +1541,7 @@
   :hook (after-init . global-flycheck-mode)
   :diminish flycheck-mode
   :custom
+  (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-gcc-language-standard "c++11")
   (flycheck-clang-language-standard "c++11")
   (flycheck-disabled-checkers '(
@@ -1562,9 +1563,7 @@
   :custom
   (flycheck-posframe-border-width 1)
   :custom-face
-  (flycheck-posframe-border-face ((t (:foreground "gray30"))))
-  :config
-  (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
+  (flycheck-posframe-border-face ((t (:foreground "gray30")))))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
