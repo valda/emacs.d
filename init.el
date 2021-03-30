@@ -1,4 +1,22 @@
-;;; -*- mode: lisp-interaction; coding: utf-8-unix -*-
+;;; init.el --- My init.el -*- coding: utf-8-unix; lexical-binding: t -*-
+;; Author: valda <valda68k@gmail.com>
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
 
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
@@ -30,7 +48,10 @@
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(ediff-split-window-function 'split-window-horizontally)
  '(use-dialog-box nil)
- '(compilation-scroll-output 'first-error))
+ '(compilation-scroll-output 'first-error)
+ '(find-file-visit-truename t)
+ '(vc-follow-symlinks t)
+ '(auto-revert-check-vc-info t))
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -125,8 +146,8 @@
 (require 'bind-key)
 (custom-set-variables
  '(use-package-verbose t)
- '(use-package-minimum-reported-time 0.001)
  '(use-package-compute-statistics t)
+ '(use-package-minimum-reported-time 0.01)
  '(use-package-enable-imenu-support t))
 
 ;;; ----------------------------------------------------------------------
@@ -140,6 +161,14 @@
   (paradox-github-token t)
   (paradox-execute-asynchronously t)
   (paradox-automatically-star t))
+
+;;; ----------------------------------------------------------------------
+;;; all-the-icons
+;;; ----------------------------------------------------------------------
+(use-package all-the-icons
+  :ensure t
+  :custom
+  (all-the-icons-scale-factor 1.0))
 
 ;;; ---------------------------------------------------------------------
 ;;; monokai-theme
@@ -181,6 +210,19 @@
                         :background 'unspecified :foreground 'unspecified
                         :inherit '(company-tooltip-annotation company-tooltip)))
   (load-theme 'solarized-dark-high-contrast t))
+
+;;; ----------------------------------------------------------------------
+;;; doom-modeline
+;;; ----------------------------------------------------------------------
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  :custom
+  (doom-modeline-height 32)
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (doom-modeline-minor-modes t)
+  :custom-face
+  (doom-modeline-bar ((t (:background "DarkCyan")))))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
@@ -391,7 +433,6 @@
   :ensure t
   :diminish company-box-mode
   :hook (company-mode . company-box-mode)
-  :after (company all-the-icons)
   :config
   (require 'desktop)
   (push '(company-box-mode nil) desktop-minor-mode-table))
@@ -553,6 +594,12 @@
               :after (lambda (&rest args)
                        (deactivate-input-method)
                        (dired-k))))
+
+(use-package all-the-icons-dired
+  :ensure t
+  :diminish all-the-icons-dired-mode
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :custom (all-the-icons-dired-monochrome nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
@@ -1492,6 +1539,7 @@
 (use-package flycheck
   :ensure t
   :hook (after-init . global-flycheck-mode)
+  :diminish flycheck-mode
   :custom
   (flycheck-gcc-language-standard "c++11")
   (flycheck-clang-language-standard "c++11")
@@ -1948,6 +1996,8 @@
   :custom
   (google-translate-default-source-language "en")
   (google-translate-default-target-language "ja")
+  (google-translate-translation-directions-alist '(("en" . "ja")))
+  (google-translate-backend-method 'curl)
   :bind ("\C-c t" . google-translate-smooth-translate))
 
 ;;; ----------------------------------------------------------------------
@@ -2173,22 +2223,6 @@
                 'turn-on-tempbuf-mode))))
 
 ;;; ----------------------------------------------------------------------
-;;; all-the-icons
-;;; ----------------------------------------------------------------------
-(use-package all-the-icons
-  :ensure t
-  :custom
-  (all-the-icons-scale-factor 1.0))
-
-;;; ----------------------------------------------------------------------
-;;; all-the-icons-dired
-;;; ----------------------------------------------------------------------
-(use-package all-the-icons-dired
-  :ensure t
-  :diminish all-the-icons-dired-mode
-  :hook (dired-mode . all-the-icons-dired-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; ibuffer
 ;;; ----------------------------------------------------------------------
 (use-package ibuffer
@@ -2227,7 +2261,8 @@
            " " (coding 12 12 :left)
            " " filename-and-process+)
      (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
-  :init (all-the-icons-ibuffer-mode 1))
+  :config
+  (all-the-icons-ibuffer-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; neotree
