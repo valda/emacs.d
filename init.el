@@ -158,7 +158,8 @@
   :defer t
   :init (use-package async :ensure t)
   :custom
-  (paradox-github-token t)
+  (paradox-github-token
+   (cadr (auth-source-user-and-password "api.github.com" "valda^paradox")))
   (paradox-execute-asynchronously t)
   (paradox-automatically-star t))
 
@@ -195,10 +196,10 @@
 ;;; ----------------------------------------------------------------------
 (use-package solarized-theme
   :ensure t
+  :custom-face
+  (mode-line          ((t (:underline nil))))
+  (mode-line-inactive ((t (:underline nil))))
   :config
-  (custom-set-faces
-   '(mode-line ((t (:underline nil))))
-   '(mode-line-inactive ((t (:underline nil)))))
   (with-eval-after-load 'mozc-cand-posframe
     (set-face-attribute 'mozc-cand-posframe-normal-face nil
                         :background 'unspecified :foreground 'unspecified
@@ -214,15 +215,33 @@
 ;;; ----------------------------------------------------------------------
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
+(use-package ghub :ensure t)
+(use-package async :ensure t)
 (use-package doom-modeline
   :ensure t
   :hook (after-init . doom-modeline-mode)
   :custom
-  (doom-modeline-height 32)
+  (doom-modeline-height 34)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
   (doom-modeline-minor-modes t)
+  (doom-modeline-github t)
+  (doom-modeline-workspace-name nil)
   :custom-face
-  (doom-modeline-bar ((t (:background "DarkCyan")))))
+  (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "DeepSkyBlue4" :inherit mode-line-buffer-id))))
+  (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
+  (doom-modeline-bar       ((t (:inherit doom-modeline-highlight))))
+  :config
+  (with-eval-after-load 'tab-bar
+    (set-face-attribute 'tab-bar nil
+                        :foreground 'unspecified :background 'unspecified
+                        :height 0.9
+                        :inherit 'mode-line)
+    (set-face-attribute 'tab-bar-tab-inactive nil
+                        :foreground 'unspecified :background 'unspecified :bold t
+                        :inherit 'tab-bar)
+    (set-face-attribute 'tab-bar-tab nil
+                        :foreground 'unspecified :background 'unspecified :bold t
+                        :inherit '(doom-modeline-highlight tab-bar))))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
@@ -378,8 +397,9 @@
   :ensure t)
 
 ;;; ----------------------------------------------------------------------
-;;; hippie-expand
+;;; abbrev / dabbrev / hippie-expand
 ;;; ----------------------------------------------------------------------
+(diminish 'abbrev-mode)
 (custom-set-variables
  '(dabbrev-case-fold-search t)
  '(dabbrev-case-replace t)
@@ -1520,6 +1540,7 @@
 ;;; elscreen
 ;;; ----------------------------------------------------------------------
 (use-package elscreen
+  :disabled
   :ensure t
   :custom
   (elscreen-display-tab nil)
@@ -1532,6 +1553,44 @@
     ("<right>" elscreen-next     "next")
     ("K"       elscreen-kill     "kill"))
   (elscreen-start))
+
+;;; ----------------------------------------------------------------------
+;;; tab-bar
+;;; ----------------------------------------------------------------------
+(use-package tab-bar
+  :custom
+  (tab-bar-new-tab-choice t)
+  (tab-bar-new-button-show nil)
+  (tab-bar-close-button-show nil)
+  (tab-bar-new-tab-to 'rightmost)
+  (tab-bar-tab-hints t)
+  (tab-bar-show 1)
+  :config
+  (defvar my/tab-prefix-key-map (make-sparse-keymap))
+  (define-key my/tab-prefix-key-map "\C-c" 'tab-new)
+  (define-key my/tab-prefix-key-map "c" 'tab-new)
+  (define-key my/tab-prefix-key-map "\C-k" 'tab-close)
+  (define-key my/tab-prefix-key-map "k" 'tab-close)
+  (define-key my/tab-prefix-key-map "K" 'tab-close-other)
+  (define-key my/tab-prefix-key-map "\C-p" 'tab-previous)
+  (define-key my/tab-prefix-key-map "p" 'tab-previous)
+  (define-key my/tab-prefix-key-map "\C-n" 'tab-next)
+  (define-key my/tab-prefix-key-map "n" 'tab-next)
+  (define-key my/tab-prefix-key-map "\C-z" 'tab-recent)
+  (define-key my/tab-prefix-key-map "'" 'tab-bar-switch-to-tab)
+  (define-key my/tab-prefix-key-map "1" (lambda () (interactive) (tab-select 1)))
+  (define-key my/tab-prefix-key-map "2" (lambda () (interactive) (tab-select 2)))
+  (define-key my/tab-prefix-key-map "3" (lambda () (interactive) (tab-select 3)))
+  (define-key my/tab-prefix-key-map "4" (lambda () (interactive) (tab-select 4)))
+  (define-key my/tab-prefix-key-map "5" (lambda () (interactive) (tab-select 5)))
+  (define-key my/tab-prefix-key-map "6" (lambda () (interactive) (tab-select 6)))
+  (define-key my/tab-prefix-key-map "7" (lambda () (interactive) (tab-select 7)))
+  (define-key my/tab-prefix-key-map "8" (lambda () (interactive) (tab-select 8)))
+  (define-key my/tab-prefix-key-map "9" (lambda () (interactive) (tab-select 9)))
+  (define-key my/tab-prefix-key-map "A" 'tab-bar-rename-tab)
+  (define-key my/tab-prefix-key-map "i" (lambda () (interactive) (setq tab-bar-tab-hints (null tab-bar-tab-hints))))
+  (define-key my/tab-prefix-key-map "t" (lambda () (interactive) (tab-bar-mode (if tab-bar-mode -1 t))))
+  (bind-key "C-z" my/tab-prefix-key-map))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -1855,6 +1914,7 @@
           (help-mode :align below :select t :popup t)
           (magit-status-mode :other t :select t)
           (calendar-mode :align below :popup t)
+          (epa-key-list-mode :align below :size 0.3)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
           ("*Apropos*" :align below :size 0.4 :select t)
           ("*Warnings*" :align below :size 0.3)
@@ -1888,6 +1948,7 @@
           compilation-mode
           rspec-compilation-mode
           help-mode
+          epa-key-list-mode
           "\\*Backtrace\\*"
           "\\*Apropos\\*"
           "\\*Warnings\\*"
