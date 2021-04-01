@@ -51,7 +51,8 @@
  '(compilation-scroll-output 'first-error)
  '(find-file-visit-truename t)
  '(vc-follow-symlinks t)
- '(auto-revert-check-vc-info t))
+ '(auto-revert-check-vc-info t)
+ '(history-length t))
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -145,9 +146,9 @@
 (require 'diminish)
 (require 'bind-key)
 (custom-set-variables
- '(use-package-verbose t)
+ ;;'(use-package-verbose t)
  '(use-package-compute-statistics t)
- '(use-package-minimum-reported-time 0.01)
+ ;;'(use-package-minimum-reported-time 0.01)
  '(use-package-enable-imenu-support t))
 
 ;;; ----------------------------------------------------------------------
@@ -238,7 +239,7 @@
                         :inherit 'mode-line)
     (set-face-attribute 'tab-bar-tab-inactive nil
                         :foreground 'unspecified :background 'unspecified :bold t
-                        :inherit 'tab-bar)
+                        :inherit '(shadow tab-bar))
     (set-face-attribute 'tab-bar-tab nil
                         :foreground 'unspecified :background 'unspecified :bold t
                         :inherit '(doom-modeline-highlight tab-bar))))
@@ -251,6 +252,44 @@
   :hook after-init
   :custom (nyan-bar-length 16)
   :config (nyan-start-animation))
+
+;;; ----------------------------------------------------------------------
+;;; tab-bar
+;;; ----------------------------------------------------------------------
+(use-package tab-bar
+  :custom
+  (tab-bar-new-tab-choice t)
+  (tab-bar-new-button-show nil)
+  (tab-bar-close-button-show nil)
+  (tab-bar-new-tab-to 'rightmost)
+  (tab-bar-tab-hints t)
+  (tab-bar-show 1)
+  :config
+  (defvar my/tab-prefix-key-map (make-sparse-keymap))
+  (define-key my/tab-prefix-key-map "\C-c" 'tab-new)
+  (define-key my/tab-prefix-key-map "c" 'tab-new)
+  (define-key my/tab-prefix-key-map "\C-k" 'tab-close)
+  (define-key my/tab-prefix-key-map "k" 'tab-close)
+  (define-key my/tab-prefix-key-map "K" 'tab-close-other)
+  (define-key my/tab-prefix-key-map "\C-p" 'tab-previous)
+  (define-key my/tab-prefix-key-map "p" 'tab-previous)
+  (define-key my/tab-prefix-key-map "\C-n" 'tab-next)
+  (define-key my/tab-prefix-key-map "n" 'tab-next)
+  (define-key my/tab-prefix-key-map "\C-z" 'tab-recent)
+  (define-key my/tab-prefix-key-map "'" 'tab-bar-switch-to-tab)
+  (define-key my/tab-prefix-key-map "1" (lambda () (interactive) (tab-select 1)))
+  (define-key my/tab-prefix-key-map "2" (lambda () (interactive) (tab-select 2)))
+  (define-key my/tab-prefix-key-map "3" (lambda () (interactive) (tab-select 3)))
+  (define-key my/tab-prefix-key-map "4" (lambda () (interactive) (tab-select 4)))
+  (define-key my/tab-prefix-key-map "5" (lambda () (interactive) (tab-select 5)))
+  (define-key my/tab-prefix-key-map "6" (lambda () (interactive) (tab-select 6)))
+  (define-key my/tab-prefix-key-map "7" (lambda () (interactive) (tab-select 7)))
+  (define-key my/tab-prefix-key-map "8" (lambda () (interactive) (tab-select 8)))
+  (define-key my/tab-prefix-key-map "9" (lambda () (interactive) (tab-select 9)))
+  (define-key my/tab-prefix-key-map "A" 'tab-bar-rename-tab)
+  (define-key my/tab-prefix-key-map "i" (lambda () (interactive) (setq tab-bar-tab-hints (null tab-bar-tab-hints))))
+  (define-key my/tab-prefix-key-map "t" (lambda () (interactive) (tab-bar-mode (if tab-bar-mode -1 t))))
+  (bind-key "C-z" my/tab-prefix-key-map))
 
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
@@ -452,10 +491,7 @@
 (use-package company-box
   :ensure t
   :diminish company-box-mode
-  :hook (company-mode . company-box-mode)
-  :config
-  (require 'desktop)
-  (push '(company-box-mode nil) desktop-minor-mode-table))
+  :hook (company-mode . company-box-mode))
 
 (use-package company-web
   :ensure t
@@ -1512,117 +1548,40 @@
   :ensure t :after recentf)
 
 ;;; ----------------------------------------------------------------------
+;;; desktop
+;;; ----------------------------------------------------------------------
+(use-package desktop
+  :custom
+  (desktop-restore-frames nil)
+  (desktop-restore-eager 10)
+  (desktop-globals-to-save '(desktop-missing-file-warning
+                             tags-file-name
+                             tags-table-list
+                             register-alist))
+  :config
+  (desktop-save-mode 1))
+
+;;; ----------------------------------------------------------------------
 ;;; session
 ;;; ----------------------------------------------------------------------
 (use-package session
   :ensure t
   :hook (after-init . session-initialize)
-  :init
-  (setq history-length t)
-  (setq session-initialize '(de-saveplace session keys menus places)
-        session-globals-include '((kill-ring 1000)
-                                  (session-file-alist 1000 t)
-                                  (file-name-history 10000)))
-  (setq session-globals-max-string 10000000)
-  ;; anything/helmと一緒に使うために必要
-  (setq session-save-print-spec '(t nil 40000)))
-
-;;; ----------------------------------------------------------------------
-;;; desktop
-;;; ----------------------------------------------------------------------
-(use-package desktop
-  :ensure t
-  :config
-  (setq desktop-restore-eager 10)
-  (desktop-save-mode 1))
-
-;;; ----------------------------------------------------------------------
-;;; elscreen
-;;; ----------------------------------------------------------------------
-(use-package elscreen
-  :disabled
-  :ensure t
   :custom
-  (elscreen-display-tab nil)
-  :config
-  (elscreen-set-prefix-key "\C-z")
-  (bind-key "\C-z" 'elscreen-toggle elscreen-map)
-  (defhydra hydra-switch-elscreen (global-map "\C-z")
-    "Switch ElScreen"
-    ("<left>"  elscreen-previous "previous")
-    ("<right>" elscreen-next     "next")
-    ("K"       elscreen-kill     "kill"))
-  (elscreen-start))
+  (session-globals-max-string 10000000)
+  (session-initialize '(de-saveplace session places keys menus))
+  (session-globals-include '((kill-ring 1000)
+                             (session-file-alist 1000 t)
+                             (file-name-history 1000)
+                             search-ring regexp-search-ring))
+  (session-save-print-spec '(t nil 40000)))
 
 ;;; ----------------------------------------------------------------------
-;;; tab-bar
+;;; persistent-scratch
 ;;; ----------------------------------------------------------------------
-(use-package tab-bar
-  :custom
-  (tab-bar-new-tab-choice t)
-  (tab-bar-new-button-show nil)
-  (tab-bar-close-button-show nil)
-  (tab-bar-new-tab-to 'rightmost)
-  (tab-bar-tab-hints t)
-  (tab-bar-show 1)
-  :config
-  (defvar my/tab-prefix-key-map (make-sparse-keymap))
-  (define-key my/tab-prefix-key-map "\C-c" 'tab-new)
-  (define-key my/tab-prefix-key-map "c" 'tab-new)
-  (define-key my/tab-prefix-key-map "\C-k" 'tab-close)
-  (define-key my/tab-prefix-key-map "k" 'tab-close)
-  (define-key my/tab-prefix-key-map "K" 'tab-close-other)
-  (define-key my/tab-prefix-key-map "\C-p" 'tab-previous)
-  (define-key my/tab-prefix-key-map "p" 'tab-previous)
-  (define-key my/tab-prefix-key-map "\C-n" 'tab-next)
-  (define-key my/tab-prefix-key-map "n" 'tab-next)
-  (define-key my/tab-prefix-key-map "\C-z" 'tab-recent)
-  (define-key my/tab-prefix-key-map "'" 'tab-bar-switch-to-tab)
-  (define-key my/tab-prefix-key-map "1" (lambda () (interactive) (tab-select 1)))
-  (define-key my/tab-prefix-key-map "2" (lambda () (interactive) (tab-select 2)))
-  (define-key my/tab-prefix-key-map "3" (lambda () (interactive) (tab-select 3)))
-  (define-key my/tab-prefix-key-map "4" (lambda () (interactive) (tab-select 4)))
-  (define-key my/tab-prefix-key-map "5" (lambda () (interactive) (tab-select 5)))
-  (define-key my/tab-prefix-key-map "6" (lambda () (interactive) (tab-select 6)))
-  (define-key my/tab-prefix-key-map "7" (lambda () (interactive) (tab-select 7)))
-  (define-key my/tab-prefix-key-map "8" (lambda () (interactive) (tab-select 8)))
-  (define-key my/tab-prefix-key-map "9" (lambda () (interactive) (tab-select 9)))
-  (define-key my/tab-prefix-key-map "A" 'tab-bar-rename-tab)
-  (define-key my/tab-prefix-key-map "i" (lambda () (interactive) (setq tab-bar-tab-hints (null tab-bar-tab-hints))))
-  (define-key my/tab-prefix-key-map "t" (lambda () (interactive) (tab-bar-mode (if tab-bar-mode -1 t))))
-  (bind-key "C-z" my/tab-prefix-key-map))
-
-;;; ----------------------------------------------------------------------
-;;; flycheck
-;;; ----------------------------------------------------------------------
-(use-package flycheck
+(use-package persistent-scratch
   :ensure t
-  :hook (after-init . global-flycheck-mode)
-  :diminish flycheck-mode
-  :custom
-  (flycheck-emacs-lisp-load-path 'inherit)
-  (flycheck-gcc-language-standard "c++11")
-  (flycheck-clang-language-standard "c++11")
-  (flycheck-disabled-checkers '(
-                                ;;python-flake8
-                                ;;python-pylint
-                                ruby-rubylint
-                                javascript-jshint
-                                javascript-jscs
-                                )))
-
-(use-package flycheck-pyflakes
-  :ensure t
-  :after flycheck)
-
-(use-package flycheck-posframe
-  :if (window-system)
-  :ensure t
-  :hook (flycheck-mode . flycheck-posframe-mode)
-  :custom
-  (flycheck-posframe-border-width 1)
-  :custom-face
-  (flycheck-posframe-border-face ((t (:foreground "gray30")))))
+  :hook (after-init . persistent-scratch-setup-default))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1659,6 +1618,38 @@
 ;;; ----------------------------------------------------------------------
 (defadvice kill-new (before ys:no-kill-new-duplicates activate)
   (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
+
+;;; ----------------------------------------------------------------------
+;;; flycheck
+;;; ----------------------------------------------------------------------
+(use-package flycheck
+  :ensure t
+  :hook (after-init . global-flycheck-mode)
+  :diminish flycheck-mode
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit)
+  (flycheck-gcc-language-standard "c++11")
+  (flycheck-clang-language-standard "c++11")
+  (flycheck-disabled-checkers '(
+                                ;;python-flake8
+                                ;;python-pylint
+                                ruby-rubylint
+                                javascript-jshint
+                                javascript-jscs
+                                )))
+
+(use-package flycheck-pyflakes
+  :ensure t
+  :after flycheck)
+
+(use-package flycheck-posframe
+  :if (window-system)
+  :ensure t
+  :hook (flycheck-mode . flycheck-posframe-mode)
+  :custom
+  (flycheck-posframe-border-width 1)
+  :custom-face
+  (flycheck-posframe-border-face ((t (:foreground "gray30")))))
 
 ;;; ----------------------------------------------------------------------
 ;;; bm

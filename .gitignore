@@ -3,10 +3,12 @@
 *.log
 *.stackdump
 *~
+flycheck_*
 .emacs.desktop
 .emacs.desktop.lock
 .lsp-session-v1
 .org-id-locations
+.persistent-scratch
 .recentf
 .session
 ac-comphist.dat
