@@ -230,7 +230,7 @@
   :custom-face
   (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "DeepSkyBlue4" :inherit mode-line-buffer-id))))
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
-  (doom-modeline-bar       ((t (:inherit doom-modeline-highlight))))
+  (doom-modeline-bar       ((t (:background "DeepSkyBlue3" :inherit mode-line-buffer-id))))
   :config
   (with-eval-after-load 'tab-bar
     (set-face-attribute 'tab-bar nil
@@ -770,12 +770,13 @@
   (org-agenda-include-diary t)
   (org-agenda-window-setup 'current-window)
   (org-agenda-format-date "%Y/%m/%d (%a)")
+  (org-agenda-log-mode-items '(closed))
   (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
   (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
   (org-log-done t)
-  (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w@/!)" "|" "DONE(d!/!)" "CANCELED(c@/!)")))
+  (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w@/!)" "|" "DONE(d)" "CANCELED(c@/!)")))
   (org-todo-keyword-faces '(("SOMEDAY"   . (:foreground "CadetBlue4" :weight bold))
                             ("WAITING"   . (:foreground "orange3" :weight bold))
                             ("CANCELLED" . org-done)))
@@ -1671,6 +1672,15 @@
   (bind-key "<C-f2>" 'bm-toggle)
   (bind-key "<f2>"   'bm-next)
   (bind-key "<S-f2>" 'bm-previous))
+
+;;; ----------------------------------------------------------------------
+;;; gxref
+;;; ----------------------------------------------------------------------
+(use-package gxref
+  :ensure t
+  :after xref
+  :config
+  (add-to-list 'xref-backend-functions 'gxref-xref-backend))
 
 ;;; ----------------------------------------------------------------------
 ;;; ivy
