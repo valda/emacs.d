@@ -51,8 +51,15 @@
  '(compilation-scroll-output 'first-error)
  '(find-file-visit-truename t)
  '(vc-follow-symlinks t)
- '(auto-revert-check-vc-info t)
- '(history-length t))
+ '(auto-revert-check-vc-info nil)
+ '(history-length t)
+ '(inhibit-compacting-font-caches t)
+ '(user-full-name "YAMAGUCHI, Seiji")
+ '(user-mail-address "valda@underscore.jp")
+ '(backup-directory-alist `(("" . ,(expand-file-name "~/bak"))))
+ '(delete-old-versions t)
+ '(make-backup-files t))
+
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -102,9 +109,10 @@
 ;; ■□◆◇■□◆◇……
 
 (setq use-default-font-for-symbols nil)
-(set-face-attribute 'default nil :family "Cica" :height 150)
-(dolist (c '(?… ?■ ?□ ?◆ ?◇))
-  (set-fontset-font t c "Ricty"))
+(set-face-attribute 'default nil :font "Ricty Discord" :height 150)
+(dolist (c '(?↵)) (set-fontset-font t c "Cica"))
+;; (set-face-attribute 'default nil :font "Cica" :height 150)
+;; (dolist (c '(?… ?■ ?□ ?◆ ?◇)) (set-fontset-font t c "Ricty Discord"))
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -223,13 +231,17 @@
   (with-eval-after-load 'flycheck-posframe
     (set-face-attribute 'flycheck-posframe-background-face nil
                         :background (face-attribute 'mode-line :background)))
+  (with-eval-after-load 'highlight-symbol
+    (setq highlight-symbol-colors
+          `(,@(mapcar
+               (lambda (color) (solarized-color-blend color (face-attribute 'default :background) 0.4))
+               '("yellow" "DeepPink" "cyan" "MediumPurple1" "SpringGreen1"
+                 "DarkOrange" "HotPink1" "RoyalBlue1" "OliveDrab")))))
   (load-theme 'solarized-dark-high-contrast t))
 
 ;;; ----------------------------------------------------------------------
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
-(use-package async :straight t)
-(use-package ghub :straight t)
 (use-package doom-modeline
   :straight t
   :hook (after-init . doom-modeline-mode)
@@ -245,6 +257,8 @@
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
   (doom-modeline-bar       ((t (:background "DeepSkyBlue3" :inherit mode-line-buffer-id))))
   :config
+  (use-package async :straight t)
+  (use-package ghub :straight t)
   (with-eval-after-load 'tab-bar
     (set-face-attribute 'tab-bar nil
                         :foreground 'unspecified :background 'unspecified
@@ -345,14 +359,7 @@
   (add-hook 'isearch-mode-hook (lambda ()
                                  (deactivate-input-method)
                                  (setq w32-ime-composition-window (minibuffer-window))))
-  (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil)))
-
-  ;; helm 使用中に日本語入力を無効にする
-  (advice-add 'helm :around (lambda (orig-fun &rest args)
-                              (let ((select-window-functions nil)
-                                    (w32-ime-composition-window (minibuffer-window)))
-                                (deactivate-input-method)
-                                (apply orig-fun args)))))
+  (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil))))
 
 (defun my-mozc-init()
   (use-package mozc
@@ -447,14 +454,12 @@
   :straight t
   :diminish yas-minor-mode
   :config
+  (use-package yasnippet-snippets :straight t)
   ;; Remove Yasnippet's default tab key binding
   (bind-keys :map yas-minor-mode-map
              ("<tab>" . nil)
              ("TAB" . nil))
   (yas-global-mode 1))
-
-(use-package yasnippet-snippets
-  :straight t)
 
 ;;; ----------------------------------------------------------------------
 ;;; abbrev / dabbrev / hippie-expand
@@ -650,11 +655,18 @@
  '(dired-recursive-copies 'always)
  '(dired-isearch-filenames t))
 
+(defun dired-open-file ()
+  "In dired, open the file named on this line."
+  (interactive)
+  (let* ((file (dired-get-filename nil t)))
+    (call-process "xdg-open" nil 0 nil file)))
+
 (add-hook 'dired-load-hook
           (lambda ()
             (require 'dired-x)
             (require 'wdired)
             (bind-key "r" 'wdired-change-to-wdired-mode dired-mode-map)
+            (bind-key "C-c o" 'dired-open-file dired-mode-map)
             (advice-add 'wdired-finish-edit
                         :after (lambda ()
                                  (deactivate-input-method)
@@ -679,7 +691,6 @@
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
 ;;; ----------------------------------------------------------------------
-(use-package f :straight t)
 (defvar my-dropbox-directory
   (cond ((string-equal (system-name) "SILVER")
          "D:/Dropbox/")
@@ -699,7 +710,7 @@
          ("\C-c,c" . howm-create))
   :mode ("\\.howm\\'" . howm-mode)
   :custom
-  (howm-directory (f-join my-dropbox-directory "Documents/howm"))
+  (howm-directory (expand-file-name "Documents/howm" my-dropbox-directory))
   (howm-menu-lang 'ja)
   (howm-process-coding-system 'utf-8)
   ;; 「最近のメモ」一覧時にタイトル表示
@@ -775,8 +786,8 @@
   ("\C-c c" . org-capture)
   ("\C-c a" . org-agenda)
   :custom
-  (org-directory (f-join my-dropbox-directory "Documents/org"))
-  (org-default-notes-file (f-join org-directory "notes.org"))
+  (org-directory (expand-file-name "Documents/org/" my-dropbox-directory))
+  (org-default-notes-file (expand-file-name "notes.org" org-directory))
   (org-capture-templates
    '(("t" "Task" entry (file+headline org-default-notes-file "Tasks")
       "* TODO %?\n  %i\n")
@@ -788,8 +799,8 @@
   (org-agenda-window-setup 'current-window)
   (org-agenda-format-date "%Y/%m/%d (%a)")
   (org-agenda-log-mode-items '(closed))
-  (org-mobile-directory (f-join my-dropbox-directory "アプリ/MobileOrg"))
-  (org-mobile-inbox-for-pull (f-join org-directory "from-mobile.org"))
+  (org-mobile-directory (expand-file-name "アプリ/MobileOrg" my-dropbox-directory))
+  (org-mobile-inbox-for-pull (expand-file-name "from-mobile.org" org-directory))
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
   (org-log-done t)
@@ -1006,6 +1017,8 @@
 (use-package hideshow
   :diminish hs-minor-mode
   :hook (prog-mode . hs-minor-mode)
+  :custom
+  (hs-hide-comments-when-hiding-all nil)
   :config
   (let ((ruby-mode-hs-info
          '(enh-ruby-mode
@@ -1017,6 +1030,11 @@
     (if (not (member ruby-mode-hs-info hs-special-modes-alist))
         (setq hs-special-modes-alist
               (cons ruby-mode-hs-info hs-special-modes-alist)))))
+
+(use-package hideshow-org
+  :straight (:host github :repo "secelis/hideshow-org")
+  :custom
+  (bind-key "\C-ch" 'hs-org/minor-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; moccur
@@ -1528,21 +1546,6 @@
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
                 )
               auto-mode-alist))
-
-;;; ----------------------------------------------------------------------
-;;; ChangeLog 用の設定
-;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(user-full-name "YAMAGUCHI, Seiji")
- '(user-mail-address "valda@underscore.jp"))
-
-;;; ----------------------------------------------------------------------
-;;; ~のつくバックアップファイルの保存場所の指定
-;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(backup-directory-alist `(("" . ,(expand-file-name "~/bak"))))
- '(delete-old-versions t)
- '(make-backup-files t))
 
 ;;; ----------------------------------------------------------------------
 ;;; recentf / recentf-ext
@@ -2168,8 +2171,7 @@
 (use-package lispxmp
   :straight t
   :commands lispxmp
-  :init
-  (define-key emacs-lisp-mode-map "\C-c\C-d" 'lispxmp))
+  :bind (:map emacs-lisp-mode-map ("C-c C-e" . lispxmp)))
 
 ;;; ----------------------------------------------------------------------
 ;;; paredit
@@ -2190,6 +2192,7 @@
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
 (use-package auto-async-byte-compile
+  :disabled
   :straight t
   :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
   :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
@@ -2380,10 +2383,11 @@
   :straight t
   :diminish which-key-mode
   :custom
-  (which-key-idle-delay 3.0)
-  (which-key-idle-secondary-delay 0.5)
+  (which-key-idle-delay 5.0)
+  (which-key-idle-secondary-delay 0.05)
+  (which-key-show-early-on-C-h t)
   :config
-  (which-key-setup-side-window-bottom)
+  (which-key-setup-side-window-right-bottom)
   (which-key-mode))
 
 ;;; ----------------------------------------------------------------------
