@@ -214,6 +214,10 @@
 ;;; ----------------------------------------------------------------------
 (use-package solarized-theme
   :straight t
+  :custom
+  (solarized-use-variable-pitch nil)
+  (solarized-scale-org-headlines nil)
+  (solarized-scale-outline-headlines nil)
   :custom-face
   (mode-line          ((t (:underline nil))))
   (mode-line-inactive ((t (:underline nil))))
@@ -417,12 +421,13 @@
                     (deactivate-input-method))))))
 
   (use-package mozc-popup
-    :unless (window-system)
+    ;;:unless (window-system)
     :straight t
     :after mozc
     :custom (mozc-candidate-style 'popup))
 
   (use-package mozc-cand-posframe
+    :disabled
     :if (window-system)
     :straight t
     :after mozc
@@ -515,6 +520,7 @@
   (company-quickhelp-mode))
 
 (use-package company-box
+  :disabled
   :straight t
   :diminish company-box-mode
   :hook (company-mode . company-box-mode))
@@ -1099,6 +1105,7 @@
 ;;; enhanced-ruby-mode
 ;;; ----------------------------------------------------------------------
 (defun ruby-mode-set-frozen-string-literal-true ()
+  (interactive)
   (when (and
          (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
          (buffer-file-name (current-buffer))
@@ -1110,6 +1117,19 @@
       (unless (looking-at "^# frozen_string_literal: true")
         (insert "# frozen_string_literal: true\n\n")))))
 
+(defvar my/ruby-mode-set-frozen-string-literal-true-state "")
+(defun toggle-ruby-mode-set-frozen-string-literal-true ()
+  (interactive)
+  (cond ((memq 'ruby-mode-set-frozen-string-literal-true before-save-hook)
+         (setq my/ruby-mode-set-frozen-string-literal-true-state
+               (propertize "[MC-]" 'face '((:foreground "turquoise1" :weight bold))))
+         (remove-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
+        (t
+         (setq my/ruby-mode-set-frozen-string-literal-true-state "")
+         (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)))
+  (force-mode-line-update))
+(global-set-key (kbd "C-c M-m") 'toggle-ruby-mode-set-frozen-string-literal-true)
+
 (defun my/ruby-mode-setup ()
   (inf-ruby-minor-mode t)
   (electric-indent-mode t)
@@ -1119,12 +1139,13 @@
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
 
 (use-package enh-ruby-mode
-  :straight t
+  :straight (:host github :repo "jdufresne/enhanced-ruby-mode")
   :defer t
   :interpreter ("ruby")
   :mode ("\\.rb\\'"
          "config\\.ru\\'"
          "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
+         "\\.builder\\'"
          "\\.xremap\\'")
   :custom
   (enh-ruby-add-encoding-comment-on-save nil)
@@ -1656,6 +1677,7 @@
                                 ruby-rubylint
                                 javascript-jshint
                                 javascript-jscs
+                                scss
                                 )))
 
 (use-package flycheck-pyflakes
@@ -1663,13 +1685,16 @@
   :after flycheck)
 
 (use-package flycheck-posframe
+  :disabled
   :if (window-system)
   :straight t
   :hook (flycheck-mode . flycheck-posframe-mode)
   :custom
   (flycheck-posframe-border-width 1)
   :custom-face
-  (flycheck-posframe-border-face ((t (:foreground "gray30")))))
+  (flycheck-posframe-border-face ((t (:foreground "gray30"))))
+  :config
+  (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
 
 ;;; ----------------------------------------------------------------------
 ;;; bm
@@ -1932,7 +1957,6 @@
           (compilation-mode :align below :size 0.3)
           (rspec-compilation-mode :align below :size 0.3)
           (help-mode :align below :select t :popup t)
-          (magit-status-mode :other t :select t)
           (calendar-mode :align below :popup t)
           (epa-key-list-mode :align below :size 0.3)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
@@ -2361,7 +2385,7 @@
     (interactive)
     (let ((project-dir
            (ignore-errors
-         ;;; Pick one: projectile or find-file-in-project
+             ;;; Pick one: projectile or find-file-in-project
              (projectile-project-root)
              ))
           (file-name (buffer-file-name))
@@ -2392,6 +2416,7 @@
 
 ;;; ----------------------------------------------------------------------
 ;;; hide-mode-line
+
 ;;; ----------------------------------------------------------------------
 (use-package hide-mode-line
   :straight t
