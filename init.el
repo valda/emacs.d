@@ -629,6 +629,8 @@
   :straight t
   :diminish undo-tree-mode
   :bind ("C-." . 'undo-tree-redo)
+  :custom
+  (undo-tree-history-directory-alist `(("." . ,(expand-file-name "undo" user-emacs-directory))))
   :config (global-undo-tree-mode))
 
 ;;; ----------------------------------------------------------------------
