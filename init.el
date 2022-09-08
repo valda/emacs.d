@@ -1140,7 +1140,7 @@
   (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
 
 (use-package enh-ruby-mode
-  :straight (:host github :repo "jdufresne/enhanced-ruby-mode")
+  :ensure t
   :defer t
   :interpreter ("ruby")
   :mode ("\\.rb\\'"
