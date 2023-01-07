@@ -36,3 +36,6 @@ transient/
 tutorial/
 url/cache
 url/cookies
+eln-cache/
+history
+projects
