@@ -413,6 +413,17 @@
                 (unless (eq mozc-im-state mozc-im-mode)
                   (if mozc-im-state
                       (activate-input-method default-input-method)
+                    (deactivate-input-method)))))
+    ;; ミニバッファ
+    (add-hook 'minibuffer-setup-hook
+              (lambda ()
+                (setq mozc-im-state mozc-im-mode)
+                (deactivate-input-method)))
+    (add-hook 'minibuffer-exit-hook
+              (lambda ()
+                (unless (eq mozc-im-state mozc-im-mode)
+                  (if mozc-im-state
+                      (activate-input-method default-input-method)
                     (deactivate-input-method))))))
 
   (use-package mozc-popup
@@ -575,7 +586,7 @@
          (setq browse-url-browser-function 'w3m-browse-url))))
 
 ;;; ----------------------------------------------------------------------
-;;; undo-tree.el
+;;; undo-tree
 ;;; ----------------------------------------------------------------------
 (use-package undo-tree
   :straight t
@@ -1656,162 +1667,6 @@
   :after xref
   :config
   (add-to-list 'xref-backend-functions 'gxref-xref-backend))
-
-;;; ----------------------------------------------------------------------
-;;; ivy
-;;; ----------------------------------------------------------------------
-;; (use-package ivy
-;;   :straight t
-;;   :diminish ivy-mode
-;;   :bind
-;;   ("C-;"     . ivy-switch-buffer)
-;;   ("C-c ;"   . ivy-switch-buffer)
-;;   ("<f6>"    . ivy-resume)
-;;   :custom
-;;   (bind-key* "C-c C-r" 'ivy-resume)
-;;   (ivy-use-virtual-buffers t)
-;;   (ivy-virtual-abbreviate 'abbreviate)
-;;   (ivy-height 20)
-;;   (ivy-on-del-error-function #'ignore)
-;;   :config
-;;   (setf (alist-get t ivy-re-builders-alist) #'ivy--regex-ignore-order)
-;;   (ivy-mode 1))
-
-;; (use-package swiper
-;;   :straight t
-;;   :defer t
-;;   :bind
-;;   ("M-i" . swiper)
-;;   ("M-I" . swiper-thing-at-point)
-;;   (:map isearch-mode-map
-;;         ("M-i" . swiper-from-isearch)))
-
-;; (use-package counsel
-;;   :straight t
-;;   :defer t
-;;   :custom
-;;   (counsel-yank-pop-separator "\n----------\n")
-;;   (counsel-find-file-ignore-regexp (regexp-opt completion-ignored-extensions))
-;;   :bind
-;;   ("M-x" . counsel-M-x)
-;;   ("M-y" . counsel-yank-pop)
-;;   ("C-x C-f" . counsel-find-file)
-;;   ("C-x b" . counsel-switch-buffer)
-;;   ("C-x C-r" . counsel-buffer-or-recentf)
-;;   ("C-c C-f" . counsel-fzf)
-;;   :config
-;;   (ivy-configure 'counsel-M-x :initial-input "")
-;;   ;;(setf (alist-get 'counsel-M-x ivy-re-builders-alist) #'ivy--regex-ignore-order)
-;;   (advice-add 'counsel-switch-buffer
-;;               :around (lambda (orig-fun &rest args)
-;;                         (let ((ivy-use-virtual-buffers nil))
-;;                           (apply orig-fun args)))))
-
-;; (use-package ivy-hydra
-;;   :straight t
-;;   :config
-;;   (setq ivy-read-action-function #'ivy-hydra-read-action))
-
-;; (use-package all-the-icons-ivy-rich
-;;   :straight t
-;;   :init (all-the-icons-ivy-rich-mode 1))
-
-;; (use-package ivy-rich
-;;   :straight t
-;;   :init (ivy-rich-mode 1))
-
-;; (use-package ivy-yasnippet
-;;   :straight t
-;;   :bind ("C-c y" . ivy-yasnippet))
-
-;; (use-package counsel-gtags
-;;   :straight t
-;;   :hook (prog-mode . counsel-gtags-mode)
-;;   :custom (counsel-gtags-auto-update t)
-;;   :config
-;;   (bind-keys :map counsel-gtags-mode-map
-;;              ("M-t" . counsel-gtags-find-definition)
-;;              ("M-r" . counsel-gtags-find-reference)
-;;              ("M-s" . counsel-gtags-find-symbol))
-;;   (defhydra hydra-counsel-gtags (counsel-gtags-mode-map "ESC")
-;;     "Exploring the gtags context stack"
-;;     ("<" counsel-gtags-go-backward "go backward")
-;;     (">" counsel-gtags-go-forward "go forward")))
-
-;; ;;; ivy インターフェイスで bm.el の bookmark を選択
-;; ;;; https://www.reddit.com/r/emacs/comments/700xck/ivy_with_bmel_bookmark_manager/
-;; (defun bm-counsel-get-list (bookmark-overlays)
-;;   (-map (lambda (bm)
-;;           (with-current-buffer (overlay-buffer bm)
-;;             (let* ((line (replace-regexp-in-string "\n$" "" (buffer-substring (overlay-start bm)
-;;                                                                               (overlay-end bm))))
-;;                    ;; line numbers start on 1
-;;                    (line-num (+ 1 (count-lines (point-min) (overlay-start bm))))
-;;                    (name (format "%s:%d - %s" (buffer-name) line-num line))
-;;                    )
-;;               `(,name . ,bm)
-;;               )
-;;             )
-;;           )
-;;         bookmark-overlays))
-;; (defun bm-counsel-find-bookmark ()
-;;   (interactive)
-;;   (let* ((bm-list (bm-counsel-get-list (bm-overlays-lifo-order t)))
-;;          (bm-hash-table (make-hash-table :test 'equal))
-;;          (search-list (-map (lambda (bm) (car bm)) bm-list)))
-
-;;     (-each bm-list (lambda (bm)
-;;                      (puthash (car bm) (cdr bm) bm-hash-table)
-;;                      ))
-
-;;     (ivy-read "Find bookmark: "
-;;               search-list
-;;               :require-match t
-;;               :keymap counsel-describe-map
-;;               :action (lambda (chosen)
-;;                         (let ((bookmark (gethash chosen bm-hash-table)))
-;;                           (switch-to-buffer (overlay-buffer bookmark))
-;;                           (bm-goto bookmark)
-;;                           ))
-;;               :sort t
-;;               )))
-;; (bind-key "C-c b" 'bm-counsel-find-bookmark)
-
-;; ;;; ivy で migemo を使う
-;; ;;; https://www.yewton.net/2020/05/21/migemo-ivy/
-;; (use-package dash :straight t)
-;; (use-package s :straight t)
-;; (defun ytn-ivy-migemo-re-builder (str)
-;;   (let* ((sep " \\|\\^\\|\\.\\|\\*")
-;;          (splitted (--map (s-join "" it)
-;;                           (--partition-by (s-matches-p " \\|\\^\\|\\.\\|\\*" it)
-;;                                           (s-split "" str t)))))
-;;     (s-join "" (--map (cond ((s-equals? it " ") ".*?")
-;;                             ((s-matches? sep it) it)
-;;                             (t (migemo-get-pattern it)))
-;;                       splitted))))
-;; (setf (alist-get 'swiper ivy-re-builders-alist) #'ytn-ivy-migemo-re-builder)
-
-;; ;;; git status からファイル選択 (helm-browse-project の代替)
-;; (defun my/counsel-git-status-list (dir)
-;;   (let ((default-directory dir))
-;;     (split-string
-;;      (shell-command-to-string "git status -s --")
-;;      "\n"
-;;      t)))
-;; (defun my/counsel-git-status-action (x)
-;;   (when (string-match "\\`[ MADRCU\\?]\\{2\\} \\(?:.*? -> \\)?\\(.*\\)\\'" x)
-;;     (with-ivy-window
-;;       (let ((default-directory (ivy-state-directory ivy-last)))
-;;         (find-file (match-string 1 x))))))
-;; (defun my/counsel-git-status (&optional initial-input)
-;;   (interactive)
-;;   (let ((default-directory (counsel-locate-git-root)))
-;;     (ivy-read "Git status: " (my/counsel-git-status-list default-directory)
-;;               :initial-input initial-input
-;;               :action #'my/counsel-git-status-action
-;;               :caller 'counsel-git-status)))
-;; (bind-key "C-c d" 'my/counsel-git-status)
 
 ;;; ----------------------------------------------------------------------
 ;;; projectile
