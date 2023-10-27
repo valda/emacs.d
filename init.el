@@ -1217,7 +1217,10 @@
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
   (web-mode-markup-indent-offset 2)
-  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-auto-indentation t)
+  (web-mode-enable-auto-closing t)
+  (web-mode-auto-close-style 2)
+  (web-mode-tag-auto-close-style 2)
   :config
   (defun my/web-mode-setup ()
     (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
@@ -1342,32 +1345,6 @@
   :init
   (add-hook 'before-save-hook 'tide-format-before-save)
   (add-hook 'typescript-mode-hook #'setup-tide-mode))
-
-;;; ----------------------------------------------------------------------
-;;; less-css-mode / scss-mode
-;;; ----------------------------------------------------------------------
-(defun my/css-mode-setup ()
-  (electric-indent-mode t)
-  (electric-layout-mode t)
-  (setq-local electric-layout-rules
-              '((?\{ . after) (?\} . before))))
-
-(use-package less-css-mode
-  :straight t
-  :defer t
-  :custom
-  (less-css-compile-at-save nil)
-  :config
-  (add-hook 'less-css-mode-hook #'my/css-mode-setup))
-
-(use-package scss-mode
-  :straight t
-  :defer t
-  :mode ("\\.scss\\'")
-  :custom
-  (scss-compile-at-save nil)
-  :config
-  (add-hook 'scss-mode-hook #'my/css-mode-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1698,46 +1675,6 @@
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles basic partial-completion)))))
-
-;;; ----------------------------------------------------------------------
-;;; fussy
-;;; ----------------------------------------------------------------------
-(use-package flx-rs
-  :disabled
-  :straight (flx-rs :repo "jcs-elpa/flx-rs"
-                    :fetcher github
-                    :files (:defaults "bin"))
-  :init
-  (flx-rs-load-dyn))
-
-(use-package fussy
-  :disabled
-  :straight (fussy :type git :host github :repo "jojojames/fussy")
-  :custom
-  (fussy-score-fn 'flx-rs-score)
-  (fussy-filter-fn 'fussy-filter-orderless-flex)
-  :config
-  (push 'fussy completion-styles)
-  (setq
-   ;; For example, project-find-file uses 'project-files which uses
-   ;; substring completion by default. Set to nil to make sure it's using
-   ;; flx.
-   completion-category-defaults nil
-   completion-category-overrides nil)
-
-  ;; `eglot' defaults to flex, so set an override to point to fussy instead.
-  (with-eval-after-load 'eglot
-    (add-to-list 'completion-category-overrides
-                 '(eglot (styles fussy basic))))
-
-  (with-eval-after-load 'corfu
-    ;; For cache functionality.
-    (advice-add 'corfu--capf-wrapper :before 'fussy-wipe-cache)
-    (add-hook 'corfu-mode-hook
-              (lambda ()
-                (setq-local fussy-max-candidate-limit 5000
-                            fussy-default-regex-fn 'fussy-pattern-first-letter
-                            fussy-prefer-prefix nil)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; vertico/consult/marginalia/embark
@@ -2321,8 +2258,8 @@
   :hook ((yaml-mode python-mode) . highlight-indent-guides-mode)
   :custom
   (highlight-indent-guides-auto-enabled t)
-  (highlight-indent-guides-responsive t)
-  (highlight-indent-guides-method 'character))
+  (highlight-indent-guides-method 'column)
+  (highlight-indent-guides-responsive 'top))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-mode
