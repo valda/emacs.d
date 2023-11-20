@@ -404,27 +404,7 @@
                 :around (lambda (orig-fun &rest args)
                           (let ((mozc-mode mozc-im-mode))
                             (apply orig-fun args))))
-    ;; isearch を利用する前後で IME の状態を維持するための対策
-    (defvar-local mozc-im-state nil)
-    (add-hook 'isearch-mode-hook
-              (lambda () (setq mozc-im-state mozc-im-mode)))
-    (add-hook 'isearch-mode-end-hook
-              (lambda ()
-                (unless (eq mozc-im-state mozc-im-mode)
-                  (if mozc-im-state
-                      (activate-input-method default-input-method)
-                    (deactivate-input-method)))))
-    ;; ミニバッファ
-    (add-hook 'minibuffer-setup-hook
-              (lambda ()
-                (setq mozc-im-state mozc-im-mode)
-                (deactivate-input-method)))
-    (add-hook 'minibuffer-exit-hook
-              (lambda ()
-                (unless (eq mozc-im-state mozc-im-mode)
-                  (if mozc-im-state
-                      (activate-input-method default-input-method)
-                    (deactivate-input-method))))))
+    (add-hook 'minibuffer-setup-hook 'deactivate-input-method))
 
   (use-package mozc-popup
     :unless (display-graphic-p)
@@ -1366,7 +1346,7 @@
                               'po-find-file-coding-system))
 
 ;;; ----------------------------------------------------------------------
-;;; es-mode
+;;; es-mode (elasticsearch)
 ;;; ----------------------------------------------------------------------
 (use-package es-mode
   :straight t
