@@ -1197,7 +1197,7 @@
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
   (web-mode-markup-indent-offset 2)
-  (web-mode-enable-auto-indentation t)
+  (web-mode-enable-auto-indentation nil)
   (web-mode-enable-auto-closing t)
   (web-mode-auto-close-style 2)
   (web-mode-tag-auto-close-style 2)
@@ -1901,6 +1901,41 @@
   (setf (alist-get 'ruby-mode eglot-server-programs) #'("bundle" "exec" "solargraph" "socket" "--port" :autoport))
   (add-to-list 'eglot-server-programs
                `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs))))
+
+
+;;; ----------------------------------------------------------------------
+;;; copilot
+;;; ----------------------------------------------------------------------
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el")
+  :after editorconfig
+  :hook (prog-mode . copilot-mode)
+  :config
+  (defun rk/copilot-tab ()
+    "Tab command that will complet with copilot if a completion is
+available. Otherwise will try company, yasnippet or normal
+tab-indent."
+    (interactive)
+    (or (copilot-accept-completion)
+        (company-indent-or-complete-common nil)
+        (indent-for-tab-command)))
+  (define-key global-map (kbd "<tab>") #'rk/copilot-tab)
+  (defun rk/copilot-quit ()
+    "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
+cleared, make sure the overlay doesn't come back too soon."
+    (interactive)
+    (condition-case err
+        (when copilot--overlay
+          (lexical-let ((pre-copilot-disable-predicates copilot-disable-predicates))
+                       (setq copilot-disable-predicates (list (lambda () t)))
+                       (copilot-clear-overlay)
+                       (run-with-idle-timer
+                        1.0
+                        nil
+                        (lambda ()
+                          (setq copilot-disable-predicates pre-copilot-disable-predicates)))))
+      (error handler)))
+  (advice-add 'keyboard-quit :before #'rk/copilot-quit))
 
 ;;; ----------------------------------------------------------------------
 ;;; amx
