@@ -1907,35 +1907,13 @@
 ;;; copilot
 ;;; ----------------------------------------------------------------------
 (use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el")
-  :after editorconfig
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
   :hook (prog-mode . copilot-mode)
-  :config
-  (defun rk/copilot-tab ()
-    "Tab command that will complet with copilot if a completion is
-available. Otherwise will try company, yasnippet or normal
-tab-indent."
-    (interactive)
-    (or (copilot-accept-completion)
-        (company-indent-or-complete-common nil)
-        (indent-for-tab-command)))
-  (define-key global-map (kbd "<tab>") #'rk/copilot-tab)
-  (defun rk/copilot-quit ()
-    "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
-cleared, make sure the overlay doesn't come back too soon."
-    (interactive)
-    (condition-case err
-        (when copilot--overlay
-          (lexical-let ((pre-copilot-disable-predicates copilot-disable-predicates))
-                       (setq copilot-disable-predicates (list (lambda () t)))
-                       (copilot-clear-overlay)
-                       (run-with-idle-timer
-                        1.0
-                        nil
-                        (lambda ()
-                          (setq copilot-disable-predicates pre-copilot-disable-predicates)))))
-      (error handler)))
-  (advice-add 'keyboard-quit :before #'rk/copilot-quit))
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
 
 ;;; ----------------------------------------------------------------------
 ;;; amx
@@ -1984,7 +1962,7 @@ cleared, make sure the overlay doesn't come back too soon."
           (epa-key-list-mode :align below :size 0.3)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
           ("*Apropos*" :align below :size 0.4 :select t)
-          ("*Warnings*" :align below :size 0.3)
+          ("*Warnings*" :align below :size 0.1)
           ("*Org Select*" :align below :size 0.3)
           ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.3)
           ;;("*Org Agenda*" :other t :select t)
@@ -2104,7 +2082,8 @@ cleared, make sure the overlay doesn't come back too soon."
         '(
           ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
           ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-          (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          ;;(newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          ;; 改行マークを出すとcopilot.elと競合する
           (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
           ))
   ;;(set-face-italic-p 'whitespace-space nil)
