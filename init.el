@@ -1562,38 +1562,49 @@
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
-;; (use-package flycheck
-;;   :straight t
-;;   :hook (after-init . global-flycheck-mode)
-;;   :diminish flycheck-mode
-;;   :custom
-;;   (flycheck-emacs-lisp-load-path 'inherit)
-;;   (flycheck-gcc-language-standard "c++11")
-;;   (flycheck-clang-language-standard "c++11")
-;;   (flycheck-disabled-checkers '(
-;;                                 ;;python-flake8
-;;                                 ;;python-pylint
-;;                                 ruby-rubylint
-;;                                 javascript-jshint
-;;                                 javascript-jscs
-;;                                 scss
-;;                                 )))
+(use-package flycheck
+  :straight t
+  :hook (after-init . global-flycheck-mode)
+  :diminish flycheck-mode
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit)
+  (flycheck-gcc-language-standard "c++11")
+  (flycheck-clang-language-standard "c++11")
+  (flycheck-disabled-checkers '(
+                                ;;python-flake8
+                                ;;python-pylint
+                                ruby-rubylint
+                                javascript-jshint
+                                javascript-jscs
+                                scss
+                                )))
 
-;; (use-package flycheck-pyflakes
-;;   :straight t
-;;   :after flycheck)
+(use-package flycheck-pyflakes
+  :straight t
+  :after flycheck)
 
-;; (use-package flycheck-posframe
-;;   :disabled
-;;   :if (window-system)
-;;   :straight t
-;;   :hook (flycheck-mode . flycheck-posframe-mode)
-;;   :custom
-;;   (flycheck-posframe-border-width 1)
-;;   :custom-face
-;;   (flycheck-posframe-border-face ((t (:foreground "gray30"))))
-;;   :config
-;;   (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
+(use-package flycheck-posframe
+  :disabled
+  :if (window-system)
+  :straight t
+  :hook (flycheck-mode . flycheck-posframe-mode)
+  :custom
+  (flycheck-posframe-border-width 1)
+  :custom-face
+  (flycheck-posframe-border-face ((t (:foreground "gray30"))))
+  :config
+  (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
+
+;; flymake のハイライトを無効にする
+(with-eval-after-load 'flymake
+  (custom-set-variables
+   '(flymake-error-bitmap nil)
+   '(flymake-note-bitmap nil)
+   '(flymake-warning-bitmap nil)
+   )
+  (set-face-underline 'flymake-error nil)
+  (set-face-underline 'flymake-note nil)
+  (set-face-underline 'flymake-warning nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; bm
@@ -1824,7 +1835,7 @@
   :custom
   (corfu-cycle t)
   (corfu-auto t)
-  (corfu-auto-prefix 2)
+  (corfu-auto-prefix 3)
   (corfu-preselect-first t)
   (corfu-popupinfo-delay 0)
   (corfu-on-exact-match nil)
