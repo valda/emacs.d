@@ -1919,7 +1919,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
-  :hook (prog-mode . copilot-mode)
+  :hook ((prog-mode git-commit-mode) . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
