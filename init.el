@@ -699,11 +699,13 @@
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
 ;;; ----------------------------------------------------------------------
-(defvar my-dropbox-directory
-  (cond ((string-equal (system-name) "SILVER")
-         "D:/Dropbox/")
-        (t
-         "~/Dropbox/")))
+;; (defvar my-dropbox-directory
+;;   (cond ((string-equal (system-name) "SILVER")
+;;          "D:/Dropbox/")
+;;         (t
+;;          "~/Dropbox/")))
+(defvar my-dropbox-directory "~/Dropbox/")
+
 
 ;;; ----------------------------------------------------------------------
 ;;; howm
