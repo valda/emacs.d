@@ -58,8 +58,8 @@
  '(user-mail-address "valda@underscore.jp")
  '(backup-directory-alist `(("" . ,(expand-file-name "~/bak"))))
  '(delete-old-versions t)
- '(make-backup-files t))
-
+ '(make-backup-files t)
+ '(read-extended-command-predicate #'command-completion-default-include-p))
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -185,8 +185,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package all-the-icons
   :straight t
-  :custom
-  (all-the-icons-scale-factor 1.0))
+  :custom (all-the-icons-scale-factor 0.9))
 
 ;;; ---------------------------------------------------------------------
 ;;; monokai-theme
@@ -223,14 +222,11 @@
   :config
   (with-eval-after-load 'mozc-cand-posframe
     (set-face-attribute 'mozc-cand-posframe-normal-face nil
-                        :background 'unspecified :foreground 'unspecified
-                        :inherit 'company-tooltip)
+                        :background "#191a1b" :foreground 'unspecified)
     (set-face-attribute 'mozc-cand-posframe-focused-face nil
-                        :background 'unspecified :foreground 'unspecified
-                        :inherit 'company-tooltip-selection)
+                        :background "#00415e" :foreground "white")
     (set-face-attribute 'mozc-cand-posframe-footer-face nil
-                        :background 'unspecified :foreground 'unspecified
-                        :inherit '(company-tooltip-annotation company-tooltip)))
+                        :inherit 'completions-annotations))
   (with-eval-after-load 'flycheck-posframe
     (set-face-attribute 'flycheck-posframe-background-face nil
                         :background (face-attribute 'mode-line :background)))
@@ -246,6 +242,7 @@
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
 (use-package doom-modeline
+  :disabled
   :straight t
   :hook (after-init . doom-modeline-mode)
   :init
@@ -390,9 +387,8 @@
           (progn
             (mozc-clean-up-session)
             (toggle-input-method))
-        (progn ;(message "%s" event) ;debug
-          (if (company--active-p)
-              (company-abort))
+        (progn
+          ;;(message "%s" event) ;debug
           ad-do-it)))
     (ad-activate 'mozc-handle-event))
 
@@ -408,26 +404,16 @@
                 :around (lambda (orig-fun &rest args)
                           (let ((mozc-mode mozc-im-mode))
                             (apply orig-fun args))))
-    ;; isearch を利用する前後で IME の状態を維持するための対策
-    (defvar-local mozc-im-state nil)
-    (add-hook 'isearch-mode-hook
-              (lambda () (setq mozc-im-state mozc-im-mode)))
-    (add-hook 'isearch-mode-end-hook
-              (lambda ()
-                (unless (eq mozc-im-state mozc-im-mode)
-                  (if mozc-im-state
-                      (activate-input-method default-input-method)
-                    (deactivate-input-method))))))
+    (add-hook 'minibuffer-setup-hook 'deactivate-input-method))
 
   (use-package mozc-popup
-    ;;:unless (window-system)
+    :unless (display-graphic-p)
     :straight t
     :after mozc
     :custom (mozc-candidate-style 'popup))
 
   (use-package mozc-cand-posframe
-    :disabled
-    :if (window-system)
+    :if (display-graphic-p)
     :straight t
     :after mozc
     :custom (mozc-candidate-style 'posframe))
@@ -457,7 +443,7 @@
 (use-package yasnippet
   :straight t
   :diminish yas-minor-mode
-  :config
+  :init
   (use-package yasnippet-snippets :straight t)
   ;; Remove Yasnippet's default tab key binding
   (bind-keys :map yas-minor-mode-map
@@ -466,9 +452,10 @@
   (yas-global-mode 1))
 
 ;;; ----------------------------------------------------------------------
-;;; abbrev / dabbrev / hippie-expand
+;;; dabbrev / hippie-expand
 ;;; ----------------------------------------------------------------------
-(diminish 'abbrev-mode)
+(with-eval-after-load 'abbrev
+  (diminish 'abbrev-mode))
 (custom-set-variables
  '(dabbrev-case-fold-search t)
  '(dabbrev-case-replace t)
@@ -480,53 +467,6 @@
      try-complete-file-name-partially
      try-complete-file-name)))
 (bind-key "/" 'hippie-expand esc-map)
-
-;;; ----------------------------------------------------------------------
-;;; company-mode
-;;; ----------------------------------------------------------------------
-(use-package company
-  :straight t
-  :diminish company-mode
-  :custom
-  (company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                       company-preview-frontend
-                       company-echo-metadata-frontend))
-  (company-require-match 'never)
-  (company-idle-delay 0)
-  (company-minimum-prefix-length 2)
-  (company-selection-wrap-around t)
-  (completion-ignore-case t)
-  (company-dabbrev-downcase nil)
-  (company-auto-expand t)
-  :config
-  (global-company-mode +1)
-  (define-key company-active-map (kbd "TAB")   'company-complete-common-or-cycle)
-  (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
-  (define-key company-active-map (kbd "S-TAB") 'company-select-previous)
-  (define-key company-active-map (kbd "<backtab>") 'company-select-previous)
-  (define-key company-mode-map (kbd "M-TAB") 'company-complete))
-
-(use-package company-statistics
-  :straight t
-  :custom
-  (company-transformers '(company-sort-by-statistics company-sort-by-backend-importance))
-  :config
-  (company-statistics-mode))
-
-(use-package company-quickhelp
-  :straight t
-  :config
-  (company-quickhelp-mode))
-
-(use-package company-box
-  :disabled
-  :straight t
-  :diminish company-box-mode
-  :hook (company-mode . company-box-mode))
-
-(use-package company-web
-  :straight t
-  :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; font-lock
@@ -590,8 +530,12 @@
   (winner-mode t)
   (defhydra hydra-winner (winner-mode-map "C-c")
     "Winner"
-    ("<left>" winner-undo "undo")
-    ("<right>" winner-redo "redo")))
+    ("<left>" (progn
+                (winner-undo)
+                (setq this-command 'winner-undo))
+     "back")
+    ("<right>" winner-redo "forward"
+     :exit t :bind nil)))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
@@ -622,7 +566,7 @@
          (setq browse-url-browser-function 'w3m-browse-url))))
 
 ;;; ----------------------------------------------------------------------
-;;; undo-tree.el
+;;; undo-tree
 ;;; ----------------------------------------------------------------------
 (use-package undo-tree
   :straight t
@@ -689,12 +633,6 @@
   :bind (:map dired-mode-map
               ("g" . dired-k))
   :hook (dired-initial-position . dired-k))
-
-(use-package all-the-icons-dired
-  :straight t
-  :diminish all-the-icons-dired-mode
-  :hook (dired-mode . all-the-icons-dired-mode)
-  :custom (all-the-icons-dired-monochrome nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
@@ -773,18 +711,17 @@
   (define-key howm-mode-map "\C-c\C-c" 'my-save-and-kill-buffer-howm)
   ;; 日付けの入力が面倒
   (with-eval-after-load 'calendar
-    '(progn
-       (define-key calendar-mode-map "\C-m" 'my-insert-day)
-       (defun my-insert-day ()
-         (interactive)
-         (let ((day nil)
-               (calendar-date-display-form
-                '("[" year "-" (format "%02d" (string-to-int month))
-                  "-" (format "%02d" (string-to-int day)) "]")))
-           (setq day (calendar-date-string
-                      (calendar-cursor-to-date t)))
-           (exit-calendar)
-           (insert day))))))
+    (define-key calendar-mode-map "\C-m" 'my-insert-day)
+    (defun my-insert-day ()
+      (interactive)
+      (let ((day nil)
+            (calendar-date-display-form
+             '("[" year "-" (format "%02d" (string-to-int month))
+               "-" (format "%02d" (string-to-int day)) "]")))
+        (setq day (calendar-date-string
+                   (calendar-cursor-to-date t)))
+        (exit-calendar)
+        (insert day)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; org-mode
@@ -1011,7 +948,6 @@
             (setq compilation-window-height 16)
             ;; (electric-pair-mode t)
             (define-key c-mode-base-map "\C-cc" 'compile)
-            (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
             (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
             (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)))
 
@@ -1162,15 +1098,6 @@
   :straight t
   :defer t)
 
-(use-package company-inf-ruby
-  :straight t
-  :after inf-ruby
-  :config
-  (add-hook 'inf-ruby-mode-hook
-            (lambda ()
-              (setq-local company-backends
-                          (append '(company-inf-ruby) company-backends)))))
-
 (use-package ruby-end
   :straight t
   :hook (enh-ruby-mode . ruby-end-mode)
@@ -1178,6 +1105,7 @@
 
 (use-package rubocop
   :straight t :defer t
+  :diminish rubocop-mode
   :custom (rubocop-keymap-prefix (kbd "C-c C-c C-r")))
 
 ;;; ----------------------------------------------------------------------
@@ -1272,12 +1200,11 @@
   (web-mode-enable-current-column-highlight t)
   (web-mode-markup-indent-offset 2)
   (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-auto-closing t)
+  (web-mode-auto-close-style 2)
+  (web-mode-tag-auto-close-style 2)
   :config
-  (bind-key "C-'" 'company-web-html web-mode-map)
-  ;;(bind-key "C-c C-r" nil web-mode-map)
   (defun my/web-mode-setup ()
-    (setq-local company-backends
-                (append '(company-web-html) company-backends))
     (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
       (modify-syntax-entry ?% "w"))
     (when (string-match "\\.php" (buffer-file-name (current-buffer)))
@@ -1334,9 +1261,9 @@
   :defer t
   :init
   (with-eval-after-load 'js2-mode
-    '(add-hook 'js2-mode-hook #'add-node-modules-path))
+    (add-hook 'js2-mode-hook #'add-node-modules-path))
   (with-eval-after-load 'rjsx-mode
-    '(add-hook 'rjsx-mode-hook #'add-node-modules-path)))
+    (add-hook 'rjsx-mode-hook #'add-node-modules-path)))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
@@ -1389,49 +1316,17 @@
 (defun setup-tide-mode ()
   (interactive)
   (tide-setup)
-  (flycheck-mode +1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  ;;(flycheck-mode +1)
+  ;;(setq flycheck-check-syntax-automatically '(save mode-enabled))
   (eldoc-mode +1)
-  (tide-hl-identifier-mode +1)
-  (company-mode +1))
+  (tide-hl-identifier-mode +1))
 
 (use-package tide
   :straight t
   :defer t
   :init
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
-  ;; formats the buffer before saving
   (add-hook 'before-save-hook 'tide-format-before-save)
   (add-hook 'typescript-mode-hook #'setup-tide-mode))
-
-;;; ----------------------------------------------------------------------
-;;; less-css-mode / scss-mode
-;;; ----------------------------------------------------------------------
-(defun my/css-mode-setup ()
-  (electric-indent-mode t)
-  (electric-layout-mode t)
-  (setq-local electric-layout-rules
-              '((?\{ . after) (?\} . before)))
-  (setq-local company-backends
-              (append '(company-css) company-backends)))
-
-(use-package less-css-mode
-  :straight t
-  :defer t
-  :custom
-  (less-css-compile-at-save nil)
-  :config
-  (add-hook 'less-css-mode-hook #'my/css-mode-setup))
-
-(use-package scss-mode
-  :straight t
-  :defer t
-  :mode ("\\.scss\\'")
-  :custom
-  (scss-compile-at-save nil)
-  :config
-  (add-hook 'scss-mode-hook #'my/css-mode-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1453,7 +1348,7 @@
                               'po-find-file-coding-system))
 
 ;;; ----------------------------------------------------------------------
-;;; es-mode
+;;; es-mode (elasticsearch)
 ;;; ----------------------------------------------------------------------
 (use-package es-mode
   :straight t
@@ -1614,6 +1509,7 @@
   :straight t
   :hook (after-init . session-initialize)
   :custom
+  (session-save-file-coding-system 'no-convertion)
   (session-globals-max-string 10000000)
   (session-initialize '(de-saveplace session places keys menus))
   (session-globals-include '((kill-ring 1000)
@@ -1701,6 +1597,17 @@
   :config
   (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
 
+;; flymake のハイライトを無効にする
+(with-eval-after-load 'flymake
+  (custom-set-variables
+   '(flymake-error-bitmap nil)
+   '(flymake-note-bitmap nil)
+   '(flymake-warning-bitmap nil)
+   )
+  (set-face-underline 'flymake-error nil)
+  (set-face-underline 'flymake-note nil)
+  (set-face-underline 'flymake-warning nil))
+
 ;;; ----------------------------------------------------------------------
 ;;; bm
 ;;; ----------------------------------------------------------------------
@@ -1732,184 +1639,15 @@
   (add-to-list 'xref-backend-functions 'gxref-xref-backend))
 
 ;;; ----------------------------------------------------------------------
-;;; ivy
-;;; ----------------------------------------------------------------------
-(use-package ivy
-  :straight t
-  :diminish ivy-mode
-  :bind
-  ("C-;"     . ivy-switch-buffer)
-  ("C-c ;"   . ivy-switch-buffer)
-  ("<f6>"    . ivy-resume)
-  :custom
-  (bind-key* "C-c C-r" 'ivy-resume)
-  (ivy-use-virtual-buffers t)
-  (ivy-virtual-abbreviate 'abbreviate)
-  (ivy-height 20)
-  (ivy-on-del-error-function #'ignore)
-  :config
-  (setf (alist-get t ivy-re-builders-alist) #'ivy--regex-ignore-order)
-  (ivy-mode 1))
-
-(use-package swiper
-  :straight t
-  :defer t
-  :bind
-  ("M-i" . swiper)
-  ("M-I" . swiper-thing-at-point)
-  (:map isearch-mode-map
-        ("M-i" . swiper-from-isearch)))
-
-(use-package counsel
-  :straight t
-  :defer t
-  :custom
-  (counsel-yank-pop-separator "\n----------\n")
-  (counsel-find-file-ignore-regexp (regexp-opt completion-ignored-extensions))
-  :bind
-  ("M-x" . counsel-M-x)
-  ("M-y" . counsel-yank-pop)
-  ("C-x C-f" . counsel-find-file)
-  ("C-x b" . counsel-switch-buffer)
-  ("C-x C-r" . counsel-buffer-or-recentf)
-  ("C-c C-f" . counsel-fzf)
-  :config
-  (ivy-configure 'counsel-M-x :initial-input "")
-  ;;(setf (alist-get 'counsel-M-x ivy-re-builders-alist) #'ivy--regex-ignore-order)
-  (advice-add 'counsel-switch-buffer
-              :around (lambda (orig-fun &rest args)
-                        (let ((ivy-use-virtual-buffers nil))
-                          (apply orig-fun args)))))
-
-(use-package ivy-hydra
-  :straight t
-  :config
-  (setq ivy-read-action-function #'ivy-hydra-read-action))
-
-(use-package all-the-icons-ivy-rich
-  :straight t
-  :init (all-the-icons-ivy-rich-mode 1))
-
-(use-package ivy-rich
-  :straight t
-  :init (ivy-rich-mode 1))
-
-(use-package ivy-yasnippet
-  :straight t
-  :bind ("C-c y" . ivy-yasnippet))
-
-(use-package counsel-gtags
-  :straight t
-  :hook (prog-mode . counsel-gtags-mode)
-  :custom (counsel-gtags-auto-update t)
-  :config
-  (bind-keys :map counsel-gtags-mode-map
-             ("M-t" . counsel-gtags-find-definition)
-             ("M-r" . counsel-gtags-find-reference)
-             ("M-s" . counsel-gtags-find-symbol))
-  (defhydra hydra-counsel-gtags (counsel-gtags-mode-map "ESC")
-    "Exploring the gtags context stack"
-    ("<" counsel-gtags-go-backward "go backward")
-    (">" counsel-gtags-go-forward "go forward")))
-
-;;; ivy インターフェイスで bm.el の bookmark を選択
-;;; https://www.reddit.com/r/emacs/comments/700xck/ivy_with_bmel_bookmark_manager/
-(defun bm-counsel-get-list (bookmark-overlays)
-  (-map (lambda (bm)
-          (with-current-buffer (overlay-buffer bm)
-            (let* ((line (replace-regexp-in-string "\n$" "" (buffer-substring (overlay-start bm)
-                                                                              (overlay-end bm))))
-                   ;; line numbers start on 1
-                   (line-num (+ 1 (count-lines (point-min) (overlay-start bm))))
-                   (name (format "%s:%d - %s" (buffer-name) line-num line))
-                   )
-              `(,name . ,bm)
-              )
-            )
-          )
-        bookmark-overlays))
-(defun bm-counsel-find-bookmark ()
-  (interactive)
-  (let* ((bm-list (bm-counsel-get-list (bm-overlays-lifo-order t)))
-         (bm-hash-table (make-hash-table :test 'equal))
-         (search-list (-map (lambda (bm) (car bm)) bm-list)))
-
-    (-each bm-list (lambda (bm)
-                     (puthash (car bm) (cdr bm) bm-hash-table)
-                     ))
-
-    (ivy-read "Find bookmark: "
-              search-list
-              :require-match t
-              :keymap counsel-describe-map
-              :action (lambda (chosen)
-                        (let ((bookmark (gethash chosen bm-hash-table)))
-                          (switch-to-buffer (overlay-buffer bookmark))
-                          (bm-goto bookmark)
-                          ))
-              :sort t
-              )))
-(bind-key "C-c b" 'bm-counsel-find-bookmark)
-
-;;; ivy で migemo を使う
-;;; https://www.yewton.net/2020/05/21/migemo-ivy/
-(use-package dash :straight t)
-(use-package s :straight t)
-(defun ytn-ivy-migemo-re-builder (str)
-  (let* ((sep " \\|\\^\\|\\.\\|\\*")
-         (splitted (--map (s-join "" it)
-                          (--partition-by (s-matches-p " \\|\\^\\|\\.\\|\\*" it)
-                                          (s-split "" str t)))))
-    (s-join "" (--map (cond ((s-equals? it " ") ".*?")
-                            ((s-matches? sep it) it)
-                            (t (migemo-get-pattern it)))
-                      splitted))))
-(setf (alist-get 'swiper ivy-re-builders-alist) #'ytn-ivy-migemo-re-builder)
-
-;;; git status からファイル選択 (helm-browse-project の代替)
-(defun my/counsel-git-status-list (dir)
-  (let ((default-directory dir))
-    (split-string
-     (shell-command-to-string "git status -s --")
-     "\n"
-     t)))
-(defun my/counsel-git-status-action (x)
-  (when (string-match "\\`[ MADRCU\\?]\\{2\\} \\(?:.*? -> \\)?\\(.*\\)\\'" x)
-    (with-ivy-window
-      (let ((default-directory (ivy-state-directory ivy-last)))
-        (find-file (match-string 1 x))))))
-(defun my/counsel-git-status (&optional initial-input)
-  (interactive)
-  (let ((default-directory (counsel-locate-git-root)))
-    (ivy-read "Git status: " (my/counsel-git-status-list default-directory)
-              :initial-input initial-input
-              :action #'my/counsel-git-status-action
-              :caller 'counsel-git-status)))
-(bind-key "C-c d" 'my/counsel-git-status)
-
-;;; ----------------------------------------------------------------------
 ;;; projectile
 ;;; ----------------------------------------------------------------------
 (use-package projectile
   :straight t
   :diminish projectile-mode
-  ;;:custom
-  ;;(projectile-completion-system 'ivy)
-  ;;(projectile-switch-project-action 'counsel-projectile)
   :config
   (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
   (bind-key "C-c C-p" 'projectile-command-map projectile-mode-map)
   (projectile-mode +1))
-
-;; (use-package helm-projectile
-;;   :straight t
-;;   :config
-;;   (helm-projectile-on))
-
-(use-package counsel-projectile
-  :straight t
-  :config
-  (counsel-projectile-mode 1))
 
 (use-package projectile-rails
   :straight t
@@ -1919,6 +1657,278 @@
             #'(lambda ()
                 (setq-local yas-extra-modes '(rails-mode))))
   (projectile-rails-global-mode))
+
+;;; ----------------------------------------------------------------------
+;;; orderless
+;;; ----------------------------------------------------------------------
+(use-package orderless
+  :straight t
+  :commands (orderless-filter)
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+;;; ----------------------------------------------------------------------
+;;; vertico/consult/marginalia/embark
+;;; ----------------------------------------------------------------------
+(use-package vertico
+  :straight t
+  :custom
+  (vertico-count 20)
+  ;;(vertico-resize t)
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :custom
+  (savehist-coding-system 'no-convertion)
+  :init
+  (savehist-mode))
+
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
+
+(use-package consult
+  :straight t
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (("C-;" . consult-buffer)
+         ("C-x b" . consult-buffer)
+         ("C-c b" . consult-bookmark)
+         ("M-y" . consult-yank-pop)
+         ("M-g" . consult-goto-line)
+         ;; M-s bindings (search-map)
+         ("M-s d" . consult-find)
+         ("M-s D" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :init
+  (setq register-preview-delay 0.2
+        register-preview-function #'consult-register-format)
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  :config
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key (kbd "M-.")
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; (kbd "C-+")
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;; By default `consult-project-function' uses `project-root' from project.el.
+  ;; Optionally configure a different project root function.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;;;; 1. project.el (the default)
+  ;; (setq consult-project-function #'consult--default-project--function)
+  ;;;; 2. projectile.el (projectile-project-root)
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-function (lambda (_) (projectile-project-root)))
+  ;;;; 3. vc.el (vc-root-dir)
+  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+  ;;;; 4. locate-dominating-file
+  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+  )
+
+(use-package marginalia
+  :straight t
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :straight t
+  :bind
+  (;;("C-." . embark-act)
+   ("M-." . embark-dwim)
+   ("C-h b" . embark-bindings))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :straight t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package all-the-icons-completion
+  :straight t
+  :init
+  (all-the-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
+
+(use-package consult-projectile
+  :straight t
+  :config
+  (bind-keys :map projectile-mode-map
+             ("C-c p p" . consult-projectile-switch-project)
+             ("C-c p d" . consult-projectile-find-dir)
+             ("C-c p f" . consult-projectile-find-file)))
+
+;;; ----------------------------------------------------------------------
+;;; corfu/cape
+;;; ----------------------------------------------------------------------
+(use-package corfu
+  :straight (corfu :files (:defaults "extensions/*")
+                   :includes (corfu-info corfu-history))
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-prefix 3)
+  (corfu-preselect-first t)
+  (corfu-popupinfo-delay 0)
+  (corfu-on-exact-match nil)
+  :init
+  (global-corfu-mode)
+  (corfu-popupinfo-mode))
+
+(use-package corfu-terminal
+  :straight
+  (corfu-terminal :type git
+                  :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
+  :unless
+  (display-graphic-p)
+  :config
+  (corfu-terminal-mode +1))
+
+(use-package kind-icon
+  :straight t
+  :after corfu
+  :custom (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+;; Add extensions
+(use-package cape
+  :straight t
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  ;; :bind (("C-c p p" . completion-at-point) ;; capf
+  ;;        ("C-c p t" . complete-tag)        ;; etags
+  ;;        ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+  ;;        ("C-c p h" . cape-history)
+  ;;        ("C-c p f" . cape-file)
+  ;;        ("C-c p k" . cape-keyword)
+  ;;        ("C-c p s" . cape-symbol)
+  ;;        ("C-c p a" . cape-abbrev)
+  ;;        ("C-c p i" . cape-ispell)
+  ;;        ("C-c p l" . cape-line)
+  ;;        ("C-c p w" . cape-dict)
+  ;;        ("C-c p \\" . cape-tex)
+  ;;        ("C-c p _" . cape-tex)
+  ;;        ("C-c p ^" . cape-tex)
+  ;;        ("C-c p &" . cape-sgml)
+  ;;        ("C-c p r" . cape-rfc1345))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  )
+
+(use-package company
+  :straight t
+  :init
+  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
+  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
+
+;;; ----------------------------------------------------------------------
+;;; eglot
+;;; ----------------------------------------------------------------------
+(use-package eglot
+  :straight t
+  :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
+  :config
+  (setf (alist-get 'ruby-mode eglot-server-programs) #'("bundle" "exec" "solargraph" "socket" "--port" :autoport))
+  (add-to-list 'eglot-server-programs
+               `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs))))
+
+
+;;; ----------------------------------------------------------------------
+;;; copilot
+;;; ----------------------------------------------------------------------
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
+  :hook ((prog-mode git-commit-mode) . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word))
+  :config
+  (setq warning-suppress-log-types '((copilot copilot-exceeds-max-char))))
 
 ;;; ----------------------------------------------------------------------
 ;;; amx
@@ -1962,12 +1972,12 @@
         '(
           (compilation-mode :align below :size 0.3)
           (rspec-compilation-mode :align below :size 0.3)
-          (help-mode :align below :select t :popup t)
+          ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
           (calendar-mode :align below :popup t)
           (epa-key-list-mode :align below :size 0.3)
           ("*Backtrace*" :align below :size 0.3 :noselect t)
           ("*Apropos*" :align below :size 0.4 :select t)
-          ("*Warnings*" :align below :size 0.3)
+          ("*Warnings*" :align below :size 0.1)
           ("*Org Select*" :align below :size 0.3)
           ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.3)
           ;;("*Org Agenda*" :other t :select t)
@@ -2010,7 +2020,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
-(use-package git-gutter
+(use-package git-gutter-fringe
   :straight t
   :diminish git-gutter-mode
   :custom
@@ -2042,7 +2052,7 @@
        ;; "C-x"
        "C-u"
        "C-g"
-       ;; "C-h"
+       "C-h"
        "C-l"
        ;; "M-x"
        "M-o"
@@ -2087,7 +2097,8 @@
         '(
           ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
           ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-          (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          ;;(newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          ;; 改行マークを出すとcopilot.elと競合する
           (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
           ))
   ;;(set-face-italic-p 'whitespace-space nil)
@@ -2113,18 +2124,17 @@
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
 ;;; ----------------------------------------------------------------------
 (with-eval-after-load 'japan-util
-  '(progn
-     (put-char-code-property ?ー 'jisx0201 ?ｰ)
-     (put-char-code-property ?ー 'ascii nil)
-     (put-char-code-property ?ｰ 'jisx0208 ?ー)
-     (put-char-code-property ?ｰ 'ascii nil)
-     (put-char-code-property ?〜 'ascii nil)
-     (put-char-code-property ?、 'ascii nil)
-     (put-char-code-property ?。 'ascii nil)
-     (put-char-code-property ?.  'jisx0208 ?．)
-     (put-char-code-property ?,  'jisx0208 ?，)
-     (put-char-code-property ?． 'jisx0201 ?.)
-     (put-char-code-property ?， 'jisx0201 ?,)))
+  (put-char-code-property ?ー 'jisx0201 ?ｰ)
+  (put-char-code-property ?ー 'ascii nil)
+  (put-char-code-property ?ｰ 'jisx0208 ?ー)
+  (put-char-code-property ?ｰ 'ascii nil)
+  (put-char-code-property ?〜 'ascii nil)
+  (put-char-code-property ?、 'ascii nil)
+  (put-char-code-property ?。 'ascii nil)
+  (put-char-code-property ?.  'jisx0208 ?．)
+  (put-char-code-property ?,  'jisx0208 ?，)
+  (put-char-code-property ?． 'jisx0201 ?.)
+  (put-char-code-property ?， 'jisx0201 ?,))
 ;; 全角ひらがなを半角カナに変換しない (携帯開発向け)
 (dolist (c '(?あ ?い ?う ?え ?お ?か ?き ?く ?け ?こ ?さ ?し ?す ?せ ?そ
                  ?た ?ち ?つ ?て ?と ?な ?に ?ぬ ?ね ?の ?は ?ひ ?ふ ?へ ?ほ
@@ -2257,8 +2267,8 @@
   :hook ((yaml-mode python-mode) . highlight-indent-guides-mode)
   :custom
   (highlight-indent-guides-auto-enabled t)
-  (highlight-indent-guides-responsive t)
-  (highlight-indent-guides-method 'character))
+  (highlight-indent-guides-method 'column)
+  (highlight-indent-guides-responsive 'top))
 
 ;;; ----------------------------------------------------------------------
 ;;; rainbow-mode
@@ -2422,7 +2432,6 @@
 
 ;;; ----------------------------------------------------------------------
 ;;; hide-mode-line
-
 ;;; ----------------------------------------------------------------------
 (use-package hide-mode-line
   :straight t
@@ -2453,9 +2462,6 @@
 (global-set-key [end] 'end-of-buffer)
 (global-set-key [C-next] 'scroll-other-window)
 (global-set-key [C-prior] 'scroll-other-window-down)
-(global-set-key "\M-s" 'isearch-forward-regexp)
-(global-set-key "\C-x\C-h" 'help-for-help)
-(global-set-key "\M-g" 'goto-line)
 (global-set-key "\C-xw" 'widen)
 (global-set-key [(shift tab)] 'indent-region)
 (global-set-key [backtab] 'indent-region)
@@ -2467,13 +2473,9 @@
        (global-set-key [delete] 'delete-char)
        (global-set-key [backspace] 'delete-backward-char)
        (global-set-key "\177" 'delete-char)
-       (global-set-key "\C-h" 'backward-delete-char)
        (global-set-key [mouse-2] 'mouse-yank-at-click))
       ((eq window-system 'w32)
-       (global-set-key [mouse-2] 'mouse-yank-at-click))
-      (t
-       (global-set-key "\C-h" (quote delete-backward-char))))
-(define-key isearch-mode-map [(control h)] 'isearch-delete-char)
+       (global-set-key [mouse-2] 'mouse-yank-at-click)))
 (define-key isearch-mode-map [backspace] 'isearch-delete-char)
 
 ;;; ----------------------------------------------------------------------
@@ -2491,7 +2493,7 @@
 (use-package exec-path-from-shell
   :unless (eq window-system 'w32)
   :straight t
-  :config (exec-path-from-shell-initialize))
+  :init (exec-path-from-shell-initialize))
 
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv

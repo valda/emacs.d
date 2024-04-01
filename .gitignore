@@ -4,6 +4,7 @@
 *.stackdump
 *~
 flycheck_*
+.cache
 .emacs.desktop
 .emacs.desktop.lock
 .lsp-session-v1
