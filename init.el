@@ -216,9 +216,9 @@
   (solarized-use-variable-pitch nil)
   (solarized-scale-org-headlines nil)
   (solarized-scale-outline-headlines nil)
+  (solarized-high-contrast-mode-line t)
   :custom-face
-  (mode-line          ((t (:underline nil))))
-  (mode-line-inactive ((t (:underline nil))))
+  (mode-line          ((t (:overline nil :underline nil :foreground "White" :background "DarkCyan" :box nil))))
   :config
   (with-eval-after-load 'mozc-cand-posframe
     (set-face-attribute 'mozc-cand-posframe-normal-face nil
@@ -236,6 +236,17 @@
                (lambda (color) (solarized-color-blend color (face-attribute 'default :background) 0.4))
                '("yellow" "DeepPink" "cyan" "MediumPurple1" "SpringGreen1"
                  "DarkOrange" "HotPink1" "RoyalBlue1" "OliveDrab")))))
+  (with-eval-after-load 'tab-bar
+    (set-face-attribute 'tab-bar nil
+                        :foreground 'unspecified :background 'unspecified
+                        :height 0.9
+                        :inherit 'mode-line-inactive)
+    (set-face-attribute 'tab-bar-tab-inactive nil
+                        :foreground 'unspecified :background 'unspecified
+                        :inherit '(mode-line-inactive tab-bar))
+    (set-face-attribute 'tab-bar-tab nil
+                        :foreground 'unspecified :background 'unspecified :bold t
+                        :inherit '(mode-line-active tab-bar)))
   (load-theme 'solarized-dark-high-contrast t))
 
 ;;; ----------------------------------------------------------------------
@@ -1174,7 +1185,6 @@
   )
 
 (use-package php-mode
-  :disabled
   :straight t
   :magic "\\`<\\?php$"
   :config
@@ -1194,7 +1204,8 @@
   :mode ("\\.html?\\'"
          "\\.html\\.erb\\'"
          "\\.rhtml?\\'"
-         "\\.php\\'")
+         ;;"\\.php\\'"
+         )
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
@@ -1927,6 +1938,8 @@
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word))
+  :custom
+  (copilot-indent-offset-warning-disable t)
   :config
   (setq warning-suppress-log-types '((copilot copilot-exceeds-max-char))))
 
