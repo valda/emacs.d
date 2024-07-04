@@ -591,11 +591,13 @@
 ;;; ----------------------------------------------------------------------
 ;;; migemo
 ;;; ----------------------------------------------------------------------
+(defvar migemo-command-path (executable-find "cmigemo"))
 (use-package migemo
   :straight t
+  :if migemo-command-path
   :hook (after-init . migemo-init)
   :custom
-  (migemo-command "cmigemo")
+  (migemo-command migemo-command-path)
   (migemo-options '("-q" "--emacs"))
   (migemo-dictionary (cond ((eq window-system 'w32)
                             "~/scoop/apps/cmigemo/current/cmigemo-default-win32/dict/utf-8/migemo-dict")
