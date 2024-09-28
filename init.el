@@ -1057,31 +1057,31 @@
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
-(defun ruby-mode-set-frozen-string-literal-true ()
-  (interactive)
-  (when (and
-         (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
-         (buffer-file-name (current-buffer))
-         (string-match "\\.rb" (buffer-file-name (current-buffer))))
-    (save-excursion
-      (widen)
-      (goto-char (point-min))
-      (if (looking-at "^#!") (beginning-of-line 2))
-      (unless (looking-at "^# frozen_string_literal: true")
-        (insert "# frozen_string_literal: true\n\n")))))
+;; (defun ruby-mode-set-frozen-string-literal-true ()
+;;   (interactive)
+;;   (when (and
+;;          (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
+;;          (buffer-file-name (current-buffer))
+;;          (string-match "\\.rb" (buffer-file-name (current-buffer))))
+;;     (save-excursion
+;;       (widen)
+;;       (goto-char (point-min))
+;;       (if (looking-at "^#!") (beginning-of-line 2))
+;;       (unless (looking-at "^# frozen_string_literal: true")
+;;         (insert "# frozen_string_literal: true\n\n")))))
 
-(defvar my/ruby-mode-set-frozen-string-literal-true-state "")
-(defun toggle-ruby-mode-set-frozen-string-literal-true ()
-  (interactive)
-  (cond ((memq 'ruby-mode-set-frozen-string-literal-true before-save-hook)
-         (setq my/ruby-mode-set-frozen-string-literal-true-state
-               (propertize "[MC-]" 'face '((:foreground "turquoise1" :weight bold))))
-         (remove-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
-        (t
-         (setq my/ruby-mode-set-frozen-string-literal-true-state "")
-         (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)))
-  (force-mode-line-update))
-(global-set-key (kbd "C-c M-m") 'toggle-ruby-mode-set-frozen-string-literal-true)
+;; (defvar my/ruby-mode-set-frozen-string-literal-true-state "")
+;; (defun toggle-ruby-mode-set-frozen-string-literal-true ()
+;;   (interactive)
+;;   (cond ((memq 'ruby-mode-set-frozen-string-literal-true before-save-hook)
+;;          (setq my/ruby-mode-set-frozen-string-literal-true-state
+;;                (propertize "[MC-]" 'face '((:foreground "turquoise1" :weight bold))))
+;;          (remove-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
+;;         (t
+;;          (setq my/ruby-mode-set-frozen-string-literal-true-state "")
+;;          (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)))
+;;   (force-mode-line-update))
+;; (global-set-key (kbd "C-c M-m") 'toggle-ruby-mode-set-frozen-string-literal-true)
 
 (defun my/ruby-mode-setup ()
   (inf-ruby-minor-mode t)
@@ -1089,7 +1089,8 @@
   (electric-layout-mode t)
   (rubocop-mode t)
   (modify-syntax-entry ?: ".")
-  (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
+  ;; (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)
+  )
 
 (use-package enh-ruby-mode
   :straight t
@@ -1205,6 +1206,7 @@
   :straight t
   :mode ("\\.html?\\'"
          "\\.html\\.erb\\'"
+         "\\.turbo_stream\\.erb\\'"
          "\\.rhtml?\\'"
          ;;"\\.php\\'"
          )
@@ -1522,7 +1524,7 @@
   :straight t
   :hook (after-init . session-initialize)
   :custom
-  (session-save-file-coding-system 'no-convertion)
+  (session-save-file-coding-system 'utf-8)
   (session-globals-max-string 10000000)
   (session-initialize '(de-saveplace session places keys menus))
   (session-globals-include '((kill-ring 1000)
@@ -1922,18 +1924,17 @@
 ;;; ----------------------------------------------------------------------
 (use-package eglot
   :straight t
-  :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
+  :hook ((enh-ruby-mode ruby-mode python-mode web-mode) . eglot-ensure)
   :config
-  (setf (alist-get 'ruby-mode eglot-server-programs) #'("bundle" "exec" "solargraph" "socket" "--port" :autoport))
-  (add-to-list 'eglot-server-programs
-               `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs))))
-
+  ;; (setf (alist-get 'ruby-mode eglot-server-programs) #'("bundle" "exec" "solargraph" "socket" "--port" :autoport))
+  (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
+  (add-to-list 'eglot-server-programs '(web-mode . ("npx" "tailwindcss-language-server" "--stdio"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; copilot
 ;;; ----------------------------------------------------------------------
 (use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("dist" "*.el"))
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :hook ((prog-mode git-commit-mode) . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
@@ -2134,6 +2135,27 @@
   (google-translate-translation-directions-alist '(("en" . "ja")))
   (google-translate-backend-method 'curl)
   :bind ("\C-c t" . google-translate-smooth-translate))
+
+;;; ----------------------------------------------------------------------
+;;; gptel
+;;; ----------------------------------------------------------------------
+(use-package gptel
+  :straight (gptel :type git :host github :repo "karthink/gptel")
+  :config
+  ;; authinfo から API キーを取得する関数
+  (defun my/get-openai-api-key ()
+    "authinfo ファイルから OpenAI API キーを取得"
+    (let ((api-key (plist-get
+                    (car (auth-source-search :host "api.openai.com"
+                                             :user "openai-api"
+                                             :port "https"))
+                    :secret)))
+      (if (functionp api-key)
+          (funcall api-key)
+        api-key)))
+
+  ;; gptel に API キーを設定
+  (setq gptel-api-key (my/get-openai-api-key)))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
