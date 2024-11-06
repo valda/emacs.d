@@ -1582,7 +1582,6 @@
 (use-package flycheck
   :straight t
   :hook (after-init . global-flycheck-mode)
-  :diminish flycheck-mode
   :custom
   (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-gcc-language-standard "c++11")
@@ -2432,7 +2431,7 @@
   :custom
   (neo-theme 'icons)
   :bind
-  ("<f9>" . neotree-projectile-toggle)
+  ("C-t" . neotree-projectile-toggle)
   :preface
   (defun neotree-projectile-toggle ()
     (interactive)
@@ -2442,16 +2441,19 @@
              (projectile-project-root)
              ))
           (file-name (buffer-file-name))
-          (neo-smart-open t))
-      (if (and (fboundp 'neo-global--window-exists-p)
-               (neo-global--window-exists-p))
-          (neotree-hide)
-        (progn
-          (neotree-show)
-          (if project-dir
-              (neotree-dir project-dir))
-          (if file-name
-              (neotree-find file-name)))))))
+          (original-neo-smart-open neo-smart-open))
+      (setq neo-smart-open t)
+      (unwind-protect
+          (if (and (fboundp 'neo-global--window-exists-p)
+                   (neo-global--window-exists-p))
+              (neotree-hide)
+            (progn
+              (neotree-show)
+              (if project-dir
+                  (neotree-dir project-dir))
+              (if file-name
+                  (neotree-find file-name))))
+        (setq neo-smart-open original-neo-smart-open)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; which-key
