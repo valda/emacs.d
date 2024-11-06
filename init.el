@@ -1057,6 +1057,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
+
 ;; (defun ruby-mode-set-frozen-string-literal-true ()
 ;;   (interactive)
 ;;   (when (and
@@ -1083,15 +1084,6 @@
 ;;   (force-mode-line-update))
 ;; (global-set-key (kbd "C-c M-m") 'toggle-ruby-mode-set-frozen-string-literal-true)
 
-(defun my/ruby-mode-setup ()
-  (inf-ruby-minor-mode t)
-  (electric-indent-mode t)
-  (electric-layout-mode t)
-  (rubocop-mode t)
-  (modify-syntax-entry ?: ".")
-  ;; (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)
-  )
-
 (use-package enh-ruby-mode
   :straight t
   :defer t
@@ -1106,7 +1098,13 @@
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
   :config
-  (add-hook 'enh-ruby-mode-hook #'my/ruby-mode-setup))
+  (inf-ruby-minor-mode t)
+  (electric-indent-mode t)
+  (electric-layout-mode t)
+  (rubocop-mode t)
+  (modify-syntax-entry ?: ".")
+  ;; (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)
+  )
 
 (use-package inf-ruby
   :straight t
@@ -1205,8 +1203,7 @@
 (use-package web-mode
   :straight t
   :mode ("\\.html?\\'"
-         "\\.html\\.erb\\'"
-         "\\.turbo_stream\\.erb\\'"
+         "\\.erb\\'"
          "\\.rhtml?\\'"
          ;;"\\.php\\'"
          )
