@@ -384,11 +384,11 @@
                              ;; (mozc-session-sendkey '(hiragana)))))
                              (mozc-session-sendkey '(Hankaku/Zenkaku))))))
     (define-key global-map [henkan]
-      (lambda () (interactive)
-        (activate-input-method default-input-method)))
+                (lambda () (interactive)
+                  (activate-input-method default-input-method)))
     (define-key global-map [muhenkan]
-      (lambda () (interactive)
-        (deactivate-input-method)))
+                (lambda () (interactive)
+                  (deactivate-input-method)))
     (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
     (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
     (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
@@ -706,7 +706,7 @@
     (when (and
            (buffer-file-name (current-buffer))
            (string-match (expand-file-name howm-directory)
-                                   (expand-file-name buffer-file-name))
+                         (expand-file-name buffer-file-name))
            (= (point-min) (point-max)))
       (delete-file
        (buffer-file-name (current-buffer)))))
@@ -834,7 +834,7 @@
                            'font-lock-face 'calendar-month-header))
   :config
   (setq calendar-holidays ; 他の国の祝日も表示させたい場合は適当に調整
-   (append japanese-holidays holiday-local-holidays holiday-other-holidays))
+        (append japanese-holidays holiday-local-holidays holiday-other-holidays))
   (let ((array ["日" "月" "火" "水" "木" "金" "土"]))
     (setq calendar-day-header-array array
           calendar-day-name-array array))
@@ -1057,33 +1057,6 @@
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
-
-;; (defun ruby-mode-set-frozen-string-literal-true ()
-;;   (interactive)
-;;   (when (and
-;;          (or (eq major-mode 'ruby-mode) (eq major-mode 'enh-ruby-mode))
-;;          (buffer-file-name (current-buffer))
-;;          (string-match "\\.rb" (buffer-file-name (current-buffer))))
-;;     (save-excursion
-;;       (widen)
-;;       (goto-char (point-min))
-;;       (if (looking-at "^#!") (beginning-of-line 2))
-;;       (unless (looking-at "^# frozen_string_literal: true")
-;;         (insert "# frozen_string_literal: true\n\n")))))
-
-;; (defvar my/ruby-mode-set-frozen-string-literal-true-state "")
-;; (defun toggle-ruby-mode-set-frozen-string-literal-true ()
-;;   (interactive)
-;;   (cond ((memq 'ruby-mode-set-frozen-string-literal-true before-save-hook)
-;;          (setq my/ruby-mode-set-frozen-string-literal-true-state
-;;                (propertize "[MC-]" 'face '((:foreground "turquoise1" :weight bold))))
-;;          (remove-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true))
-;;         (t
-;;          (setq my/ruby-mode-set-frozen-string-literal-true-state "")
-;;          (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)))
-;;   (force-mode-line-update))
-;; (global-set-key (kbd "C-c M-m") 'toggle-ruby-mode-set-frozen-string-literal-true)
-
 (use-package enh-ruby-mode
   :straight t
   :defer t
@@ -1098,13 +1071,13 @@
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
   :config
-  (inf-ruby-minor-mode t)
-  (electric-indent-mode t)
-  (electric-layout-mode t)
-  (rubocop-mode t)
-  (modify-syntax-entry ?: ".")
-  ;; (add-hook 'before-save-hook 'ruby-mode-set-frozen-string-literal-true)
-  )
+  (add-hook 'enh-ruby-mode-hook
+            (lambda ()
+              (inf-ruby-minor-mode t)
+              (electric-indent-mode t)
+              (electric-layout-mode t)
+              (rubocop-mode t)
+              (modify-syntax-entry ?: "."))))
 
 (use-package inf-ruby
   :straight t
@@ -1827,9 +1800,10 @@
 
 (use-package all-the-icons-completion
   :straight t
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
   :init
-  (all-the-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
+  (all-the-icons-completion-mode))
 
 (use-package consult-projectile
   :straight t
@@ -1849,12 +1823,20 @@
   (corfu-cycle t)
   (corfu-auto t)
   (corfu-auto-prefix 3)
-  (corfu-preselect-first t)
-  (corfu-popupinfo-delay 0)
+  (corfu-preselect 'prompt)
+  (corfu-popupinfo-delay 0.5)
   (corfu-on-exact-match nil)
-  :init
+  :config
   (global-corfu-mode)
-  (corfu-popupinfo-mode))
+  (corfu-popupinfo-mode)
+  (defun corfu-my-insert-or-newline ()
+    (interactive)
+    (if (>= corfu--index 0)
+        (corfu--insert 'finished)
+      (corfu-quit)
+      (call-interactively 'newline)))
+  (bind-keys :map corfu-map
+             ("RET" . corfu-my-insert-or-newline)))
 
 (use-package corfu-terminal
   :straight
@@ -2396,9 +2378,9 @@
 (use-package ibuffer-vc
   :straight t
   :hook (ibuffer . (lambda ()
-            (ibuffer-vc-set-filter-groups-by-vc-root)
-            (unless (eq ibuffer-sorting-mode 'alphabetic)
-              (ibuffer-do-sort-by-alphabetic)))))
+                     (ibuffer-vc-set-filter-groups-by-vc-root)
+                     (unless (eq ibuffer-sorting-mode 'alphabetic)
+                       (ibuffer-do-sort-by-alphabetic)))))
 
 (use-package all-the-icons-ibuffer
   :straight t
@@ -2536,7 +2518,7 @@
 ;;; ----------------------------------------------------------------------
 (require 'server)
 (unless (server-running-p)
- (server-start))
+  (server-start))
 
 ;;; ----------------------------------------------------------------------
 ;;; load custom.el
