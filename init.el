@@ -106,13 +106,13 @@
 ;; abcdefghijklmnopqrst
 ;; あいうえおかきくけこ
 ;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
-;; ■□◆◇■□◆◇……
+;; ■□◆◇←↓↑→……
 
 (setq use-default-font-for-symbols nil)
 (set-face-attribute 'default nil :font "Ricty Discord" :height 150)
 (dolist (c '(?↵)) (set-fontset-font t c "Cica"))
 ;; (set-face-attribute 'default nil :font "Cica" :height 150)
-;; (dolist (c '(?… ?■ ?□ ?◆ ?◇)) (set-fontset-font t c "Ricty Discord"))
+;; (dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -183,9 +183,25 @@
 ;;; ----------------------------------------------------------------------
 ;;; all-the-icons
 ;;; ----------------------------------------------------------------------
-(use-package all-the-icons
-  :straight t
-  :custom (all-the-icons-scale-factor 0.9))
+;; (use-package all-the-icons
+;;   :straight t
+;;   :custom (all-the-icons-scale-factor 0.9))
+
+;;; ----------------------------------------------------------------------
+;;; nerd-icons
+;;; ----------------------------------------------------------------------
+(use-package nerd-icons
+  :straight t)
+
+;;; ----------------------------------------------------------------------
+;;; kind-icon
+;;; ----------------------------------------------------------------------
+;; (use-package kind-icon
+;;   :straight t
+;;   :after corfu
+;;   :custom (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+;;   :config
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 ;;; ---------------------------------------------------------------------
 ;;; monokai-theme
@@ -618,7 +634,8 @@
  '(dired-listing-switches "-aFl --group-directories-first")
  '(dired-dwim-target t)
  '(dired-recursive-copies 'always)
- '(dired-isearch-filenames t))
+ '(dired-isearch-filenames t)
+ '(dired-omit-mode t))
 
 (defun dired-open-file ()
   "In dired, open the file named on this line."
@@ -636,16 +653,17 @@
                         :after (lambda ()
                                  (deactivate-input-method)
                                  (dired-k)))))
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (dired-omit-mode 1)))
 
 (use-package dired-k
   :straight t
-  :defer t
   :bind (:map dired-mode-map
               ("g" . dired-k))
-  :hook (dired-initial-position . dired-k))
+  :hook ((dired-initial-position . dired-k)
+         (dired-after-readin-hook . dired-k-no-revert)))
+
+(use-package nerd-icons-dired
+  :straight t
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
@@ -1798,12 +1816,16 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-(use-package all-the-icons-completion
+;; (use-package all-the-icons-completion
+;;   :straight t
+;;   :after (marginalia all-the-icons)
+;;   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+;;   :init
+;;   (all-the-icons-completion-mode))
+
+(use-package nerd-icons-completion
   :straight t
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
+  :hook (after-init . nerd-icons-completion-mode))
 
 (use-package consult-projectile
   :straight t
@@ -1846,13 +1868,6 @@
   (display-graphic-p)
   :config
   (corfu-terminal-mode +1))
-
-(use-package kind-icon
-  :straight t
-  :after corfu
-  :custom (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 ;; Add extensions
 (use-package cape
@@ -1897,6 +1912,12 @@
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
 
+(use-package nerd-icons-corfu
+  :straight (:host github :repo "LuigiPiucco/nerd-icons-corfu")
+  :after corfu nerd-icons
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
 ;;; ----------------------------------------------------------------------
 ;;; eglot
 ;;; ----------------------------------------------------------------------
@@ -1904,9 +1925,9 @@
   :straight t
   :hook ((enh-ruby-mode ruby-mode python-mode web-mode) . eglot-ensure)
   :config
-  ;; (setf (alist-get 'ruby-mode eglot-server-programs) #'("bundle" "exec" "solargraph" "socket" "--port" :autoport))
   (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
-  (add-to-list 'eglot-server-programs '(web-mode . ("npx" "tailwindcss-language-server" "--stdio"))))
+  (add-to-list 'eglot-server-programs
+               '((web-mode :language-id "html") . ("npx" "tailwindcss-language-server" "--stdio"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; copilot
@@ -2382,10 +2403,26 @@
                      (unless (eq ibuffer-sorting-mode 'alphabetic)
                        (ibuffer-do-sort-by-alphabetic)))))
 
-(use-package all-the-icons-ibuffer
+;; (use-package all-the-icons-ibuffer
+;;   :straight t
+;;   :custom
+;;   (all-the-icons-ibuffer-formats
+;;    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
+;;            " " (icon 2 2 :left :elide)
+;;            ,(propertize " " 'display `(space :align-to 10))
+;;            (name 30 30 :left :elide)
+;;            " " (size-h 9 -1 :right)
+;;            " " (mode+ 16 16 :left :elide)
+;;            " " (coding 12 12 :left)
+;;            " " filename-and-process+)
+;;      (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
+;;   :config
+;;   (all-the-icons-ibuffer-mode 1))
+
+(use-package nerd-icons-ibuffer
   :straight t
   :custom
-  (all-the-icons-ibuffer-formats
+  (nerd-icons-ibuffer-formats
    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
            " " (icon 2 2 :left :elide)
            ,(propertize " " 'display `(space :align-to 10))
@@ -2395,8 +2432,7 @@
            " " (coding 12 12 :left)
            " " filename-and-process+)
      (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
-  :config
-  (all-the-icons-ibuffer-mode 1))
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; neotree
