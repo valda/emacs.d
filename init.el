@@ -269,10 +269,8 @@
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
 (use-package doom-modeline
-  :disabled
   :straight t
   :hook (after-init . doom-modeline-mode)
-  :init
   :custom
   (doom-modeline-height 34)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
@@ -282,21 +280,12 @@
   :custom-face
   (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "DeepSkyBlue4" :inherit mode-line-buffer-id))))
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
-  (doom-modeline-bar       ((t (:background "DeepSkyBlue3" :inherit mode-line-buffer-id))))
+  (doom-modeline-bar       ((t (:background "DeepSkyBlue2" :inherit mode-line-buffer-id))))
   :config
   (use-package async :straight t)
   (use-package ghub :straight t)
-  (with-eval-after-load 'tab-bar
-    (set-face-attribute 'tab-bar nil
-                        :foreground 'unspecified :background 'unspecified
-                        :height 0.9
-                        :inherit 'mode-line)
-    (set-face-attribute 'tab-bar-tab-inactive nil
-                        :foreground 'unspecified :background 'unspecified :bold t
-                        :inherit '(shadow tab-bar))
-    (set-face-attribute 'tab-bar-tab nil
-                        :foreground 'unspecified :background 'unspecified :bold t
-                        :inherit '(doom-modeline-highlight tab-bar))))
+  (with-eval-after-load 'flycheck
+    (diminish 'flycheck-mode)))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
