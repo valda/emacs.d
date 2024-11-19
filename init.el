@@ -1912,7 +1912,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package eglot
   :straight t
-  :hook ((enh-ruby-mode ruby-mode python-mode web-mode) . eglot-ensure)
+  :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
   :config
   (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
   (add-to-list 'eglot-server-programs
