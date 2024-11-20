@@ -1990,6 +1990,7 @@
           ("*rg*" :other t :select t :inhibit-window-quit t)
           ("*git-gutter:diff*" :align below :size 0.4)
           ("\\(Messages\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
+          ("*Google Translate*" :align below :size 0.3 :popup t :select t)
           ))
   (shackle-mode 1))
 
