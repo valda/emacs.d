@@ -108,11 +108,12 @@
 ;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
 ;; ■□◆◇←↓↑→……
 
+(setq-default line-spacing 0)  ;; 行間を狭くする
 (setq use-default-font-for-symbols nil)
-(set-face-attribute 'default nil :font "Ricty Discord" :height 150)
-(dolist (c '(?↵)) (set-fontset-font t c "Cica"))
-;; (set-face-attribute 'default nil :font "Cica" :height 150)
-;; (dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
+;; (set-face-attribute 'default nil :font "Ricty Discord" :height 150)
+;; (dolist (c '(?↵)) (set-fontset-font t c "Cica"))
+(set-face-attribute 'default nil :font "Cica" :height 150)
+(dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -766,8 +767,6 @@
   (org-agenda-window-setup 'current-window)
   (org-agenda-format-date "%Y/%m/%d (%a)")
   (org-agenda-log-mode-items '(closed))
-  (org-mobile-directory (expand-file-name "アプリ/MobileOrg" my-dropbox-directory))
-  (org-mobile-inbox-for-pull (expand-file-name "from-mobile.org" org-directory))
   (org-replace-disputed-keys t)
   (org-use-speed-commands t)
   (org-log-done t)
@@ -814,16 +813,15 @@
   (advice-add 'org-agenda :around #'skip-delete-other-windows))
 
 (use-package org-bullets
+  :disabled
   :straight t
   :custom (org-bullets-bullet-list '("◉" "○" "✿" "●" "►" "•"))
   :hook (org-mode . org-bullets-mode))
 
-(use-package org-mobile-sync
-  :disabled
+(use-package org-modern
   :straight t
-  :after org
-  :config
-  (org-mobile-sync-mode 1))
+  :hook ((org-mode . org-modern-mode)
+         (org-agenda-finalize . org-modern-agenda)))
 
 ;;; ----------------------------------------------------------------------
 ;;; calendar / japanese-holidays
@@ -1043,6 +1041,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
+(use-package llama :straight t)
 (use-package magit
   :straight t
   :defer t
@@ -1833,7 +1832,8 @@
   :custom
   (corfu-cycle t)
   (corfu-auto t)
-  (corfu-auto-prefix 3)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 2)
   (corfu-preselect 'prompt)
   (corfu-popupinfo-delay 0.5)
   (corfu-on-exact-match nil)
@@ -2136,7 +2136,7 @@
     "authinfo ファイルから OpenAI API キーを取得"
     (let ((api-key (plist-get
                     (car (auth-source-search :host "api.openai.com"
-                                             :user "openai-api"
+                                             :user "apikey"
                                              :port "https"))
                     :secret)))
       (if (functionp api-key)
