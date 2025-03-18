@@ -110,10 +110,14 @@
 
 (setq-default line-spacing 0)  ;; 行間を狭くする
 (setq use-default-font-for-symbols nil)
-;; (set-face-attribute 'default nil :font "Ricty Discord" :height 150)
-;; (dolist (c '(?↵)) (set-fontset-font t c "Cica"))
-(set-face-attribute 'default nil :font "Cica" :height 150)
-(dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
+(set-face-attribute 'default nil :font "Ricty Discord" :height 150)
+;; Cicaを使うと右寄せの時の文字数がずれるので Ricty Discord に戻す
+;; (set-face-attribute 'default nil :font "Cica" :height 150)
+;; (dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
+;; ;; Box Drawing (U+2500-U+257F) を別のフォントで描画
+;; (set-fontset-font t '(#x2500 . #x257F) "Noto Sans Mono" nil 'prepend)
+;; ;; Block Elements (U+2580-U+259F) も念のため
+;; (set-fontset-font t '(#x2580 . #x259F) "Noto Sans Mono" nil 'prepend)
 (set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
@@ -466,7 +470,10 @@
   (bind-keys :map yas-minor-mode-map
              ("<tab>" . nil)
              ("TAB" . nil))
-  (yas-global-mode 1))
+  :hook
+  (prog-mode . yas-minor-mode)
+  :config
+  (yas-reload-all))
 
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev / hippie-expand
@@ -821,7 +828,11 @@
 (use-package org-modern
   :straight t
   :hook ((org-mode . org-modern-mode)
-         (org-agenda-finalize . org-modern-agenda)))
+         (org-agenda-finalize . org-modern-agenda))
+  :custom
+  (setq org-modern-todo-faces '(("SOMEDAY"  :background "cyan4" :foreground "black")
+                           ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
+
 
 ;;; ----------------------------------------------------------------------
 ;;; calendar / japanese-holidays
@@ -1039,7 +1050,7 @@
   (add-to-list 'process-coding-system-alist '("svn" . utf-8)))
 
 ;;; ----------------------------------------------------------------------
-;;; magit
+;;; magitc
 ;;; ----------------------------------------------------------------------
 (use-package llama :straight t)
 (use-package magit
@@ -1166,7 +1177,6 @@
 
 (use-package php-mode
   :straight t
-  :magic "\\`<\\?php$"
   :config
   (add-hook 'php-mode-hook 'my-php-mode-setup))
 
@@ -1184,8 +1194,7 @@
   :mode ("\\.html?\\'"
          "\\.erb\\'"
          "\\.rhtml?\\'"
-         ;;"\\.php\\'"
-         )
+         "\\.php\\'")
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
@@ -1500,7 +1509,7 @@
   :straight t
   :hook (after-init . session-initialize)
   :custom
-  (session-save-file-coding-system 'utf-8)
+  (session-save-file-coding-system 'no-conversion)
   (session-globals-max-string 10000000)
   (session-initialize '(de-saveplace session places keys menus))
   (session-globals-include '((kill-ring 1000)
@@ -1883,22 +1892,21 @@
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  ;;(add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
-  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
-  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
-  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
-  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
-  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-line)
-  )
+  (add-to-list 'completion-at-point-functions #'cape-emoji))
+
+(use-package yasnippet-capf
+  :straight t
+  :after cape
+  :init
+  (defun my/setup-yasnippet-capf ()
+    (when (bound-and-true-p yas-minor-mode)
+      (add-to-list 'completion-at-point-functions #'yasnippet-capf)))
+  (add-hook 'prog-mode-hook #'my/setup-yasnippet-capf))
 
 (use-package company
   :straight t
   :init
-  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-yasnippet))
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
 
 (use-package nerd-icons-corfu
@@ -1910,13 +1918,31 @@
 ;;; ----------------------------------------------------------------------
 ;;; eglot
 ;;; ----------------------------------------------------------------------
-(use-package eglot
+;; (use-package eglot
+;;   :straight t
+;;   :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
+;;   :config
+;;   (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
+;;   (add-to-list 'eglot-server-programs
+;;                '((web-mode :language-id "html") . ("npx" "tailwindcss-language-server" "--stdio"))))
+
+;;; ----------------------------------------------------------------------
+;;; lsp-mode
+;;; ----------------------------------------------------------------------
+(use-package lsp-mode
   :straight t
-  :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
-  :config
-  (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
-  (add-to-list 'eglot-server-programs
-               '((web-mode :language-id "html") . ("npx" "tailwindcss-language-server" "--stdio"))))
+  :custom
+  (lsp-keymap-prefix "C-c l")
+  (lsp-disabled-clients '(rubocop-ls ruby-ls))
+  ;; (lsp-headerline-breadcrumb-enable nil)
+  :hook ((enh-ruby-mode . lsp)
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+;; optionally
+(use-package lsp-ui
+  :straight t
+  :hook (lsp-mode . lsp-ui-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; copilot
@@ -2100,10 +2126,9 @@
   (setq whitespace-space-regexp "\\(\u3000+\\)")
   (setq whitespace-display-mappings
         '(
-          ;;(space-mark   ?\u3000 [?□] [?＿])          ; full-width space - square
-          ;;(newline-mark ?\n    [?« ?\n] [?$ ?\n])    ; eol - left guillemet
-          ;;(newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
-          ;; 改行マークを出すとcopilot.elと競合する
+          ;; (space-mark   ?\u3000 [?□] [?＿])         ; full-width space - square
+          ;; 改行マークを表示すると copilot.el と競合するのでコメントアウト
+          ;; (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
           (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
           ))
   ;;(set-face-italic-p 'whitespace-space nil)
@@ -2467,7 +2492,7 @@
   :straight t
   :diminish which-key-mode
   :custom
-  (which-key-idle-delay 5.0)
+  (which-key-idle-delay 3.0)
   (which-key-idle-secondary-delay 0.05)
   (which-key-show-early-on-C-h t)
   :config
