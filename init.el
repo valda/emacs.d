@@ -89,10 +89,12 @@
   (setenv "CYGWIN" "nodosfilewarning"))
 
 ;;; ----------------------------------------------------------------------
-;;; WSL
+;;; WSL2
 ;;; ----------------------------------------------------------------------
 (defun my/wsl-p ()
-  (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop"))
+  (string-match "Microsoft" (with-temp-buffer
+                              (insert-file-contents "/proc/version")
+                              (buffer-string))))
 
 (when (my/wsl-p)
   (defun reset-frame-parameter (frame)
@@ -134,10 +136,10 @@
 
 ;; ;; 初回の package-install の前に package-refresh-contents を実行する
 ;; ;; https://github.com/jwiegley/use-package/issues/256#issuecomment-263313693
-;; (defun my-package-install-refresh-contents (&rest args)
+;; (defun my/package-install-refresh-contents (&rest args)
 ;;   (package-refresh-contents)
-;;   (advice-remove 'package-install 'my-package-install-refresh-contents))
-;; (advice-add 'package-install :before 'my-package-install-refresh-contents)
+;;   (advice-remove 'package-install 'my/package-install-refresh-contents))
+;; (advice-add 'package-install :before 'my/package-install-refresh-contents)
 
 ;;; ----------------------------------------------------------------------
 ;;; install straight.el
@@ -350,7 +352,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; W32-IME / mozc / ibus / uim
 ;;; ----------------------------------------------------------------------
-(defun my-w32-ime-init()
+(defun my/w32-ime-init()
   (setq default-input-method "W32-IME")
   (setq-default w32-ime-mode-line-state-indicator "[--]")
   (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
@@ -382,17 +384,17 @@
                                  (setq w32-ime-composition-window (minibuffer-window))))
   (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil))))
 
-(defun my-mozc-init()
+(defun my/mozc-init()
   (use-package mozc
     :straight (:host github :repo "google/mozc" :files ("src/unix/emacs/mozc.el"))
     :config
     ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
-    (when (my/wsl-p)
-      (advice-add 'mozc-session-execute-command
-                  :after (lambda (&rest args)
-                           (when (eq (nth 0 args) 'CreateSession)
-                             ;; (mozc-session-sendkey '(hiragana)))))
-                             (mozc-session-sendkey '(Hankaku/Zenkaku))))))
+    ;; (when (my/wsl-p)
+    ;;   (advice-add 'mozc-session-execute-command
+    ;;               :after (lambda (&rest args)
+    ;;                        (when (eq (nth 0 args) 'CreateSession)
+    ;;                          ;; (mozc-session-sendkey '(hiragana)))))
+    ;;                          (mozc-session-sendkey '(Hankaku/Zenkaku))))))
     (define-key global-map [henkan]
                 (lambda () (interactive)
                   (activate-input-method default-input-method)))
@@ -454,9 +456,9 @@
                                     (half-katakana . "dark goldenrod")))))
 
 (cond ((eq window-system 'w32)
-       (my-w32-ime-init))
+       (my/w32-ime-init))
       (t
-       (my-mozc-init)))
+       (my/mozc-init)))
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
@@ -665,12 +667,12 @@
 ;;; ----------------------------------------------------------------------
 ;;; Dropbox のパス
 ;;; ----------------------------------------------------------------------
-;; (defvar my-dropbox-directory
+;; (defvar my/dropbox-directory
 ;;   (cond ((string-equal (system-name) "SILVER")
 ;;          "D:/Dropbox/")
 ;;         (t
 ;;          "~/Dropbox/")))
-(defvar my-dropbox-directory "~/Dropbox/")
+(defvar my/dropbox-directory "~/Dropbox/")
 
 
 ;;; ----------------------------------------------------------------------
@@ -686,7 +688,7 @@
          ("\C-c,c" . howm-create))
   :mode ("\\.howm\\'" . howm-mode)
   :custom
-  (howm-directory (expand-file-name "Documents/howm" my-dropbox-directory))
+  (howm-directory (expand-file-name "Documents/howm" my/dropbox-directory))
   (howm-menu-lang 'ja)
   (howm-process-coding-system 'utf-8)
   ;; 「最近のメモ」一覧時にタイトル表示
@@ -728,7 +730,7 @@
   (add-hook 'after-save-hook #'delete-file-if-no-contents)
   ;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
   ;; C-cC-c で保存してバッファをキルする
-  (defun my-save-and-kill-buffer-howm ()
+  (defun my/save-and-kill-buffer-howm ()
     (interactive)
     (when (and
            (buffer-file-name)
@@ -736,11 +738,11 @@
                          (expand-file-name buffer-file-name)))
       (save-buffer)
       (kill-buffer nil)))
-  (define-key howm-mode-map "\C-c\C-c" 'my-save-and-kill-buffer-howm)
+  (define-key howm-mode-map "\C-c\C-c" 'my/save-and-kill-buffer-howm)
   ;; 日付けの入力が面倒
   (with-eval-after-load 'calendar
-    (define-key calendar-mode-map "\C-m" 'my-insert-day)
-    (defun my-insert-day ()
+    (define-key calendar-mode-map "\C-m" 'my/insert-day)
+    (defun my/insert-day ()
       (interactive)
       (let ((day nil)
             (calendar-date-display-form
@@ -756,12 +758,11 @@
 ;;; ----------------------------------------------------------------------
 (use-package org
   :straight t
-  :defer t
   :bind
   ("\C-c c" . org-capture)
   ("\C-c a" . org-agenda)
   :custom
-  (org-directory (expand-file-name "Documents/org/" my-dropbox-directory))
+  (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
   (org-capture-templates
    '(("t" "Task" entry (file+headline org-default-notes-file "Tasks")
@@ -769,7 +770,7 @@
      ("m" "Memo" entry (file+headline org-default-notes-file "Memos")
       "* %?\n  Entered on %U\n %i\n %a\n" :empty-lines 1)
      ))
-  (org-agenda-files `(,org-directory))
+  (org-agenda-files (list org-directory))
   (org-agenda-include-diary t)
   (org-agenda-window-setup 'current-window)
   (org-agenda-format-date "%Y/%m/%d (%a)")
@@ -780,8 +781,8 @@
   (org-todo-keywords '((sequence "TODO(t)" "SOMEDAY(s)" "WAITING(w@/!)" "|" "DONE(d)" "CANCELED(c@/!)")))
   (org-todo-keyword-faces '(("SOMEDAY"   . (:foreground "CadetBlue4" :weight bold))
                             ("WAITING"   . (:foreground "orange3" :weight bold))
-                            ("CANCELLED" . org-done)))
-  (org-use-fast-todo-selection 'expert)
+                            ("CANCELED" . org-done)))
+  (org-use-fast-todo-selection 'expert) ; C-c C-t のTODO切り替え時に補完メニューなしで1文字選択できる
   (org-refile-targets '((nil :maxlevel . 2)
                         (org-agenda-files :maxlevel . 1)))
   (org-outline-path-complete-in-steps nil)
@@ -833,6 +834,47 @@
   (setq org-modern-todo-faces '(("SOMEDAY"  :background "cyan4" :foreground "black")
                            ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
 
+(use-package org-roam
+  :straight t
+  :init
+  (setq org-roam-directory (expand-file-name "Documents/org/roam" my/dropbox-directory))
+  :custom
+  (org-roam-completion-everywhere t)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ("C-c n d" . org-roam-dailies-capture-today))
+  :config
+  (org-roam-db-autosync-mode)
+
+  ;; ノート作成用テンプレート
+  (setq org-roam-capture-templates
+        '(("d" "Default" plain
+           "%?"
+           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                              "#+title: ${title}\n#+filetags: :note:\n#+date: %U\n\n")
+           :unnarrowed t)
+
+          ("t" "Tech Note" plain
+           "* 概要\n%?\n\n* 詳細\n\n* 関連ノート\n"
+           :if-new (file+head "tech/%<%Y%m%d%H%M%S>-${slug}.org"
+                              "#+title: ${title}\n#+filetags: :tech:\n#+date: %U\n\n")
+           :unnarrowed t)
+
+          ("m" "Memo" plain
+           "- %?"
+           :if-new (file+head "memos/%<%Y%m%d%H%M%S>-${slug}.org"
+                              "#+title: ${title}\n#+filetags: :memo:\n#+date: %U\n\n")
+           :unnarrowed t)))
+
+  ;; 日次ノートのテンプレート
+  (setq org-roam-dailies-directory "daily/")
+  (setq org-roam-dailies-capture-templates
+        '(("d" "Default" entry
+           "* %<%H:%M> %?"
+           :if-new (file+head "%<%Y-%m-%d>.org"
+                              "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n")))))
 
 ;;; ----------------------------------------------------------------------
 ;;; calendar / japanese-holidays
@@ -869,7 +911,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; cc-mode
 ;;; ----------------------------------------------------------------------
-(defconst my-cc-style
+(defconst my/cc-style
   '(
     ;; インデント幅を空白2コ分にする
     (c-basic-offset . 2)
@@ -964,8 +1006,8 @@
 
 (add-hook 'c-mode-common-hook
           (lambda ()
-            ;; my-cc-stye を登録して有効にする
-            (c-add-style "PERSONAL" my-cc-style t)
+            ;; my/cc-stye を登録して有効にする
+            (c-add-style "PERSONAL" my/cc-style t)
             ;; 自動改行(auto-newline)を有効にする
             (when (fboundp 'c-toggle-auto-newline)
               (c-toggle-auto-newline t))
@@ -1050,7 +1092,7 @@
   (add-to-list 'process-coding-system-alist '("svn" . utf-8)))
 
 ;;; ----------------------------------------------------------------------
-;;; magitc
+;;; magit
 ;;; ----------------------------------------------------------------------
 (use-package llama :straight t)
 (use-package magit
@@ -1155,7 +1197,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(defun my-php-mode-setup ()
+(defun my/php-mode-setup ()
   (php-enable-psr2-coding-style)
   (setq flycheck-phpcs-standard "PSR2")
   ;;(electric-pair-mode t)
@@ -1178,7 +1220,7 @@
 (use-package php-mode
   :straight t
   :config
-  (add-hook 'php-mode-hook 'my-php-mode-setup))
+  (add-hook 'php-mode-hook 'my/php-mode-setup))
 
 (use-package php-align
   :straight (:host github :repo "tetsujin/emacs-php-align")
@@ -1528,7 +1570,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
 ;;; ----------------------------------------------------------------------
-(defun my-make-scratch (&optional arg)
+(defun my/make-scratch (&optional arg)
   (interactive)
   (progn
     ;; "*scratch*" を作成して buffer-list に放り込む
@@ -1546,14 +1588,14 @@
           ;; *scratch* バッファで kill-buffer したら内容を消去するだけにする
           (lambda ()
             (if (string= "*scratch*" (buffer-name))
-                (progn (my-make-scratch 0) nil)
+                (progn (my/make-scratch 0) nil)
               t)))
 
 (add-hook 'after-save-hook
           ;; *scratch* バッファの内容を保存したら *scratch* バッファを新しく作る
           (lambda ()
             (unless (member (get-buffer "*scratch*") (buffer-list))
-              (my-make-scratch 1))))
+              (my/make-scratch 1))))
 
 ;;; ----------------------------------------------------------------------
 ;;; kill-ring に同じ内容の文字列を複数入れない
@@ -1849,14 +1891,14 @@
   :config
   (global-corfu-mode)
   (corfu-popupinfo-mode)
-  (defun corfu-my-insert-or-newline ()
+  (defun my/corfu-insert-or-newline ()
     (interactive)
     (if (>= corfu--index 0)
         (corfu--insert 'finished)
       (corfu-quit)
       (call-interactively 'newline)))
   (bind-keys :map corfu-map
-             ("RET" . corfu-my-insert-or-newline)))
+             ("RET" . my/corfu-insert-or-newline)))
 
 (use-package corfu-terminal
   :straight
@@ -2153,23 +2195,31 @@
 ;;; ----------------------------------------------------------------------
 ;;; gptel
 ;;; ----------------------------------------------------------------------
+(defun my/fetch-api-key (host &optional env-var)
+  "指定された HOST または ENV-VAR から APIキーを取得。"
+  (or (and env-var (getenv env-var))
+      (let* ((auth-info (car (auth-source-search :host host
+                                                  :user "apikey"
+                                                  :port "https")))
+             (secret (plist-get auth-info :secret)))
+        (when secret
+          (if (functionp secret)
+              (funcall secret)
+            secret)))
+      (error "APIキーが見つかりません: %s or %s" host env-var)))
+
+(defun my/get-openai-api-key ()
+  "OpenAI APIキーを取得"
+  (my/fetch-api-key "api.openai.com" "OPENAI_API_KEY"))
+
+(defun my/get-anthropic-api-key ()
+  "Anthropic APIキーを取得"
+  (my/fetch-api-key "api.anthropic.com" "ANTHROPIC_API_KEY"))
+
 (use-package gptel
   :straight (gptel :type git :host github :repo "karthink/gptel")
-  :config
-  ;; authinfo から API キーを取得する関数
-  (defun my/get-openai-api-key ()
-    "authinfo ファイルから OpenAI API キーを取得"
-    (let ((api-key (plist-get
-                    (car (auth-source-search :host "api.openai.com"
-                                             :user "apikey"
-                                             :port "https"))
-                    :secret)))
-      (if (functionp api-key)
-          (funcall api-key)
-        api-key)))
-
-  ;; gptel に API キーを設定
-  (setq gptel-api-key (my/get-openai-api-key)))
+  :custom
+  (gptel-api-key (my/get-openai-api-key)))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -2228,7 +2278,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; ファイルをシステムの関連付けで開く
 ;;; ----------------------------------------------------------------------
-(defun my-file-open-by-windows (file)
+(defun my/file-open-by-windows (file)
   "ファイルをシステムの関連付けで開く"
   (interactive "fOpen File: ")
   (message "Opening %s..." file)
@@ -2576,7 +2626,7 @@
 ;;; ----------------------------------------------------------------------
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
-  (load custom-file))
+  (load custom-file 'noerror))
 
 (cd "~")
 
