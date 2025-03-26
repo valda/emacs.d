@@ -1971,20 +1971,75 @@
 ;;; ----------------------------------------------------------------------
 ;;; lsp-mode
 ;;; ----------------------------------------------------------------------
+;; (use-package lsp-mode
+;;   :straight t
+;;   :custom
+;;   (lsp-keymap-prefix "C-c l")
+;;   (lsp-disabled-clients '(rubocop-ls ruby-ls))
+;;   (lsp-headerline-breadcrumb-enable nil)
+;;   :hook
+;;   (((enh-ruby-mode python-mode) . lsp-deferred)
+;;    (lsp-mode . lsp-enable-which-key-integration))
+;;   :commands lsp)
+
+;; Ruby用LSPの設定（enh-ruby-mode対応）
 (use-package lsp-mode
   :straight t
-  :custom
-  (lsp-keymap-prefix "C-c l")
-  (lsp-disabled-clients '(rubocop-ls ruby-ls))
-  ;; (lsp-headerline-breadcrumb-enable nil)
-  :hook ((enh-ruby-mode . lsp)
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
+  :commands (lsp lsp-deferred)
+  :hook
+  (enh-ruby-mode . my/setup-ruby-lsp)
 
-;; optionally
+  :custom
+  ;; bundler経由で起動する設定
+  (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
+  (lsp-solargraph-use-bundler t)
+
+  :config
+  ;; Gemfile を見て LSP クライアントを選ぶ
+  (defun my/lsp-ruby-client-from-gemfile ()
+    (let* ((gemfile (locate-dominating-file default-directory "Gemfile"))
+           (gemfile-path (and gemfile (expand-file-name "Gemfile" gemfile))))
+      (when gemfile-path
+        (with-temp-buffer
+          (insert-file-contents gemfile-path)
+          (cond
+           ((re-search-forward "gem ['\"]ruby-lsp['\"]" nil t) 'ruby-lsp-enh)
+           ((re-search-forward "gem ['\"]solargraph['\"]" nil t) 'solargraph-enh)
+           (t nil))))))
+
+  ;; enh-ruby-mode 用の LSP クライアントを手動登録
+  (add-to-list 'lsp-language-id-configuration '(enh-ruby-mode . "ruby"))
+
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection '("bundle" "exec" "ruby-lsp"))
+    :major-modes '(enh-ruby-mode)
+    :priority -1
+    :server-id 'ruby-lsp-enh))
+
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection '("bundle" "exec" "solargraph" "stdio"))
+    :major-modes '(enh-ruby-mode)
+    :priority -1
+    :server-id 'solargraph-enh))
+
+  ;; フックで自動セットアップ
+  (defun my/setup-ruby-lsp ()
+    (let ((client (my/lsp-ruby-client-from-gemfile)))
+      (when client
+        (setq-local lsp-enabled-clients (list client))
+        (lsp-deferred)))))
+
 (use-package lsp-ui
   :straight t
-  :hook (lsp-mode . lsp-ui-mode))
+  :after lsp-mode
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-enable nil)           ;; ポップアップ邪魔だから無効
+  (lsp-ui-sideline-enable nil)      ;; 行横もうざいので無効
+  (lsp-eldoc-enable-hover t)        ;; ミニバッファに表示させる
+  (lsp-headerline-breadcrumb-enable nil)) ;; 上のファイルパス表示もOFF
 
 ;;; ----------------------------------------------------------------------
 ;;; copilot
