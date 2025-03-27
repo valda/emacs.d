@@ -124,87 +124,73 @@
 (add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
 
 ;;; ----------------------------------------------------------------------
-;;; setting up package.el
+;;; elpaca
 ;;; ----------------------------------------------------------------------
-;; (custom-set-variables
-;;  '(package-user-dir (expand-file-name "elpa" user-emacs-directory))
-;;  '(package-archives
-;;    '(("gnu"   . "https://elpa.gnu.org/packages/")
-;;      ("melpa" . "https://melpa.org/packages/"))))
-;; (require 'package)
-;; (package-initialize)
+(defvar elpaca-installer-version 0.10)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
 
-;; ;; 初回の package-install の前に package-refresh-contents を実行する
-;; ;; https://github.com/jwiegley/use-package/issues/256#issuecomment-263313693
-;; (defun my/package-install-refresh-contents (&rest args)
-;;   (package-refresh-contents)
-;;   (advice-remove 'package-install 'my/package-install-refresh-contents))
-;; (advice-add 'package-install :before 'my/package-install-refresh-contents)
+;; use-package integration
+(elpaca elpaca-use-package
+  (elpaca-use-package-mode +1))
 
-;;; ----------------------------------------------------------------------
-;;; install straight.el
-;;; ----------------------------------------------------------------------
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
 
 ;;; ----------------------------------------------------------------------
 ;;; use-package
 ;;; ----------------------------------------------------------------------
-(straight-use-package 'use-package)
-(straight-use-package 'diminish)
-(eval-when-compile
-  (require 'use-package))
-(require 'diminish)
-(require 'bind-key)
 (custom-set-variables
  '(use-package-verbose t)
  '(use-package-compute-statistics t)
  '(use-package-minimum-reported-time 0.01)
  '(use-package-enable-imenu-support t))
-
-;;; ----------------------------------------------------------------------
-;;; paradox
-;;; ----------------------------------------------------------------------
-;; (when (and (boundp 'package--initialized)
-;;            package--initialized)
-;;   (use-package paradox
-;;     :ensure t
-;;     :defer t
-;;     :init (use-package async :ensure t)
-;;     :custom
-;;     (paradox-github-token
-;;      (cadr (auth-source-user-and-password "api.github.com" "valda^paradox")))
-;;     (paradox-execute-asynchronously t)
-;;     (paradox-automatically-star t)))
-
-;;; ----------------------------------------------------------------------
-;;; all-the-icons
-;;; ----------------------------------------------------------------------
-;; (use-package all-the-icons
-;;   :straight t
-;;   :custom (all-the-icons-scale-factor 0.9))
+(use-package diminish :ensure t :demand t)
 
 ;;; ----------------------------------------------------------------------
 ;;; nerd-icons
 ;;; ----------------------------------------------------------------------
 (use-package nerd-icons
-  :straight t)
+  :ensure t)
 
 ;;; ----------------------------------------------------------------------
 ;;; kind-icon
 ;;; ----------------------------------------------------------------------
 ;; (use-package kind-icon
-;;   :straight t
+;;   :ensure t
 ;;   :after corfu
 ;;   :custom (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
 ;;   :config
@@ -215,7 +201,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package monokai-theme
   :disabled
-  :straight t
+  :ensure t
   :config
   (load-theme 'monokai t)
   (with-eval-after-load 'mozc-cand-posframe
@@ -234,7 +220,7 @@
 ;;; solarized-theme
 ;;; ----------------------------------------------------------------------
 (use-package solarized-theme
-  :straight t
+  :ensure t
   :custom
   (solarized-use-variable-pitch nil)
   (solarized-scale-org-headlines nil)
@@ -276,8 +262,8 @@
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
 (use-package doom-modeline
-  :straight t
-  :hook (after-init . doom-modeline-mode)
+  :ensure t
+  :hook (emacs-startup . doom-modeline-mode)
   :custom
   (doom-modeline-height 34)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
@@ -289,8 +275,8 @@
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
   (doom-modeline-bar       ((t (:background "DeepSkyBlue2" :inherit mode-line-buffer-id))))
   :config
-  (use-package async :straight t)
-  (use-package ghub :straight t)
+  (use-package async :ensure t)
+  (use-package ghub :ensure t)
   (with-eval-after-load 'flycheck
     (diminish 'flycheck-mode)))
 
@@ -298,8 +284,8 @@
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
 (use-package nyan-mode
-  :straight t
-  :hook after-init
+  :ensure t
+  :hook emacs-startup
   :custom (nyan-bar-length 16)
   :config (nyan-start-animation))
 
@@ -345,7 +331,7 @@
 ;;; good-scroll
 ;;; ----------------------------------------------------------------------
 (use-package good-scroll
-  :straight t
+  :ensure t
   :config
   (good-scroll-mode 1))
 
@@ -357,7 +343,7 @@
   (setq-default w32-ime-mode-line-state-indicator "[--]")
   (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
   (use-package tr-ime
-    :straight t
+    :ensure t
     :config (tr-ime-advanced-install))
   (w32-ime-initialize)
   ;; IME 制御（yes/no などの入力の時に IME を off にする）MELPA 掲載版用
@@ -386,7 +372,7 @@
 
 (defun my/mozc-init()
   (use-package mozc
-    :straight (:host github :repo "google/mozc" :files ("src/unix/emacs/mozc.el"))
+    :ensure (:host github :repo "google/mozc" :files ("src/unix/emacs/mozc.el"))
     :config
     ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
     ;; (when (my/wsl-p)
@@ -416,7 +402,7 @@
     (ad-activate 'mozc-handle-event))
 
   (use-package mozc-im
-    :straight t
+    :ensure t
     :config
     (setq default-input-method "japanese-mozc-im")
     ;; mozc-cursor-color を利用するための対策
@@ -431,29 +417,28 @@
 
   (use-package mozc-popup
     :unless (display-graphic-p)
-    :straight t
+    :ensure t
     :after mozc
     :custom (mozc-candidate-style 'popup))
 
   (use-package mozc-cand-posframe
     :if (display-graphic-p)
-    :straight t
+    :ensure t
     :after mozc
     :custom (mozc-candidate-style 'posframe))
 
-  (use-package mozc-el-extensions
-    :straight (:host github :repo "iRi-E/mozc-el-extensions")
+  (use-package mozc-cursor-color
+    :ensure (:host github :repo "iRi-E/mozc-el-extensions" :main "mozc-cursor-color.el")
     :after mozc
-    :no-require t
     :config
-    (require 'mozc-cursor-color)
-    (setq mozc-cursor-color-alist '((direct        . "green")
-                                    (read-only     . "yellow")
-                                    (hiragana      . "red")
-                                    (full-katakana . "goldenrod")
-                                    (half-ascii    . "dark orchid")
-                                    (full-ascii    . "orchid")
-                                    (half-katakana . "dark goldenrod")))))
+    (setq mozc-cursor-color-alist
+          '((direct        . "green")
+            (read-only     . "yellow")
+            (hiragana      . "red")
+            (full-katakana . "goldenrod")
+            (half-ascii    . "dark orchid")
+            (full-ascii    . "orchid")
+            (half-katakana . "dark goldenrod")))))
 
 (cond ((eq window-system 'w32)
        (my/w32-ime-init))
@@ -464,24 +449,27 @@
 ;;; yasnippet.el
 ;;; ----------------------------------------------------------------------
 (use-package yasnippet
-  :straight t
+  :ensure t
   :diminish yas-minor-mode
-  :init
-  (use-package yasnippet-snippets :straight t)
-  ;; Remove Yasnippet's default tab key binding
-  (bind-keys :map yas-minor-mode-map
-             ("<tab>" . nil)
-             ("TAB" . nil))
   :hook
   (prog-mode . yas-minor-mode)
   :config
+  ;; 無効化: デフォルトのTABバインディング
+  (bind-keys :map yas-minor-mode-map
+             ("<tab>" . nil)
+             ("TAB" . nil))
   (yas-reload-all))
+
+(use-package yasnippet-snippets
+  :ensure t
+  :after yasnippet)
 
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev / hippie-expand
 ;;; ----------------------------------------------------------------------
-(with-eval-after-load 'abbrev
-  (diminish 'abbrev-mode))
+(eval-after-load 'abbrev
+  '(with-eval-after-load 'diminish
+     (diminish 'abbrev-mode)))
 (custom-set-variables
  '(dabbrev-case-fold-search t)
  '(dabbrev-case-replace t)
@@ -518,7 +506,7 @@
 ;;; buffer-move
 ;;; ----------------------------------------------------------------------
 (use-package buffer-move
-  :straight t
+  :ensure t
   :bind (([C-S-up]     . buf-move-up)
          ([C-S-down]   . buf-move-down)
          ([C-S-left]   . buf-move-left)
@@ -527,25 +515,28 @@
 ;;; ----------------------------------------------------------------------
 ;;; hydra
 ;;; ----------------------------------------------------------------------
-(use-package hydra :straight t)
-(defhydra hydra-resize-window (global-map "C-x")
-  "Resize Window"
-  ("^" enlarge-window "enlarge vertically")
-  ("_" shrink-window "shrink vertically")
-  ("{" shrink-window-horizontally "shrink horizontally")
-  ("}" enlarge-window-horizontally "enlarge horizontally"))
+(use-package hydra
+  :ensure t
+  :config
+  (defhydra hydra-resize-window (global-map "C-x")
+    "Resize Window"
+    ("^" enlarge-window "enlarge vertically")
+    ("_" shrink-window "shrink vertically")
+    ("{" shrink-window-horizontally "shrink horizontally")
+    ("}" enlarge-window-horizontally "enlarge horizontally")))
 
 ;;; ----------------------------------------------------------------------
 ;;; iflipb
 ;;; ----------------------------------------------------------------------
 (use-package iflipb
-  :straight t
+  :ensure t
   :commands (iflipb-next-buffer iflipb-previous-buffer iflipb-kill-buffer)
   :init
-  (defhydra hydra-buff (global-map "C-x")
-    "iflipb"
-    ("<left>" iflipb-previous-buffer "previous buffer")
-    ("<right>" iflipb-next-buffer "next buffer")))
+  (with-eval-after-load 'hydra
+    (defhydra hydra-buff (global-map "C-x")
+      "iflipb"
+      ("<left>" iflipb-previous-buffer "previous buffer")
+      ("<right>" iflipb-next-buffer "next buffer"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; winner-mode
@@ -554,21 +545,22 @@
   :custom (winner-dont-bind-my-keys t)
   :config
   (winner-mode t)
-  (defhydra hydra-winner (winner-mode-map "C-c")
-    "Winner"
-    ("<left>" (progn
-                (winner-undo)
-                (setq this-command 'winner-undo))
-     "back")
-    ("<right>" winner-redo "forward"
-     :exit t :bind nil)))
+  (with-eval-after-load 'hydra
+    (defhydra hydra-winner (winner-mode-map "C-c")
+      "Winner"
+      ("<left>" (progn
+                  (winner-undo)
+                  (setq this-command 'winner-undo))
+       "back")
+      ("<right>" winner-redo "forward"
+       :exit t :bind nil))))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
 ;;; ----------------------------------------------------------------------
 (use-package w3m
   :if (executable-find "w3m")
-  :straight t
+  :ensure t
   :defer t
   :custom (w3m-use-cookies t))
 
@@ -595,7 +587,7 @@
 ;;; undo-tree
 ;;; ----------------------------------------------------------------------
 (use-package undo-tree
-  :straight t
+  :ensure t
   :diminish undo-tree-mode
   :bind ("C-." . 'undo-tree-redo)
   :custom
@@ -608,9 +600,8 @@
 ;;; ----------------------------------------------------------------------
 (defvar migemo-command-path (executable-find "cmigemo"))
 (use-package migemo
-  :straight t
+  :ensure t
   :if migemo-command-path
-  :hook (after-init . migemo-init)
   :custom
   (migemo-command migemo-command-path)
   (migemo-options '("-q" "--emacs"))
@@ -622,7 +613,9 @@
   (migemo-use-pattern-alist nil)
   (migemo-use-frequent-pattern-alist t)
   (migemo-pattern-alist-length 1024)
-  (migemo-isearch-min-length 2))
+  (migemo-isearch-min-length 2)
+  :config
+  (migemo-init))
 
 ;;; ----------------------------------------------------------------------
 ;;; dired 関係
@@ -654,14 +647,14 @@
                                  (dired-k)))))
 
 (use-package dired-k
-  :straight t
+  :ensure t
   :bind (:map dired-mode-map
               ("g" . dired-k))
   :hook ((dired-initial-position . dired-k)
          (dired-after-readin-hook . dired-k-no-revert)))
 
 (use-package nerd-icons-dired
-  :straight t
+  :ensure t
   :hook (dired-mode . nerd-icons-dired-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -679,7 +672,7 @@
 ;;; howm
 ;;; ----------------------------------------------------------------------
 (use-package howm
-  :straight t
+  :ensure t
   :commands (howm-list-all
              howm-list-recent
              howm-list-grep
@@ -757,7 +750,7 @@
 ;;; org-mode
 ;;; ----------------------------------------------------------------------
 (use-package org
-  :straight t
+  :ensure t
   :bind
   ("\C-c c" . org-capture)
   ("\C-c a" . org-agenda)
@@ -822,12 +815,12 @@
 
 (use-package org-bullets
   :disabled
-  :straight t
+  :ensure t
   :custom (org-bullets-bullet-list '("◉" "○" "✿" "●" "►" "•"))
   :hook (org-mode . org-bullets-mode))
 
 (use-package org-modern
-  :straight t
+  :ensure t
   :hook ((org-mode . org-modern-mode)
          (org-agenda-finalize . org-modern-agenda))
   :custom
@@ -835,7 +828,7 @@
                            ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
 
 (use-package org-roam
-  :straight t
+  :ensure t
   :init
   (setq org-roam-directory (expand-file-name "Documents/org/roam" my/dropbox-directory))
   :custom
@@ -880,7 +873,7 @@
 ;;; calendar / japanese-holidays
 ;;; ----------------------------------------------------------------------
 (use-package japanese-holidays
-  :straight t
+  :ensure t
   :after calendar
   :custom
   (calendar-mark-holidays-flag t)    ; 祝日をカレンダーに表示
@@ -1049,7 +1042,7 @@
               (cons ruby-mode-hs-info hs-special-modes-alist)))))
 
 (use-package hideshow-org
-  :straight (:host github :repo "secelis/hideshow-org")
+  :ensure (:host github :repo "secelis/hideshow-org")
   :custom
   (bind-key "\C-ch" 'hs-org/minor-mode))
 
@@ -1057,7 +1050,7 @@
 ;;; moccur
 ;;; ----------------------------------------------------------------------
 (use-package color-moccur
-  :straight t
+  :ensure t
   :bind (("M-o"         . occur-by-moccur)
          ("C-c C-x C-o" . moccur))
   :custom
@@ -1071,8 +1064,7 @@
               (bind-key "O" 'dired-do-moccur dired-mode-map))))
 
 (use-package moccur-edit
-  ;;:straight (:host github :repo "myuhe/moccur-edit.el")
-  :straight t
+  :ensure (:host github :repo "myuhe/moccur-edit.el")
   :after color-moccur
   :config
   (defadvice moccur-edit-change-file
@@ -1083,7 +1075,7 @@
 ;;; dsvn
 ;;; ----------------------------------------------------------------------
 (use-package dsvn
-  :straight t
+  :ensure t
   :commands
   (svn-status svn-update)
   :custom
@@ -1094,9 +1086,10 @@
 ;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
-(use-package llama :straight t)
+(use-package llama :ensure t)
+(use-package transient :ensure t)
 (use-package magit
-  :straight t
+  :ensure t
   :defer t
   :bind ("C-x g" . magit-status)
   :custom
@@ -1107,17 +1100,17 @@
   (bind-key [C-tab]         nil magit-status-mode-map)
   (bind-key [C-iso-lefttab] nil magit-status-mode-map)
   (bind-key [C-tab]         nil magit-diff-mode-map)
-  (bind-key [C-iso-lefttab] nil magit-diff-mode-map))
+  (bind-key [C-iso-lefttab] nil magit-diff-mode-map)
+  (add-hook 'git-commit-mode-hook (lambda ()
+                                    (setq-local fill-column 80)
+                                    (display-fill-column-indicator-mode t))))
 
-(add-hook 'git-commit-mode-hook (lambda ()
-                                  (setq-local fill-column 80)
-                                  (display-fill-column-indicator-mode t)))
 
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
 (use-package enh-ruby-mode
-  :straight t
+  :ensure t
   :defer t
   :interpreter ("ruby")
   :mode ("\\.rb\\'"
@@ -1139,16 +1132,16 @@
               (modify-syntax-entry ?: "."))))
 
 (use-package inf-ruby
-  :straight t
+  :ensure t
   :defer t)
 
 (use-package ruby-end
-  :straight t
+  :ensure t
   :hook (enh-ruby-mode . ruby-end-mode)
   :diminish ruby-end-mode)
 
 (use-package rubocop
-  :straight t :defer t
+  :ensure t :defer t
   :diminish rubocop-mode
   :custom (rubocop-keymap-prefix (kbd "C-c C-c C-r")))
 
@@ -1156,7 +1149,7 @@
 ;;; rspec-mode
 ;;; ----------------------------------------------------------------------
 (use-package rspec-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; python-mode
@@ -1218,12 +1211,12 @@
   )
 
 (use-package php-mode
-  :straight t
+  :ensure t
   :config
   (add-hook 'php-mode-hook 'my/php-mode-setup))
 
 (use-package php-align
-  :straight (:host github :repo "tetsujin/emacs-php-align")
+  :ensure (:host github :repo "tetsujin/emacs-php-align")
   :after php-mode
   :config
   (php-align-setup))
@@ -1232,7 +1225,7 @@
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
 (use-package web-mode
-  :straight t
+  :ensure t
   :mode ("\\.html?\\'"
          "\\.erb\\'"
          "\\.rhtml?\\'"
@@ -1266,7 +1259,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package js2-mode
   :if (< emacs-major-version 27)
-  :straight t
+  :ensure t
   :defer t
   :custom
   (js2-include-browser-externs nil)
@@ -1292,14 +1285,14 @@
 ;;; ----------------------------------------------------------------------
 (use-package rjsx-mode
   :if (< emacs-major-version 27)
-  :straight t
+  :ensure t
   :mode (".*\\.jsx\\'" ".*\\.js\\'"))
 
 ;;; ----------------------------------------------------------------------
 ;;; add-node-module-path
 ;;; ----------------------------------------------------------------------
 (use-package add-node-modules-path
-  :straight t
+  :ensure t
   :defer t
   :init
   (with-eval-after-load 'js2-mode
@@ -1311,7 +1304,7 @@
 ;;; json-mode
 ;;; ----------------------------------------------------------------------
 (use-package json-mode
-  :straight t
+  :ensure t
   :mode ("\\.json\\'" "\\.babelrc\\'" "\\.eslintrc\\'"))
 
 ;;; ----------------------------------------------------------------------
@@ -1325,7 +1318,7 @@
 ;;; coffee-mode
 ;;; ----------------------------------------------------------------------
 (use-package coffee-mode
-  :straight t
+  :ensure t
   :mode ("\\.coffee\\'" "\\.coffee\\.erb\\'")
   :config
   (add-hook 'coffee-mode-hook
@@ -1337,7 +1330,7 @@
 ;;; typescript-mode
 ;;; ----------------------------------------------------------------------
 (use-package typescript-mode
-  :straight t
+  :ensure t
   :defer t
   :config
   (add-hook 'typescript-mode-hook
@@ -1364,7 +1357,7 @@
   (tide-hl-identifier-mode +1))
 
 (use-package tide
-  :straight t
+  :ensure t
   :defer t
   :init
   (add-hook 'before-save-hook 'tide-format-before-save)
@@ -1374,14 +1367,14 @@
 ;;; csharp-mode
 ;;; ----------------------------------------------------------------------
 (use-package csharp-mode
-  :straight t
+  :ensure t
   :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; po-mode
 ;;; ----------------------------------------------------------------------
 (use-package po-mode
-  :straight t
+  :ensure t
   :defer t
   :mode ("\\.po\\'\\|\\.po\\.")
   :commands (po-find-file-coding-system)
@@ -1393,7 +1386,7 @@
 ;;; es-mode (elasticsearch)
 ;;; ----------------------------------------------------------------------
 (use-package es-mode
-  :straight t
+  :ensure t
   :defer t
   :mode ("\\.es\\'"))
 
@@ -1402,7 +1395,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package mmm-mode
   :disabled
-  :straight t
+  :ensure t
   :config
   (setq mmm-global-mode 'maybe)
   (setq mmm-submode-decoration-level 2)
@@ -1452,7 +1445,7 @@
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (use-package editorconfig
-  :straight t
+  :ensure t
   :diminish editorconfig-mode
   :config
   (editorconfig-mode 1))
@@ -1461,13 +1454,13 @@
 ;;; yaml-mode
 ;;; ----------------------------------------------------------------------
 (use-package yaml-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; ansible
 ;;; ----------------------------------------------------------------------
 (use-package ansible
-  :straight t
+  :ensure t
   :defer t
   :init
   (add-hook 'yaml-mode-hook
@@ -1480,23 +1473,23 @@
 ;;; その他の major-mode
 ;;; ----------------------------------------------------------------------
 (use-package lua-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 (use-package ini-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 (use-package dockerfile-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 (use-package vcl-mode
-  :straight t :defer t)
+  :ensure t :defer t)
 
 (use-package nginx-mode
-  :straight t :defer t
+  :ensure t :defer t
   :mode ("nginx.*\\.conf[^/]*\\'"))
 
 (use-package logstash-conf
-  :straight t :defer t)
+  :ensure t :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
@@ -1528,7 +1521,7 @@
   (recentf-mode 1))
 
 (use-package recentf-ext
-  :straight t :after recentf)
+  :ensure t :after recentf)
 
 ;;; ----------------------------------------------------------------------
 ;;; desktop
@@ -1548,8 +1541,8 @@
 ;;; session
 ;;; ----------------------------------------------------------------------
 (use-package session
-  :straight t
-  :hook (after-init . session-initialize)
+  :ensure t
+  :hook (emacs-startup . session-initialize)
   :custom
   (session-save-file-coding-system 'no-conversion)
   (session-globals-max-string 10000000)
@@ -1564,8 +1557,8 @@
 ;;; persistent-scratch
 ;;; ----------------------------------------------------------------------
 (use-package persistent-scratch
-  :straight t
-  :hook (after-init . persistent-scratch-setup-default))
+  :ensure t
+  :hook (emacs-startup . persistent-scratch-setup-default))
 
 ;;; ----------------------------------------------------------------------
 ;;; scratch バッファを消さないようにする
@@ -1607,8 +1600,8 @@
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
 (use-package flycheck
-  :straight t
-  :hook (after-init . global-flycheck-mode)
+  :ensure t
+  :hook (emacs-startup . global-flycheck-mode)
   :custom
   (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-gcc-language-standard "c++11")
@@ -1623,13 +1616,13 @@
                                 )))
 
 (use-package flycheck-pyflakes
-  :straight t
+  :ensure t
   :after flycheck)
 
 (use-package flycheck-posframe
   :disabled
   :if (window-system)
-  :straight t
+  :ensure t
   :hook (flycheck-mode . flycheck-posframe-mode)
   :custom
   (flycheck-posframe-border-width 1)
@@ -1653,11 +1646,11 @@
 ;;; bm
 ;;; ----------------------------------------------------------------------
 (use-package bm
-  :straight t
+  :ensure t
   :custom
   (bm-buffer-persistence t)
   :config
-  (add-hook 'after-init-hook 'bm-repository-load)
+  (add-hook 'emacs-startup-hook 'bm-repository-load)
   (add-hook 'find-file-hook 'bm-buffer-restore)
   (add-hook 'kill-buffer-hook 'bm-buffer-save)
   (add-hook 'auto-save-hook 'bm-buffer-save)
@@ -1674,7 +1667,7 @@
 ;;; gxref
 ;;; ----------------------------------------------------------------------
 (use-package gxref
-  :straight t
+  :ensure t
   :after xref
   :config
   (add-to-list 'xref-backend-functions 'gxref-xref-backend))
@@ -1683,7 +1676,7 @@
 ;;; projectile
 ;;; ----------------------------------------------------------------------
 (use-package projectile
-  :straight t
+  :ensure t
   :diminish projectile-mode
   :config
   (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
@@ -1691,19 +1684,20 @@
   (projectile-mode +1))
 
 (use-package projectile-rails
-  :straight t
+  :ensure t
   :config
   (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
   (add-hook 'projectile-rails-mode-hook
             #'(lambda ()
-                (setq-local yas-extra-modes '(rails-mode))))
+                (with-eval-after-load 'yasnippet
+                  (yas-activate-extra-mode 'rails-mode))))
   (projectile-rails-global-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; orderless
 ;;; ----------------------------------------------------------------------
 (use-package orderless
-  :straight t
+  :ensure t
   :commands (orderless-filter)
   :custom
   (completion-styles '(orderless basic))
@@ -1714,7 +1708,7 @@
 ;;; vertico/consult/marginalia/embark
 ;;; ----------------------------------------------------------------------
 (use-package vertico
-  :straight t
+  :ensure t
   :custom
   (vertico-count 20)
   ;;(vertico-resize t)
@@ -1756,7 +1750,7 @@
   (setq enable-recursive-minibuffers t))
 
 (use-package consult
-  :straight t
+  :ensure t
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (("C-;" . consult-buffer)
          ("C-x b" . consult-buffer)
@@ -1831,12 +1825,12 @@
   )
 
 (use-package marginalia
-  :straight t
+  :ensure t
   :config
   (marginalia-mode))
 
 (use-package embark
-  :straight t
+  :ensure t
   :bind
   (;;("C-." . embark-act)
    ("M-." . embark-dwim)
@@ -1851,23 +1845,23 @@
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :straight t
+  :ensure t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;; (use-package all-the-icons-completion
-;;   :straight t
+;;   :ensure t
 ;;   :after (marginalia all-the-icons)
 ;;   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
 ;;   :init
 ;;   (all-the-icons-completion-mode))
 
 (use-package nerd-icons-completion
-  :straight t
-  :hook (after-init . nerd-icons-completion-mode))
+  :ensure t
+  :hook (emacs-startup . nerd-icons-completion-mode))
 
 (use-package consult-projectile
-  :straight t
+  :ensure t
   :config
   (bind-keys :map projectile-mode-map
              ("C-c p p" . consult-projectile-switch-project)
@@ -1878,7 +1872,7 @@
 ;;; corfu/cape
 ;;; ----------------------------------------------------------------------
 (use-package corfu
-  :straight (corfu :files (:defaults "extensions/*")
+  :ensure (corfu :files (:defaults "extensions/*")
                    :includes (corfu-info corfu-history))
   :custom
   (corfu-cycle t)
@@ -1901,7 +1895,7 @@
              ("RET" . my/corfu-insert-or-newline)))
 
 (use-package corfu-terminal
-  :straight
+  :ensure
   (corfu-terminal :type git
                   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
   :unless
@@ -1911,7 +1905,7 @@
 
 ;; Add extensions
 (use-package cape
-  :straight t
+  :ensure t
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
   ;; :bind (("C-c p p" . completion-at-point) ;; capf
@@ -1937,22 +1931,13 @@
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (add-to-list 'completion-at-point-functions #'cape-emoji))
 
-(use-package yasnippet-capf
-  :straight t
-  :after cape
-  :init
-  (defun my/setup-yasnippet-capf ()
-    (when (bound-and-true-p yas-minor-mode)
-      (add-to-list 'completion-at-point-functions #'yasnippet-capf)))
-  (add-hook 'prog-mode-hook #'my/setup-yasnippet-capf))
-
 (use-package company
-  :straight t
+  :ensure t
   :init
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
 
 (use-package nerd-icons-corfu
-  :straight (:host github :repo "LuigiPiucco/nerd-icons-corfu")
+  :ensure (:host github :repo "LuigiPiucco/nerd-icons-corfu")
   :after corfu nerd-icons
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
@@ -1961,7 +1946,7 @@
 ;;; eglot
 ;;; ----------------------------------------------------------------------
 ;; (use-package eglot
-;;   :straight t
+;;   :ensure t
 ;;   :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
 ;;   :config
 ;;   (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
@@ -1971,20 +1956,10 @@
 ;;; ----------------------------------------------------------------------
 ;;; lsp-mode
 ;;; ----------------------------------------------------------------------
-;; (use-package lsp-mode
-;;   :straight t
-;;   :custom
-;;   (lsp-keymap-prefix "C-c l")
-;;   (lsp-disabled-clients '(rubocop-ls ruby-ls))
-;;   (lsp-headerline-breadcrumb-enable nil)
-;;   :hook
-;;   (((enh-ruby-mode python-mode) . lsp-deferred)
-;;    (lsp-mode . lsp-enable-which-key-integration))
-;;   :commands lsp)
 
 ;; Ruby用LSPの設定（enh-ruby-mode対応）
 (use-package lsp-mode
-  :straight t
+  :ensure t
   :commands (lsp lsp-deferred)
   :hook
   (enh-ruby-mode . my/setup-ruby-lsp)
@@ -2032,7 +2007,7 @@
         (lsp-deferred)))))
 
 (use-package lsp-ui
-  :straight t
+  :ensure t
   :after lsp-mode
   :hook (lsp-mode . lsp-ui-mode)
   :custom
@@ -2045,7 +2020,7 @@
 ;;; copilot
 ;;; ----------------------------------------------------------------------
 (use-package copilot
-  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :hook ((prog-mode git-commit-mode) . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
@@ -2061,7 +2036,7 @@
 ;;; amx
 ;;; ----------------------------------------------------------------------
 (use-package amx
-  :straight t
+  :ensure t
   :custom (amx-history-length 20)
   :config (amx-mode 1))
 
@@ -2069,7 +2044,7 @@
 ;;; anzu
 ;;; ----------------------------------------------------------------------
 (use-package anzu
-  :straight t
+  :ensure t
   :custom
   (anzu-mode-lighter "")
   (anzu-deactivate-region t)
@@ -2086,14 +2061,14 @@
 ;;; gist
 ;;; ----------------------------------------------------------------------
 (use-package gist
-  :straight t
+  :ensure t
   :defer t)
 
 ;;; ----------------------------------------------------------------------
 ;;; shackle
 ;;; ----------------------------------------------------------------------
 (use-package shackle
-  :straight t
+  :ensure t
   :config
   (setq shackle-rules
         '(
@@ -2124,7 +2099,7 @@
 ;;; popper.el
 ;;; ----------------------------------------------------------------------
 (use-package popper
-  :straight t
+  :ensure t
   :bind (("C-`"   . popper-toggle-latest)
          ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type))
@@ -2149,7 +2124,7 @@
 ;;; git-gutter.el
 ;;; ----------------------------------------------------------------------
 (use-package git-gutter-fringe
-  :straight t
+  :ensure t
   :diminish git-gutter-mode
   :custom
   (git-gutter:update-hooks '(after-save-hook after-revert-hook))
@@ -2170,8 +2145,7 @@
 ;;; ----------------------------------------------------------------------
 (unless (eq window-system 'w32)
   (use-package vterm
-    :straight t
-    :defer t
+    :ensure t
     :custom
     (vterm-max-scrollback 10000)
     (vterm-buffer-name-string "vterm: %s")
@@ -2191,8 +2165,7 @@
        "<f12>")))
 
   (use-package vterm-toggle
-    :straight t
-    :defer t
+    :ensure t
     :bind (([f12] . vterm-toggle)
            ([C-f12] . vterm-toggle-cd))
     :custom
@@ -2238,7 +2211,7 @@
 ;;; google-translate.el
 ;;; ----------------------------------------------------------------------
 (use-package google-translate
-  :straight t
+  :ensure t
   :defer t
   :custom
   (google-translate-default-source-language "en")
@@ -2272,7 +2245,7 @@
   (my/fetch-api-key "api.anthropic.com" "ANTHROPIC_API_KEY"))
 
 (use-package gptel
-  :straight (gptel :type git :host github :repo "karthink/gptel")
+  :ensure (gptel :type git :host github :repo "karthink/gptel")
   :custom
   (gptel-api-key (my/get-openai-api-key)))
 
@@ -2357,7 +2330,7 @@
 ;;; open-junk-file
 ;;; ----------------------------------------------------------------------
 (use-package open-junk-file
-  :straight t
+  :ensure t
   :defer t
   :bind ("\C-x\C-z" . open-junk-file))
 
@@ -2365,7 +2338,7 @@
 ;;; lispxmp
 ;;; ----------------------------------------------------------------------
 (use-package lispxmp
-  :straight t
+  :ensure t
   :commands lispxmp
   :bind (:map emacs-lisp-mode-map ("C-c C-e" . lispxmp)))
 
@@ -2389,7 +2362,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package auto-async-byte-compile
   :disabled
-  :straight t
+  :ensure t
   :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
   :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
 
@@ -2406,7 +2379,7 @@
 ;;; highlight-symbol
 ;;; ----------------------------------------------------------------------
 (use-package highlight-symbol
-  :straight t
+  :ensure t
   :diminish highlight-symbol-mode
   :hook (prog-mode . highlight-symbol-mode)
   :bind (([(control f3)] . highlight-symbol-at-point)
@@ -2418,7 +2391,7 @@
 ;;; highlight-indent-guides
 ;;; ----------------------------------------------------------------------
 (use-package highlight-indent-guides
-  :straight t
+  :ensure t
   :diminish highlight-indent-guides-mode
   :hook ((yaml-mode python-mode) . highlight-indent-guides-mode)
   :custom
@@ -2430,7 +2403,7 @@
 ;;; rainbow-mode
 ;;; ----------------------------------------------------------------------
 (use-package rainbow-mode
-  :straight t
+  :ensure t
   :diminish rainbow-mode
   :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
 
@@ -2438,14 +2411,14 @@
 ;;; rainbow-delimiters
 ;;; ----------------------------------------------------------------------
 (use-package rainbow-delimiters
-  :straight t
+  :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; wgrep
 ;;; ----------------------------------------------------------------------
 (use-package wgrep
-  :straight t
+  :ensure t
   :defer t
   :custom
   (wgrep-enable-key "r")
@@ -2455,14 +2428,14 @@
 ;;; ag / wgrep-ag
 ;;; ----------------------------------------------------------------------
 (use-package ag
-  :straight t
+  :ensure t
   :custom
   (ag-highlight-search t)
   (ag-reuse-window t)
   (ag-reuse-buffers t))
 
 (use-package wgrep-ag
-  :straight t
+  :ensure t
   :hook (ag-mode . wgrep-ag-setup)
   :bind (:map ag-mode-map ("r" . wgrep-change-to-wgrep-mode)))
 
@@ -2470,7 +2443,7 @@
 ;;; ripgrep
 ;;; ----------------------------------------------------------------------
 (use-package rg
-  :straight t
+  :ensure t
   :config
   (rg-enable-default-bindings))
 
@@ -2478,7 +2451,7 @@
 ;;; tempbuf
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
-  :straight (:host github :repo "valda/tempbuf")
+  :ensure (:host github :repo "valda/tempbuf")
   :hook ((
           dired-mode
           custom-mode-hook
@@ -2504,6 +2477,7 @@
   :bind
   ("C-x C-b" . ibuffer)
   :config
+  (require 'ibuf-ext)
   (add-to-list 'ibuffer-never-show-predicates "^\\*flycheck-posframe-buffer\\*")
   (define-ibuffer-column
     ;; ibuffer-formats に追加した文字
@@ -2517,14 +2491,14 @@
       )))
 
 (use-package ibuffer-vc
-  :straight t
+  :ensure t
   :hook (ibuffer . (lambda ()
                      (ibuffer-vc-set-filter-groups-by-vc-root)
                      (unless (eq ibuffer-sorting-mode 'alphabetic)
                        (ibuffer-do-sort-by-alphabetic)))))
 
 ;; (use-package all-the-icons-ibuffer
-;;   :straight t
+;;   :ensure t
 ;;   :custom
 ;;   (all-the-icons-ibuffer-formats
 ;;    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
@@ -2540,7 +2514,7 @@
 ;;   (all-the-icons-ibuffer-mode 1))
 
 (use-package nerd-icons-ibuffer
-  :straight t
+  :ensure t
   :custom
   (nerd-icons-ibuffer-formats
    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
@@ -2558,7 +2532,7 @@
 ;;; neotree
 ;;; ----------------------------------------------------------------------
 (use-package neotree
-  :straight t
+  :ensure t
   :after
   projectile
   :commands
@@ -2594,7 +2568,7 @@
 ;;; which-key
 ;;; ----------------------------------------------------------------------
 (use-package which-key
-  :straight t
+  :ensure t
   :diminish which-key-mode
   :custom
   (which-key-idle-delay 3.0)
@@ -2608,7 +2582,7 @@
 ;;; hide-mode-line
 ;;; ----------------------------------------------------------------------
 (use-package hide-mode-line
-  :straight t
+  :ensure t
   :hook
   ((neotree-mode imenu-list-minor-mode) . hide-mode-line-mode))
 
@@ -2666,7 +2640,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package exec-path-from-shell
   :unless (eq window-system 'w32)
-  :straight t
+  :ensure t
   :init (exec-path-from-shell-initialize))
 
 ;;; ----------------------------------------------------------------------
