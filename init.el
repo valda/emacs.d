@@ -1933,6 +1933,7 @@
 
 (use-package company
   :ensure t
+  :diminish company-mode
   :init
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
 
@@ -2143,47 +2144,48 @@
 ;;; ----------------------------------------------------------------------
 ;;; vterm / vterm-toggle
 ;;; ----------------------------------------------------------------------
-(unless (eq window-system 'w32)
-  (use-package vterm
-    :ensure t
-    :custom
-    (vterm-max-scrollback 10000)
-    (vterm-buffer-name-string "vterm: %s")
-    (vterm-keymap-exceptions
-     '("C-c"
-       ;; "C-x"
-       "C-u"
-       "C-g"
-       "C-h"
-       "C-l"
-       ;; "M-x"
-       "M-o"
-       "C-v"
-       "M-v"
-       "C-y"
-       "M-y"
-       "<f12>")))
+(use-package vterm
+  :unless (eq window-system 'w32)
+  :ensure t
+  :custom
+  (vterm-max-scrollback 10000)
+  (vterm-buffer-name-string "vterm: %s")
+  (vterm-keymap-exceptions
+   '("C-c"
+     ;; "C-x"
+     "C-u"
+     "C-g"
+     "C-h"
+     "C-l"
+     ;; "M-x"
+     "M-o"
+     "C-v"
+     "M-v"
+     "C-y"
+     "M-y"
+     "<f12>")))
 
-  (use-package vterm-toggle
-    :ensure t
-    :bind (([f12] . vterm-toggle)
-           ([C-f12] . vterm-toggle-cd))
-    :custom
-    (vterm-toggle-scope 'project)
-    :config
-    ;; Show vterm buffer in the window located at bottom
-    (add-to-list 'display-buffer-alist
-                 '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode)))
-                   (display-buffer-reuse-window display-buffer-in-direction)
-                   (direction . bottom)
-                   (reusable-frames . visible)
-                   (window-height . 0.4)))))
+(use-package vterm-toggle
+  :unless (eq window-system 'w32)
+  :ensure t
+  :bind (([f12] . vterm-toggle)
+         ([C-f12] . vterm-toggle-cd))
+  :custom
+  (vterm-toggle-scope 'project)
+  :config
+  ;; Show vterm buffer in the window located at bottom
+  (add-to-list 'display-buffer-alist
+               '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode)))
+                 (display-buffer-reuse-window display-buffer-in-direction)
+                 (direction . bottom)
+                 (reusable-frames . visible)
+                 (window-height . 0.4))))
 
 ;;; ----------------------------------------------------------------------
 ;;; whitespace-mode
 ;;; ----------------------------------------------------------------------
 (use-package whitespace
-  :diminish global-whitespace-mode
+  :diminish whitespace-mode
   :custom-face
   (whitespace-tab ((t (:foreground "#335544" :inverse-video nil :bold t))))
   (whitespace-space ((t (:italic nil))))
