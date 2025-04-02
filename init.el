@@ -436,9 +436,9 @@
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev / hippie-expand
 ;;; ----------------------------------------------------------------------
-(eval-after-load 'abbrev
-  '(with-eval-after-load 'diminish
-     (diminish 'abbrev-mode)))
+(with-eval-after-load 'abbrev
+  (with-eval-after-load 'diminish
+    (diminish 'abbrev-mode)))
 (custom-set-variables
  '(dabbrev-case-fold-search t)
  '(dabbrev-case-replace t)
@@ -1404,25 +1404,20 @@
   :ensure t :after recentf)
 
 ;;; ----------------------------------------------------------------------
-;;; desktop
+;;; desktop / session
 ;;; ----------------------------------------------------------------------
 (use-package desktop
+  :defer t
   :custom
   (desktop-restore-frames nil)
   (desktop-restore-eager 10)
   (desktop-globals-to-save '(desktop-missing-file-warning
                              tags-file-name
                              tags-table-list
-                             register-alist))
-  :config
-  (desktop-save-mode 1))
+                             register-alist)))
 
-;;; ----------------------------------------------------------------------
-;;; session
-;;; ----------------------------------------------------------------------
 (use-package session
-  :ensure t
-  :hook (emacs-startup . session-initialize)
+  :defer t
   :custom
   (session-save-file-coding-system 'no-conversion)
   (session-globals-max-string 10000000)
@@ -1432,6 +1427,12 @@
                              (file-name-history 1000)
                              search-ring regexp-search-ring))
   (session-save-print-spec '(t nil 40000)))
+
+(add-hook 'elpaca-after-init-hook
+          (lambda ()
+            (desktop-save-mode 1)
+            (desktop-read)
+            (session-initialize)))
 
 ;;; ----------------------------------------------------------------------
 ;;; persistent-scratch
@@ -2053,7 +2054,6 @@
 ;;; whitespace-mode
 ;;; ----------------------------------------------------------------------
 (use-package whitespace
-  :diminish whitespace-mode
   :custom-face
   (whitespace-tab ((t (:foreground "#335544" :inverse-video nil :bold t))))
   (whitespace-space ((t (:italic nil))))
@@ -2075,6 +2075,9 @@
   ;;(set-face-foreground 'whitespace-newline "#335544")
   ;;(set-face-bold-p 'whitespace-newline t)
   (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode vterm-mode))
+  (with-eval-after-load 'whitespace
+    (with-eval-after-load 'diminish
+      (diminish 'whitespace-mode)))
   (global-whitespace-mode 1))
 
 ;;; ----------------------------------------------------------------------
@@ -2216,6 +2219,7 @@
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
 (use-package auto-async-byte-compile
+  :disabled
   :ensure t
   :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
   :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
