@@ -169,7 +169,6 @@
 (elpaca elpaca-use-package
   (elpaca-use-package-mode +1))
 
-
 ;;; ----------------------------------------------------------------------
 ;;; use-package
 ;;; ----------------------------------------------------------------------
@@ -185,36 +184,6 @@
 ;;; ----------------------------------------------------------------------
 (use-package nerd-icons
   :ensure t)
-
-;;; ----------------------------------------------------------------------
-;;; kind-icon
-;;; ----------------------------------------------------------------------
-;; (use-package kind-icon
-;;   :ensure t
-;;   :after corfu
-;;   :custom (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-;;   :config
-;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-
-;;; ---------------------------------------------------------------------
-;;; monokai-theme
-;;; ----------------------------------------------------------------------
-(use-package monokai-theme
-  :disabled
-  :ensure t
-  :config
-  (load-theme 'monokai t)
-  (with-eval-after-load 'mozc-cand-posframe
-    (set-face-attribute 'mozc-cand-posframe-normal-face nil
-                        :background monokai-highlight-line
-                        :foreground monokai-emphasis)
-    (set-face-attribute 'mozc-cand-posframe-focused-face nil
-                        :background monokai-blue
-                        :foreground monokai-background)
-    (set-face-attribute 'mozc-cand-posframe-footer-face nil
-                        :foreground monokai-foreground))
-  (with-eval-after-load 'flycheck-posframe
-    (set-face-background 'flycheck-posframe-background-face monokai-highlight-line)))
 
 ;;; ---------------------------------------------------------------------
 ;;; solarized-theme
@@ -667,7 +636,6 @@
 ;;          "~/Dropbox/")))
 (defvar my/dropbox-directory "~/Dropbox/")
 
-
 ;;; ----------------------------------------------------------------------
 ;;; howm
 ;;; ----------------------------------------------------------------------
@@ -813,14 +781,9 @@
   (advice-add 'org-agenda :around #'bypass-org-switch-to-buffer-other-window)
   (advice-add 'org-agenda :around #'skip-delete-other-windows))
 
-(use-package org-bullets
-  :disabled
-  :ensure t
-  :custom (org-bullets-bullet-list '("◉" "○" "✿" "●" "►" "•"))
-  :hook (org-mode . org-bullets-mode))
-
 (use-package org-modern
   :ensure t
+  :after org
   :hook ((org-mode . org-modern-mode)
          (org-agenda-finalize . org-modern-agenda))
   :custom
@@ -829,6 +792,7 @@
 
 (use-package org-roam
   :ensure t
+  :after org
   :init
   (setq org-roam-directory (expand-file-name "Documents/org/roam" my/dropbox-directory))
   :custom
@@ -1022,31 +986,6 @@
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
-;;; hideshow
-;;; ----------------------------------------------------------------------
-(use-package hideshow
-  :diminish hs-minor-mode
-  :hook (prog-mode . hs-minor-mode)
-  :custom
-  (hs-hide-comments-when-hiding-all nil)
-  :config
-  (let ((ruby-mode-hs-info
-         '(enh-ruby-mode
-           "class\\|module\\|def\\|if\\|unless\\|case\\|while\\|until\\|for\\|begin\\|do"
-           "end"
-           "#"
-           ruby-move-to-block
-           nil)))
-    (if (not (member ruby-mode-hs-info hs-special-modes-alist))
-        (setq hs-special-modes-alist
-              (cons ruby-mode-hs-info hs-special-modes-alist)))))
-
-(use-package hideshow-org
-  :ensure (:host github :repo "secelis/hideshow-org")
-  :custom
-  (bind-key "\C-ch" 'hs-org/minor-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; moccur
 ;;; ----------------------------------------------------------------------
 (use-package color-moccur
@@ -1105,20 +1044,21 @@
                                     (setq-local fill-column 80)
                                     (display-fill-column-indicator-mode t))))
 
-
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
 (use-package enh-ruby-mode
   :ensure t
-  :defer t
   :interpreter ("ruby")
   :mode ("\\.rb\\'"
-         "config\\.ru\\'"
-         "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
+         "\\.rake\\'"
+         "\\.gemspec\\'"
+         "\\.ru\\'"
          "\\.prawn\\'"
          "\\.jbuilder\\'"
-         "\\.xremap\\'")
+         "\\.xremap\\'"
+         "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
+         "config\\.ru\\'")
   :custom
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
@@ -1132,8 +1072,7 @@
               (modify-syntax-entry ?: "."))))
 
 (use-package inf-ruby
-  :ensure t
-  :defer t)
+  :ensure t)
 
 (use-package ruby-end
   :ensure t
@@ -1141,7 +1080,7 @@
   :diminish ruby-end-mode)
 
 (use-package rubocop
-  :ensure t :defer t
+  :ensure t
   :diminish rubocop-mode
   :custom (rubocop-keymap-prefix (kbd "C-c C-c C-r")))
 
@@ -1190,29 +1129,21 @@
 ;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
-(defun my/php-mode-setup ()
-  (php-enable-psr2-coding-style)
-  (setq flycheck-phpcs-standard "PSR2")
-  ;;(electric-pair-mode t)
-  (electric-indent-mode t)
-  (electric-layout-mode t)
-  (define-key php-mode-map '[(control .)] nil)
-  (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
-  (setq tab-width 4)
-  (setq c-basic-offset 4)
-  (setq indent-tabs-mode nil)
-  ;;(c-set-offset 'arglist-intro' +)
-  (c-set-offset 'arglist-cont-nonempty' +)
-  ;;(c-set-offset 'arglist-close' 0)
-  (c-set-offset 'case-label +)
-  ;;(require 'ac-php)
-  ;;(add-to-list 'ac-sources 'ac-source-php)
-  ;;(setq ac-sources (remove 'ac-source-dictionary ac-sources))
-  )
-
 (use-package php-mode
   :ensure t
   :config
+  (defun my/php-mode-setup ()
+    (php-enable-psr2-coding-style)
+    (setq flycheck-phpcs-standard "PSR2")
+    (electric-indent-mode t)
+    (electric-layout-mode t)
+    (define-key php-mode-map '[(control .)] nil)
+    (define-key php-mode-map '[(control c)(control .)] 'php-show-arglist)
+    (setq-local tab-width 4)
+    (setq-local c-basic-offset 4)
+    (setq-local indent-tabs-mode nil)
+    (c-set-offset 'arglist-cont-nonempty' +)
+    (c-set-offset 'case-label +))
   (add-hook 'php-mode-hook 'my/php-mode-setup))
 
 (use-package php-align
@@ -1391,57 +1322,6 @@
   :mode ("\\.es\\'"))
 
 ;;; ----------------------------------------------------------------------
-;;; mmm-mode
-;;; ----------------------------------------------------------------------
-(use-package mmm-mode
-  :disabled
-  :ensure t
-  :config
-  (setq mmm-global-mode 'maybe)
-  (setq mmm-submode-decoration-level 2)
-  (setq mmm-parse-when-idle t)
-  ;; 非 GUI 端末の場合
-  (if (not window-system)
-      (progn
-        (set-face-background 'mmm-default-submode-face nil)
-        (set-face-bold-p 'mmm-default-submode-face t)
-        (set-face-background 'mmm-comment-submode-face nil)
-        (set-face-bold-p 'mmm-comment-submode-face t)
-        ))
-  (mmm-add-classes
-   '(
-     (mmm-html-css-mode
-      :submode css-mode
-      :front "<style[^>]*>\\([^<]*<!--\\)?\n"
-      :back "\\(\\s-*-->\\)?\n[ \t]*</style>"
-      )
-     (mmm-html-javascript-mode
-      :submode js2-mode
-      :front "<script[^>]*>"
-      :back "</script>")
-     (mmm-jsp-mode
-      :submode java-mode
-      :front "<%[!=]?"
-      :back "%>"
-      :insert ((?% jsp-code nil        @ "<%"  @ " " _ " " @ "%>" @)
-               (?! jsp-declaration nil @ "<%!" @ " " _ " " @ "%>" @)
-               (?= jsp-expression nil  @ "<%=" @ " " _ " " @ "%>" @)))
-     (mmm-eruby-mode
-      :submode ruby-mode
-      :front "<%"
-      :back "-?%>"
-      :insert ((?c eruby nil @ "<%"  @ " " _ " " @ "%>" @)
-               (?e eruby nil @ "<%=" @ " " _ " " @ "%>" @)))
-     (mmm-php-mode
-      :submode php-mode
-      :front "<\\?\\(php\\)?"
-      :back "\\(\\?>\\|\\'\\)")
-     ))
-  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-css-mode)
-  (mmm-add-mode-ext-class 'html-mode nil 'mmm-html-javascript-mode)
-  (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'mmm-php-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (use-package editorconfig
@@ -1618,18 +1498,6 @@
 (use-package flycheck-pyflakes
   :ensure t
   :after flycheck)
-
-(use-package flycheck-posframe
-  :disabled
-  :if (window-system)
-  :ensure t
-  :hook (flycheck-mode . flycheck-posframe-mode)
-  :custom
-  (flycheck-posframe-border-width 1)
-  :custom-face
-  (flycheck-posframe-border-face ((t (:foreground "gray30"))))
-  :config
-  (add-hook 'pre-command-hook #'flycheck-posframe-hide-posframe))
 
 ;; flymake のハイライトを無効にする
 (with-eval-after-load 'flymake
@@ -2345,25 +2213,9 @@
   :bind (:map emacs-lisp-mode-map ("C-c C-e" . lispxmp)))
 
 ;;; ----------------------------------------------------------------------
-;;; paredit
-;;; ----------------------------------------------------------------------
-;; (when (require 'paredit nil t)
-;;   (add-hook 'paredit-mode-hook
-;;             (lambda ()
-;;               (define-key paredit-mode-map [C-right] nil)
-;;               (define-key paredit-mode-map [C-left] nil)
-;;               (define-key paredit-mode-map (kbd "C-c <right>") 'paredit-forward-slurp-sexp)
-;;               (define-key paredit-mode-map (kbd "C-c <left>") 'paredit-forward-barf-sexp)))
-;;   (add-hook 'emacs-lisp-mode-hook 'enable-paredit-mode)
-;;   (add-hook 'lisp-interaction-mode-hook 'enable-paredit-mode)
-;;   (add-hook 'lisp-mode-hook 'enable-paredit-mode)
-;;   (add-hook 'ielm-mode-hook 'enable-paredit-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; auto-async-byte-compile
 ;;; ----------------------------------------------------------------------
 (use-package auto-async-byte-compile
-  :disabled
   :ensure t
   :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
   :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
