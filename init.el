@@ -796,6 +796,7 @@
   :init
   (setq org-roam-directory (expand-file-name "Documents/org/roam" my/dropbox-directory))
   :custom
+  (org-roam-db-update-method 'idle)
   (org-roam-completion-everywhere t)
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
