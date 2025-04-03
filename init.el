@@ -2356,22 +2356,6 @@
                      (unless (eq ibuffer-sorting-mode 'alphabetic)
                        (ibuffer-do-sort-by-alphabetic)))))
 
-;; (use-package all-the-icons-ibuffer
-;;   :ensure t
-;;   :custom
-;;   (all-the-icons-ibuffer-formats
-;;    `((mark modified read-only ,(if (>= emacs-major-version 26) 'locked "") vc-status-mini
-;;            " " (icon 2 2 :left :elide)
-;;            ,(propertize " " 'display `(space :align-to 10))
-;;            (name 30 30 :left :elide)
-;;            " " (size-h 9 -1 :right)
-;;            " " (mode+ 16 16 :left :elide)
-;;            " " (coding 12 12 :left)
-;;            " " filename-and-process+)
-;;      (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
-;;   :config
-;;   (all-the-icons-ibuffer-mode 1))
-
 (use-package nerd-icons-ibuffer
   :ensure t
   :custom
