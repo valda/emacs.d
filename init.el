@@ -21,45 +21,56 @@
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(inhibit-startup-message t)
- '(scroll-conservatively 1)
- '(next-line-add-newlines nil)
- '(kill-whole-line t)
- '(case-replace t)
- '(transient-mark-mode t)
- '(indent-line-function 'indent-relative-maybe)
- '(truncate-partial-width-windows nil)
- '(read-buffer-completion-ignore-case t)
- '(read-file-name-completion-ignore-case t)
- '(line-move-visual nil)
- '(tab-width 4)
- '(indent-tabs-mode nil)
- '(blink-matching-paren nil)
- '(confirm-kill-emacs nil)
- '(indicate-empty-lines t)
- '(mode-line-frame-identification " ")
- '(line-number-mode t)
- '(column-number-mode t)
- '(require-final-newline t)
- '(mode-require-final-newline t)
- '(ring-bell-function 'ignore)
- '(search-default-regexp-mode nil)
- '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(ediff-split-window-function 'split-window-horizontally)
- '(use-dialog-box nil)
- '(compilation-scroll-output 'first-error)
- '(find-file-visit-truename t)
- '(vc-follow-symlinks t)
- '(auto-revert-check-vc-info nil)
- '(history-length t)
- '(inhibit-compacting-font-caches t)
- '(user-full-name "YAMAGUCHI, Seiji")
- '(user-mail-address "valda@underscore.jp")
- '(backup-directory-alist `(("" . ,(expand-file-name "~/bak"))))
- '(delete-old-versions t)
- '(make-backup-files t)
- '(read-extended-command-predicate #'command-completion-default-include-p))
+(setq inhibit-startup-message t
+      scroll-conservatively 1
+      next-line-add-newlines nil
+      kill-whole-line t
+      case-replace t
+      transient-mark-mode t
+      indent-line-function #'indent-relative-maybe
+      truncate-partial-width-windows nil
+      line-move-visual nil
+      tab-width 4
+      indent-tabs-mode nil
+      blink-matching-paren nil
+      confirm-kill-emacs nil
+      indicate-empty-lines t
+      ring-bell-function #'ignore
+      compilation-scroll-output 'first-error
+      find-file-visit-truename t
+      vc-follow-symlinks t
+      auto-revert-check-vc-info nil
+      inhibit-compacting-font-caches t)
+
+;; モードライン / 表示まわり
+(setq mode-line-frame-identification " "
+      line-number-mode t
+      column-number-mode t)
+
+;; UI / インタフェース
+(setq use-dialog-box nil)
+
+;; ediff
+(setq ediff-window-setup-function #'ediff-setup-windows-plain
+      ediff-split-window-function #'split-window-horizontally)
+
+;; バックアップ / 保存まわり
+(setq backup-directory-alist `(("." . ,(expand-file-name "~/bak")))
+      delete-old-versions t
+      make-backup-files t
+      require-final-newline t
+      mode-require-final-newline t)
+
+;; 補完 / 履歴
+(setq read-buffer-completion-ignore-case t
+      read-file-name-completion-ignore-case t
+      search-default-regexp-mode nil
+      history-length t
+      read-extended-command-predicate #'command-completion-default-include-p)
+
+;; ユーザー情報
+(setq user-full-name "YAMAGUCHI, Seiji"
+      user-mail-address "valda@underscore.jp")
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
@@ -170,20 +181,147 @@
   (elpaca-use-package-mode +1))
 
 ;;; ----------------------------------------------------------------------
-;;; use-package
+;;; use-package のログ・統計・imenu設定
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(use-package-verbose t)
- '(use-package-compute-statistics t)
- '(use-package-minimum-reported-time 0.01)
- '(use-package-enable-imenu-support t))
-(use-package diminish :ensure t :demand t)
+(setq use-package-verbose t
+      use-package-compute-statistics t
+      use-package-minimum-reported-time 0.01
+      use-package-enable-imenu-support t)
+
+;;; ----------------------------------------------------------------------
+;;; diminish (use-packageが利用)
+;;; ----------------------------------------------------------------------
+(use-package diminish
+  :ensure t
+  :demand t)
+
+;;; ----------------------------------------------------------------------
+;;; exec-path-from-shell
+;;; ----------------------------------------------------------------------
+(use-package exec-path-from-shell
+  :unless (eq window-system 'w32)
+  :ensure t
+  :init (exec-path-from-shell-initialize))
+
+;;; ----------------------------------------------------------------------
+;;; W32-IME / mozc / ibus / uim
+;;; ----------------------------------------------------------------------
+(defun my/w32-ime-init()
+  (setq default-input-method "W32-IME")
+  (setq-default w32-ime-mode-line-state-indicator "[--]")
+  (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+  (use-package tr-ime
+    :ensure t
+    :config (tr-ime-advanced-install))
+  (w32-ime-initialize)
+  ;; IME 制御（yes/no などの入力の時に IME を off にする）MELPA 掲載版用
+  (w32-ime-wrap-function-to-control-ime 'universal-argument)
+  (w32-ime-wrap-function-to-control-ime 'read-string)
+  (w32-ime-wrap-function-to-control-ime 'read-char)
+  (w32-ime-wrap-function-to-control-ime 'read-from-minibuffer)
+  (w32-ime-wrap-function-to-control-ime 'y-or-n-p)
+  (w32-ime-wrap-function-to-control-ime 'yes-or-no-p)
+  (w32-ime-wrap-function-to-control-ime 'map-y-or-n-p)
+  (w32-ime-wrap-function-to-control-ime 'register-read-with-preview)
+  (modify-all-frames-parameters '((ime-font . "Cica-14")))
+
+  ;; 日本語入力時にカーソルの色を変える設定
+  (add-hook 'w32-ime-on-hook (lambda () (set-cursor-color "red")))
+  (add-hook 'w32-ime-off-hook (lambda () (set-cursor-color "green")))
+
+  ;; ミニバッファに移動した際は最初に日本語入力が無効な状態にする
+  (add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
+  ;; isearch に移行した際に日本語入力を無効にする
+  (add-hook 'isearch-mode-hook (lambda ()
+                                 (deactivate-input-method)
+                                 (setq w32-ime-composition-window (minibuffer-window))))
+  (add-hook 'isearch-mode-end-hook (lambda () (setq w32-ime-composition-window nil))))
+
+(defun my/mozc-init()
+  (use-package mozc
+    :ensure (:host github :repo "google/mozc" :files ("src/unix/emacs/mozc.el"))
+    :config
+    ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
+    ;; (when (my/wsl-p)
+    ;;   (advice-add 'mozc-session-execute-command
+    ;;               :after (lambda (&rest args)
+    ;;                        (when (eq (nth 0 args) 'CreateSession)
+    ;;                          ;; (mozc-session-sendkey '(hiragana)))))
+    ;;                          (mozc-session-sendkey '(Hankaku/Zenkaku))))))
+    (define-key global-map [henkan]
+                (lambda () (interactive)
+                  (activate-input-method default-input-method)))
+    (define-key global-map [muhenkan]
+                (lambda () (interactive)
+                  (deactivate-input-method)))
+    (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
+    (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
+    (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
+    (defadvice mozc-handle-event (around intercept-keys (event))
+      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
+      (if (member event (list 'zenkaku-hankaku 'muhenkan))
+          (progn
+            (mozc-clean-up-session)
+            (toggle-input-method))
+        (progn
+          ;;(message "%s" event) ;debug
+          ad-do-it)))
+    (ad-activate 'mozc-handle-event))
+
+  (use-package mozc-im
+    :ensure t
+    :config
+    (setq default-input-method "japanese-mozc-im")
+    ;; mozc-cursor-color を利用するための対策
+    (defvar-local mozc-im-mode nil)
+    (add-hook 'mozc-im-activate-hook (lambda () (setq mozc-im-mode t)))
+    (add-hook 'mozc-im-deactivate-hook (lambda () (setq mozc-im-mode nil)))
+    (advice-add 'mozc-cursor-color-update
+                :around (lambda (orig-fun &rest args)
+                          (let ((mozc-mode mozc-im-mode))
+                            (apply orig-fun args))))
+    (add-hook 'minibuffer-setup-hook 'deactivate-input-method))
+
+  (use-package mozc-popup
+    :unless (display-graphic-p)
+    :ensure t
+    :after mozc
+    :custom (mozc-candidate-style 'popup))
+
+  (use-package mozc-cand-posframe
+    :if (display-graphic-p)
+    :ensure t
+    :after mozc
+    :custom (mozc-candidate-style 'posframe))
+
+  (use-package mozc-cursor-color
+    :ensure (:host github :repo "iRi-E/mozc-el-extensions" :main "mozc-cursor-color.el")
+    :after mozc
+    :config
+    (setq mozc-cursor-color-alist
+          '((direct        . "green")
+            (read-only     . "yellow")
+            (hiragana      . "red")
+            (full-katakana . "goldenrod")
+            (half-ascii    . "dark orchid")
+            (full-ascii    . "orchid")
+            (half-katakana . "dark goldenrod")))))
+
+(cond ((eq window-system 'w32)
+       (my/w32-ime-init))
+      (t
+       (my/mozc-init)))
 
 ;;; ----------------------------------------------------------------------
 ;;; nerd-icons
 ;;; ----------------------------------------------------------------------
 (use-package nerd-icons
   :ensure t)
+
+(use-package nerd-icons-completion
+  :ensure t
+  :hook (emacs-startup . nerd-icons-completion-mode))
 
 ;;; ---------------------------------------------------------------------
 ;;; solarized-theme
@@ -263,7 +401,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package nyan-mode
   :ensure t
-  :hook emacs-startup
+  :hook (emacs-startup . nyan-mode)
   :custom (nyan-bar-length 16)
   :config (nyan-start-animation))
 
@@ -323,114 +461,240 @@
   (good-scroll-mode 1))
 
 ;;; ----------------------------------------------------------------------
-;;; W32-IME / mozc / ibus / uim
+;;; which-key
 ;;; ----------------------------------------------------------------------
-(defun my/w32-ime-init()
-  (setq default-input-method "W32-IME")
-  (setq-default w32-ime-mode-line-state-indicator "[--]")
-  (setq-default w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-  (use-package tr-ime
-    :ensure t
-    :config (tr-ime-advanced-install))
-  (w32-ime-initialize)
-  ;; IME 制御（yes/no などの入力の時に IME を off にする）MELPA 掲載版用
-  (w32-ime-wrap-function-to-control-ime 'universal-argument)
-  (w32-ime-wrap-function-to-control-ime 'read-string)
-  (w32-ime-wrap-function-to-control-ime 'read-char)
-  (w32-ime-wrap-function-to-control-ime 'read-from-minibuffer)
-  (w32-ime-wrap-function-to-control-ime 'y-or-n-p)
-  (w32-ime-wrap-function-to-control-ime 'yes-or-no-p)
-  (w32-ime-wrap-function-to-control-ime 'map-y-or-n-p)
-  (w32-ime-wrap-function-to-control-ime 'register-read-with-preview)
-  (modify-all-frames-parameters '((ime-font . "Cica-14")))
+(use-package which-key
+  :ensure t
+  :diminish which-key-mode
+  :custom
+  (which-key-idle-delay 3.0)
+  (which-key-idle-secondary-delay 0.05)
+  (which-key-show-early-on-C-h t)
+  :config
+  (which-key-setup-side-window-right-bottom)
+  (which-key-mode))
 
-  ;; 日本語入力時にカーソルの色を変える設定
-  (add-hook 'w32-ime-on-hook (lambda () (set-cursor-color "red")))
-  (add-hook 'w32-ime-off-hook (lambda () (set-cursor-color "green")))
+;;; ----------------------------------------------------------------------
+;;; vertico
+;;; ----------------------------------------------------------------------
+(use-package vertico
+  :ensure t
+  :custom
+  (vertico-count 20)
+  ;;(vertico-resize t)
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
 
-  ;; ミニバッファに移動した際は最初に日本語入力が無効な状態にする
-  (add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+(use-package savehist
+  :custom
+  (savehist-coding-system 'no-convertion)
+  :init
+  (savehist-mode))
 
-  ;; isearch に移行した際に日本語入力を無効にする
-  (add-hook 'isearch-mode-hook (lambda ()
-                                 (deactivate-input-method)
-                                 (setq w32-ime-composition-window (minibuffer-window))))
-  (add-hook 'isearch-mode-end-hook '(lambda () (setq w32-ime-composition-window nil))))
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
-(defun my/mozc-init()
-  (use-package mozc
-    :ensure (:host github :repo "google/mozc" :files ("src/unix/emacs/mozc.el"))
-    :config
-    ;; Windows の mozc では、セッション接続直後 directモード になるので hiraganaモード にする
-    ;; (when (my/wsl-p)
-    ;;   (advice-add 'mozc-session-execute-command
-    ;;               :after (lambda (&rest args)
-    ;;                        (when (eq (nth 0 args) 'CreateSession)
-    ;;                          ;; (mozc-session-sendkey '(hiragana)))))
-    ;;                          (mozc-session-sendkey '(Hankaku/Zenkaku))))))
-    (define-key global-map [henkan]
-                (lambda () (interactive)
-                  (activate-input-method default-input-method)))
-    (define-key global-map [muhenkan]
-                (lambda () (interactive)
-                  (deactivate-input-method)))
-    (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
-    (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
-    (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
-    (defadvice mozc-handle-event (around intercept-keys (event))
-      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
-      (if (member event (list 'zenkaku-hankaku 'muhenkan))
-          (progn
-            (mozc-clean-up-session)
-            (toggle-input-method))
-        (progn
-          ;;(message "%s" event) ;debug
-          ad-do-it)))
-    (ad-activate 'mozc-handle-event))
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-  (use-package mozc-im
-    :ensure t
-    :config
-    (setq default-input-method "japanese-mozc-im")
-    ;; mozc-cursor-color を利用するための対策
-    (defvar-local mozc-im-mode nil)
-    (add-hook 'mozc-im-activate-hook (lambda () (setq mozc-im-mode t)))
-    (add-hook 'mozc-im-deactivate-hook (lambda () (setq mozc-im-mode nil)))
-    (advice-add 'mozc-cursor-color-update
-                :around (lambda (orig-fun &rest args)
-                          (let ((mozc-mode mozc-im-mode))
-                            (apply orig-fun args))))
-    (add-hook 'minibuffer-setup-hook 'deactivate-input-method))
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
 
-  (use-package mozc-popup
-    :unless (display-graphic-p)
-    :ensure t
-    :after mozc
-    :custom (mozc-candidate-style 'popup))
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
 
-  (use-package mozc-cand-posframe
-    :if (display-graphic-p)
-    :ensure t
-    :after mozc
-    :custom (mozc-candidate-style 'posframe))
+;;; ----------------------------------------------------------------------
+;;; orderless
+;;; ----------------------------------------------------------------------
+(use-package orderless
+  :ensure t
+  :commands (orderless-filter)
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 
-  (use-package mozc-cursor-color
-    :ensure (:host github :repo "iRi-E/mozc-el-extensions" :main "mozc-cursor-color.el")
-    :after mozc
-    :config
-    (setq mozc-cursor-color-alist
-          '((direct        . "green")
-            (read-only     . "yellow")
-            (hiragana      . "red")
-            (full-katakana . "goldenrod")
-            (half-ascii    . "dark orchid")
-            (full-ascii    . "orchid")
-            (half-katakana . "dark goldenrod")))))
+;;; ----------------------------------------------------------------------
+;;; consult/marginalia/embark
+;;; ----------------------------------------------------------------------
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
 
-(cond ((eq window-system 'w32)
-       (my/w32-ime-init))
-      (t
-       (my/mozc-init)))
+(use-package embark
+  :ensure t
+  :bind
+  (;;("C-." . embark-act)
+   ("M-." . embark-dwim)
+   ("C-h b" . embark-bindings))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package consult
+  :ensure t
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (("C-;" . consult-buffer)
+         ("C-x b" . consult-buffer)
+         ("C-c b" . consult-bookmark)
+         ("M-y" . consult-yank-pop)
+         ("M-g" . consult-goto-line)
+         ;; M-s bindings (search-map)
+         ("M-s d" . consult-find)
+         ("M-s D" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :init
+  (setq register-preview-delay 0.2
+        register-preview-function #'consult-register-format)
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  :config
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key (kbd "M-.")
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; (kbd "C-+")
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;; By default `consult-project-function' uses `project-root' from project.el.
+  ;; Optionally configure a different project root function.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;;;; 1. project.el (the default)
+  ;; (setq consult-project-function #'consult--default-project--function)
+  ;;;; 2. projectile.el (projectile-project-root)
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-function (lambda (_) (projectile-project-root)))
+  ;;;; 3. vc.el (vc-root-dir)
+  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+  ;;;; 4. locate-dominating-file
+  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+  )
+
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)))
+
+;;; ----------------------------------------------------------------------
+;;; corfu/cape
+;;; ----------------------------------------------------------------------
+(use-package corfu
+  :ensure (corfu :files (:defaults "extensions/*")
+                   :includes (corfu-info corfu-history))
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-delay 0.2)
+  (corfu-auto-prefix 2)
+  (corfu-preselect 'prompt)
+  (corfu-popupinfo-delay 0.5)
+  (corfu-on-exact-match nil)
+  :config
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
+  (defun my/corfu-insert-or-newline ()
+    (interactive)
+    (if (>= corfu--index 0)
+        (corfu--insert 'finished)
+      (corfu-quit)
+      (call-interactively 'newline)))
+  (bind-keys :map corfu-map
+             ("RET" . my/corfu-insert-or-newline)))
+
+(use-package corfu-terminal
+  :ensure
+  (corfu-terminal :type git
+                  :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
+  :unless
+  (display-graphic-p)
+  :config
+  (corfu-terminal-mode +1))
+
+;; Add extensions
+(use-package cape
+  :ensure t
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-emoji))
+
+(use-package company
+  :ensure t
+  :diminish company-mode
+  :init
+  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
+
+(use-package nerd-icons-corfu
+  :ensure (:host github :repo "LuigiPiucco/nerd-icons-corfu")
+  :after (corfu nerd-icons)
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
@@ -457,16 +721,21 @@
 (with-eval-after-load 'abbrev
   (with-eval-after-load 'diminish
     (diminish 'abbrev-mode)))
-(custom-set-variables
- '(dabbrev-case-fold-search t)
- '(dabbrev-case-replace t)
- '(hippie-expand-try-functions-list
-   '(yas/hippie-try-expand
-     try-expand-dabbrev
-     try-expand-dabbrev-all-buffers
-     try-expand-dabbrev-from-kill
-     try-complete-file-name-partially
-     try-complete-file-name)))
+
+;; 補完の挙動設定
+(setq dabbrev-case-fold-search t   ; 補完時に大文字小文字を区別しない
+      dabbrev-case-replace t       ; 挿入時も元の単語の大文字小文字に合わせる
+      hippie-expand-try-functions-list
+      '(try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name))
+
+(with-eval-after-load 'yasnippet
+  (add-to-list 'hippie-expand-try-functions-list 'yas/hippie-try-expand))
+
+;; M-/ で hippie-expand（`dabbrev-expand` の上位互換）
 (bind-key "/" 'hippie-expand esc-map)
 
 ;;; ----------------------------------------------------------------------
@@ -480,8 +749,8 @@
 ;;; diff-mode で文字単位での強調表示を行う
 ;;; ----------------------------------------------------------------------
 (add-hook 'diff-mode-hook
-          '(lambda ()
-             (diff-auto-refine-mode t)))
+          (lambda ()
+            (diff-auto-refine-mode t)))
 
 ;;; ----------------------------------------------------------------------
 ;;; windmove
@@ -605,33 +874,31 @@
   (migemo-init))
 
 ;;; ----------------------------------------------------------------------
-;;; dired 関係
+;;; dired 関係の設定
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(ls-lisp-ignore-case t)
- '(ls-lisp-dirs-first t)
- '(dired-listing-switches "-aFl --group-directories-first")
- '(dired-dwim-target t)
- '(dired-recursive-copies 'always)
- '(dired-isearch-filenames t)
- '(dired-omit-mode t))
+(setq ls-lisp-ignore-case t                 ; ファイル名の大文字・小文字を区別しない
+      ls-lisp-dirs-first t                  ; ディレクトリを先に表示（ls-lisp 用）
+      dired-listing-switches "-aFl --group-directories-first" ; GNU ls 用表示オプション
+      dired-dwim-target t                   ; 他ウィンドウに Dired があればそこをコピー先に提案
+      dired-recursive-copies 'always        ; 再帰コピーを常に確認なしでOK
+      dired-isearch-filenames t             ; isearch 時にファイル名のみ検索
+      dired-omit-mode t)                    ; ドットファイルなどを非表示にする
 
-(defun dired-open-file ()
-  "In dired, open the file named on this line."
+(defun my/dired-open-file ()
+  "In Dired, open the file named on this line."
   (interactive)
   (let* ((file (dired-get-filename nil t)))
     (call-process "xdg-open" nil 0 nil file)))
 
-(add-hook 'dired-load-hook
-          (lambda ()
-            (require 'dired-x)
-            (require 'wdired)
-            (bind-key "r" 'wdired-change-to-wdired-mode dired-mode-map)
-            (bind-key "C-c o" 'dired-open-file dired-mode-map)
-            (advice-add 'wdired-finish-edit
-                        :after (lambda ()
-                                 (deactivate-input-method)
-                                 (dired-k)))))
+(with-eval-after-load 'dired
+  (require 'dired-x)
+  (require 'wdired)
+  (bind-key "r" 'wdired-change-to-wdired-mode dired-mode-map)
+  (bind-key "C-c o" 'my/dired-open-file dired-mode-map)
+  (advice-add 'wdired-finish-edit
+              :after (lambda ()
+                       (deactivate-input-method)
+                       (dired-k))))
 
 (use-package dired-k
   :ensure t
@@ -1006,18 +1273,6 @@
     (save-buffer)))
 
 ;;; ----------------------------------------------------------------------
-;;; dsvn
-;;; ----------------------------------------------------------------------
-(use-package dsvn
-  :ensure t
-  :commands
-  (svn-status svn-update)
-  :custom
-  (svn-status-hide-unmodified t)
-  :config
-  (add-to-list 'process-coding-system-alist '("svn" . utf-8)))
-
-;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
 (use-package llama :ensure t)
@@ -1095,33 +1350,6 @@
   (setq py-indent-offset 4))
 
 ;;; ----------------------------------------------------------------------
-;;; cperl-mode
-;;; ----------------------------------------------------------------------
-(autoload 'perl-mode "cperl-mode" "alternate mode for editing Perl programs" t)
-(defalias 'perl-mode 'cperl-mode)
-(add-hook 'cperl-mode-hook
-          (lambda ()
-            (setq cperl-indent-level 4)
-            (setq cperl-indent-tabs-mode nil)
-            (setq cperl-continued-statement-offset 4)
-            (setq cperl-comment-column 40)
-            (setq cperl-close-paren-offset -4)
-            (setq cperl-indent-parens-as-block t)
-            (setq cperl-invalid-face nil)
-            (setq cperl-electric-parens nil)
-            (setq cperl-auto-newline t)
-            ;; face の設定
-            (set-face-bold-p 'cperl-array-face nil)
-            (set-face-underline-p 'cperl-array-face t)
-            (set-face-background 'cperl-array-face nil)
-            (set-face-bold-p 'cperl-hash-face nil)
-            (set-face-italic-p 'cperl-hash-face nil)
-            (set-face-underline-p 'cperl-hash-face t)
-            (set-face-background 'cperl-hash-face nil)
-            ))
-(add-to-list 'auto-mode-alist '("\\.t\\'" . cperl-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
 (use-package php-mode
@@ -1148,6 +1376,13 @@
   (php-align-setup))
 
 ;;; ----------------------------------------------------------------------
+;;; add-node-module-path
+;;; ----------------------------------------------------------------------
+(use-package add-node-modules-path
+  :ensure t
+  :defer t)
+
+;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
 (use-package web-mode
@@ -1156,6 +1391,7 @@
          "\\.erb\\'"
          "\\.rhtml?\\'"
          "\\.php\\'")
+  :hook (web-mode . add-node-modules-path)
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
@@ -1175,10 +1411,9 @@
 ;;; ----------------------------------------------------------------------
 ;;; js-mode
 ;;; ----------------------------------------------------------------------
-(custom-set-variables
- '(js-chain-indent t)
- '(js-indent-level 2)
- '(js-indent-first-init 'dynamic))
+(setq js-chain-indent t
+      js-indent-level 2
+      js-indent-first-init 'dynamic)
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode
@@ -1186,7 +1421,7 @@
 (use-package js2-mode
   :if (< emacs-major-version 27)
   :ensure t
-  :defer t
+  :hook (js2-mode . add-node-modules-path)
   :custom
   (js2-include-browser-externs nil)
   (js2-mode-show-parse-errors nil)
@@ -1212,19 +1447,8 @@
 (use-package rjsx-mode
   :if (< emacs-major-version 27)
   :ensure t
+  :hook (rjsx-mode . add-node-modules-path)
   :mode (".*\\.jsx\\'" ".*\\.js\\'"))
-
-;;; ----------------------------------------------------------------------
-;;; add-node-module-path
-;;; ----------------------------------------------------------------------
-(use-package add-node-modules-path
-  :ensure t
-  :defer t
-  :init
-  (with-eval-after-load 'js2-mode
-    (add-hook 'js2-mode-hook #'add-node-modules-path))
-  (with-eval-after-load 'rjsx-mode
-    (add-hook 'rjsx-mode-hook #'add-node-modules-path)))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
@@ -1248,7 +1472,7 @@
   :mode ("\\.coffee\\'" "\\.coffee\\.erb\\'")
   :config
   (add-hook 'coffee-mode-hook
-            '(lambda()
+            (lambda()
                (setq-local tab-width 2)
                (setq coffee-tab-width 2))))
 
@@ -1257,7 +1481,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package typescript-mode
   :ensure t
-  :defer t
+  :hook (typescript-mode . add-node-modules-path)
   :config
   (add-hook 'typescript-mode-hook
             (lambda ()
@@ -1274,18 +1498,17 @@
 ;;; ----------------------------------------------------------------------
 ;;; tide
 ;;; ----------------------------------------------------------------------
-(defun setup-tide-mode ()
-  (interactive)
-  (tide-setup)
-  ;;(flycheck-mode +1)
-  ;;(setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (eldoc-mode +1)
-  (tide-hl-identifier-mode +1))
-
 (use-package tide
   :ensure t
-  :defer t
   :init
+  (defun setup-tide-mode ()
+    (interactive)
+    (add-node-modules-path)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
   (add-hook 'before-save-hook 'tide-format-before-save)
   (add-hook 'typescript-mode-hook #'setup-tide-mode))
 
@@ -1339,7 +1562,7 @@
   :defer t
   :init
   (add-hook 'yaml-mode-hook
-            '(lambda ()
+            (lambda ()
                (when (string-match "ansible.*/\\(tasks\\|handlers\\)/.*\\.yml\\'"
                                    (buffer-file-name (current-buffer)))
                  (ansible 1)))))
@@ -1399,80 +1622,6 @@
   :ensure t :after recentf)
 
 ;;; ----------------------------------------------------------------------
-;;; desktop / session
-;;; ----------------------------------------------------------------------
-(use-package desktop
-  :defer t
-  :custom
-  (desktop-restore-frames nil)
-  (desktop-restore-eager 10)
-  (desktop-globals-to-save '(desktop-missing-file-warning
-                             tags-file-name
-                             tags-table-list
-                             register-alist)))
-
-(use-package session
-  :defer t
-  :custom
-  (session-save-file-coding-system 'no-conversion)
-  (session-globals-max-string 10000000)
-  (session-initialize '(de-saveplace session places keys menus))
-  (session-globals-include '((kill-ring 1000)
-                             (session-file-alist 1000 t)
-                             (file-name-history 1000)
-                             search-ring regexp-search-ring))
-  (session-save-print-spec '(t nil 40000)))
-
-(add-hook 'elpaca-after-init-hook
-          (lambda ()
-            (desktop-save-mode 1)
-            (desktop-read)
-            (session-initialize)))
-
-;;; ----------------------------------------------------------------------
-;;; persistent-scratch
-;;; ----------------------------------------------------------------------
-(use-package persistent-scratch
-  :ensure t
-  :hook (emacs-startup . persistent-scratch-setup-default))
-
-;;; ----------------------------------------------------------------------
-;;; scratch バッファを消さないようにする
-;;; ----------------------------------------------------------------------
-(defun my/make-scratch (&optional arg)
-  (interactive)
-  (progn
-    ;; "*scratch*" を作成して buffer-list に放り込む
-    (set-buffer (get-buffer-create "*scratch*"))
-    (funcall initial-major-mode)
-    (erase-buffer)
-    (when (and initial-scratch-message (not inhibit-startup-message))
-      (insert initial-scratch-message))
-    (or arg (progn (setq arg 0)
-                   (switch-to-buffer "*scratch*")))
-    (cond ((= arg 0) (message "*scratch* is cleared up."))
-          ((= arg 1) (message "another *scratch* is created")))))
-
-(add-hook 'kill-buffer-query-functions
-          ;; *scratch* バッファで kill-buffer したら内容を消去するだけにする
-          (lambda ()
-            (if (string= "*scratch*" (buffer-name))
-                (progn (my/make-scratch 0) nil)
-              t)))
-
-(add-hook 'after-save-hook
-          ;; *scratch* バッファの内容を保存したら *scratch* バッファを新しく作る
-          (lambda ()
-            (unless (member (get-buffer "*scratch*") (buffer-list))
-              (my/make-scratch 1))))
-
-;;; ----------------------------------------------------------------------
-;;; kill-ring に同じ内容の文字列を複数入れない
-;;; ----------------------------------------------------------------------
-(defadvice kill-new (before ys:no-kill-new-duplicates activate)
-  (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
-
-;;; ----------------------------------------------------------------------
 ;;; flycheck
 ;;; ----------------------------------------------------------------------
 (use-package flycheck
@@ -1498,14 +1647,14 @@
 
 ;; flymake のハイライトを無効にする
 (with-eval-after-load 'flymake
-  (custom-set-variables
-   '(flymake-error-bitmap nil)
-   '(flymake-note-bitmap nil)
-   '(flymake-warning-bitmap nil)
-   )
+  ;; ビットマップ（左フリンジのアイコン）を非表示にする
+  (setq flymake-error-bitmap nil
+        flymake-warning-bitmap nil
+        flymake-note-bitmap nil)
+  ;; アンダーラインをオフにする
   (set-face-underline 'flymake-error nil)
-  (set-face-underline 'flymake-note nil)
-  (set-face-underline 'flymake-warning nil))
+  (set-face-underline 'flymake-warning nil)
+  (set-face-underline 'flymake-note nil))
 
 ;;; ----------------------------------------------------------------------
 ;;; bm
@@ -1520,9 +1669,9 @@
   (add-hook 'kill-buffer-hook 'bm-buffer-save)
   (add-hook 'auto-save-hook 'bm-buffer-save)
   (add-hook 'after-save-hook 'bm-buffer-save)
-  (add-hook 'kill-emacs-hook '(lambda nil
-                                (bm-buffer-save-all)
-                                (bm-repository-save)))
+  (add-hook 'kill-emacs-hook (lambda nil
+                               (bm-buffer-save-all)
+                               (bm-repository-save)))
   ;; M$ Visual Studio key setup.
   (bind-key "<C-f2>" 'bm-toggle)
   (bind-key "<f2>"   'bm-next)
@@ -1553,241 +1702,19 @@
   :config
   (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
   (add-hook 'projectile-rails-mode-hook
-            #'(lambda ()
-                (with-eval-after-load 'yasnippet
-                  (yas-activate-extra-mode 'rails-mode))))
+            (lambda ()
+              (with-eval-after-load 'yasnippet
+                (yas-activate-extra-mode 'rails-mode))))
   (projectile-rails-global-mode))
-
-;;; ----------------------------------------------------------------------
-;;; orderless
-;;; ----------------------------------------------------------------------
-(use-package orderless
-  :ensure t
-  :commands (orderless-filter)
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-defaults nil)
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-
-;;; ----------------------------------------------------------------------
-;;; vertico/consult/marginalia/embark
-;;; ----------------------------------------------------------------------
-(use-package vertico
-  :ensure t
-  :custom
-  (vertico-count 20)
-  ;;(vertico-resize t)
-  (vertico-cycle t)
-  :init
-  (vertico-mode))
-
-(use-package savehist
-  :custom
-  (savehist-coding-system 'no-convertion)
-  :init
-  (savehist-mode))
-
-;; A few more useful configurations...
-(use-package emacs
-  :init
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
-  (defun crm-indicator (args)
-    (cons (format "[CRM%s] %s"
-                  (replace-regexp-in-string
-                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                   crm-separator)
-                  (car args))
-          (cdr args)))
-  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-
-  ;; Do not allow the cursor in the minibuffer prompt
-  (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-  ;; Vertico commands are hidden in normal buffers.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
-
-  ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t))
-
-(use-package consult
-  :ensure t
-  ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind (("C-;" . consult-buffer)
-         ("C-x b" . consult-buffer)
-         ("C-c b" . consult-bookmark)
-         ("M-y" . consult-yank-pop)
-         ("M-g" . consult-goto-line)
-         ;; M-s bindings (search-map)
-         ("M-s d" . consult-find)
-         ("M-s D" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
-         ("M-s e" . consult-isearch-history)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-         ;; Minibuffer history
-         :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
-  :hook (completion-list-mode . consult-preview-at-point-mode)
-  :init
-  (setq register-preview-delay 0.2
-        register-preview-function #'consult-register-format)
-  (advice-add #'register-preview :override #'consult-register-window)
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
-  :config
-  ;; Optionally configure preview. The default value
-  ;; is 'any, such that any key triggers the preview.
-  ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key (kbd "M-."))
-  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-  ;; For some commands and buffer sources it is useful to configure the
-  ;; :preview-key on a per-command basis using the `consult-customize' macro.
-  (consult-customize
-   consult-theme :preview-key '(:debounce 0.2 any)
-   consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
-   ;; :preview-key (kbd "M-.")
-   :preview-key '(:debounce 0.4 any))
-
-  ;; Optionally configure the narrowing key.
-  ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; (kbd "C-+")
-
-  ;; Optionally make narrowing help available in the minibuffer.
-  ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
-
-  ;; By default `consult-project-function' uses `project-root' from project.el.
-  ;; Optionally configure a different project root function.
-  ;; There are multiple reasonable alternatives to chose from.
-  ;;;; 1. project.el (the default)
-  ;; (setq consult-project-function #'consult--default-project--function)
-  ;;;; 2. projectile.el (projectile-project-root)
-  (autoload 'projectile-project-root "projectile")
-  (setq consult-project-function (lambda (_) (projectile-project-root)))
-  ;;;; 3. vc.el (vc-root-dir)
-  ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
-  ;;;; 4. locate-dominating-file
-  ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
-  )
-
-(use-package marginalia
-  :ensure t
-  :config
-  (marginalia-mode))
-
-(use-package embark
-  :ensure t
-  :bind
-  (;;("C-." . embark-act)
-   ("M-." . embark-dwim)
-   ("C-h b" . embark-bindings))
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :ensure t
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-
-(use-package nerd-icons-completion
-  :ensure t
-  :hook (emacs-startup . nerd-icons-completion-mode))
 
 (use-package consult-projectile
   :ensure t
+  :after (consult projectile)
   :config
   (bind-keys :map projectile-mode-map
              ("C-c p p" . consult-projectile-switch-project)
              ("C-c p d" . consult-projectile-find-dir)
              ("C-c p f" . consult-projectile-find-file)))
-
-(use-package consult-dir
-  :ensure t
-  :bind (("C-x C-d" . consult-dir)
-         :map minibuffer-local-completion-map
-         ("C-x C-d" . consult-dir)))
-
-;;; ----------------------------------------------------------------------
-;;; corfu/cape
-;;; ----------------------------------------------------------------------
-(use-package corfu
-  :ensure (corfu :files (:defaults "extensions/*")
-                   :includes (corfu-info corfu-history))
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-auto-delay 0.2)
-  (corfu-auto-prefix 2)
-  (corfu-preselect 'prompt)
-  (corfu-popupinfo-delay 0.5)
-  (corfu-on-exact-match nil)
-  :config
-  (global-corfu-mode)
-  (corfu-popupinfo-mode)
-  (defun my/corfu-insert-or-newline ()
-    (interactive)
-    (if (>= corfu--index 0)
-        (corfu--insert 'finished)
-      (corfu-quit)
-      (call-interactively 'newline)))
-  (bind-keys :map corfu-map
-             ("RET" . my/corfu-insert-or-newline)))
-
-(use-package corfu-terminal
-  :ensure
-  (corfu-terminal :type git
-                  :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
-  :unless
-  (display-graphic-p)
-  :config
-  (corfu-terminal-mode +1))
-
-;; Add extensions
-(use-package cape
-  :ensure t
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-emoji))
-
-(use-package company
-  :ensure t
-  :diminish company-mode
-  :init
-  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
-
-(use-package nerd-icons-corfu
-  :ensure (:host github :repo "LuigiPiucco/nerd-icons-corfu")
-  :after corfu nerd-icons
-  :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;;; ----------------------------------------------------------------------
 ;;; lsp-mode
@@ -1869,14 +1796,6 @@
   (setq warning-suppress-log-types '((copilot copilot-exceeds-max-char))))
 
 ;;; ----------------------------------------------------------------------
-;;; amx
-;;; ----------------------------------------------------------------------
-(use-package amx
-  :ensure t
-  :custom (amx-history-length 20)
-  :config (amx-mode 1))
-
-;;; ----------------------------------------------------------------------
 ;;; anzu
 ;;; ----------------------------------------------------------------------
 (use-package anzu
@@ -1894,11 +1813,37 @@
   (define-key isearch-mode-map [remap isearch-query-replace-regexp] #'anzu-isearch-query-replace-regexp))
 
 ;;; ----------------------------------------------------------------------
-;;; gist
+;;; wgrep
 ;;; ----------------------------------------------------------------------
-(use-package gist
+(use-package wgrep
   :ensure t
-  :defer t)
+  :defer t
+  :custom
+  (wgrep-enable-key "r")
+  (wgrep-auto-save-buffer t))
+
+;;; ----------------------------------------------------------------------
+;;; ag / wgrep-ag
+;;; ----------------------------------------------------------------------
+(use-package ag
+  :ensure t
+  :custom
+  (ag-highlight-search t)
+  (ag-reuse-window t)
+  (ag-reuse-buffers t))
+
+(use-package wgrep-ag
+  :ensure t
+  :hook (ag-mode . wgrep-ag-setup)
+  :bind (:map ag-mode-map ("r" . wgrep-change-to-wgrep-mode)))
+
+;;; ----------------------------------------------------------------------
+;;; ripgrep
+;;; ----------------------------------------------------------------------
+(use-package rg
+  :ensure t
+  :config
+  (rg-enable-default-bindings))
 
 ;;; ----------------------------------------------------------------------
 ;;; shackle
@@ -2182,15 +2127,6 @@
   :bind (:map emacs-lisp-mode-map ("C-c C-e" . lispxmp)))
 
 ;;; ----------------------------------------------------------------------
-;;; auto-async-byte-compile
-;;; ----------------------------------------------------------------------
-(use-package auto-async-byte-compile
-  :disabled
-  :ensure t
-  :custom (auto-async-byte-compile-exclude-files-regexp "/junk/")
-  :hook (emacs-lisp-mode-hook . enable-auto-async-byte-compile-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; eldoc-mode
 ;;; ----------------------------------------------------------------------
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
@@ -2237,39 +2173,6 @@
 (use-package rainbow-delimiters
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
-
-;;; ----------------------------------------------------------------------
-;;; wgrep
-;;; ----------------------------------------------------------------------
-(use-package wgrep
-  :ensure t
-  :defer t
-  :custom
-  (wgrep-enable-key "r")
-  (wgrep-auto-save-buffer t))
-
-;;; ----------------------------------------------------------------------
-;;; ag / wgrep-ag
-;;; ----------------------------------------------------------------------
-(use-package ag
-  :ensure t
-  :custom
-  (ag-highlight-search t)
-  (ag-reuse-window t)
-  (ag-reuse-buffers t))
-
-(use-package wgrep-ag
-  :ensure t
-  :hook (ag-mode . wgrep-ag-setup)
-  :bind (:map ag-mode-map ("r" . wgrep-change-to-wgrep-mode)))
-
-;;; ----------------------------------------------------------------------
-;;; ripgrep
-;;; ----------------------------------------------------------------------
-(use-package rg
-  :ensure t
-  :config
-  (rg-enable-default-bindings))
 
 ;;; ----------------------------------------------------------------------
 ;;; tempbuf
@@ -2337,26 +2240,86 @@
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; which-key
-;;; ----------------------------------------------------------------------
-(use-package which-key
-  :ensure t
-  :diminish which-key-mode
-  :custom
-  (which-key-idle-delay 3.0)
-  (which-key-idle-secondary-delay 0.05)
-  (which-key-show-early-on-C-h t)
-  :config
-  (which-key-setup-side-window-right-bottom)
-  (which-key-mode))
-
-;;; ----------------------------------------------------------------------
 ;;; hide-mode-line
 ;;; ----------------------------------------------------------------------
 (use-package hide-mode-line
   :ensure t
   :hook
-  ((neotree-mode imenu-list-minor-mode) . hide-mode-line-mode))
+  ((imenu-list-minor-mode) . hide-mode-line-mode))
+
+;;; ----------------------------------------------------------------------
+;;; desktop / session
+;;; ----------------------------------------------------------------------
+(use-package desktop
+  :defer t
+  :custom
+  (desktop-restore-frames nil)
+  (desktop-restore-eager 10)
+  (desktop-globals-to-save '(desktop-missing-file-warning
+                             tags-file-name
+                             tags-table-list
+                             register-alist)))
+
+(use-package session
+  :defer t
+  :custom
+  (session-save-file-coding-system 'no-conversion)
+  (session-globals-max-string 10000000)
+  (session-initialize '(de-saveplace session places keys menus))
+  (session-globals-include '((kill-ring 1000)
+                             (session-file-alist 1000 t)
+                             (file-name-history 1000)
+                             search-ring regexp-search-ring))
+  (session-save-print-spec '(t nil 40000)))
+
+(add-hook 'elpaca-after-init-hook
+          (lambda ()
+            (desktop-save-mode 1)
+            (desktop-read)
+            (session-initialize)))
+
+;;; ----------------------------------------------------------------------
+;;; kill-ring に同じ内容の文字列を複数入れない
+;;; ----------------------------------------------------------------------
+(defadvice kill-new (before ys:no-kill-new-duplicates activate)
+  (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
+
+;;; ----------------------------------------------------------------------
+;;; persistent-scratch
+;;; ----------------------------------------------------------------------
+(use-package persistent-scratch
+  :ensure t
+  :hook (emacs-startup . persistent-scratch-setup-default))
+
+;;; ----------------------------------------------------------------------
+;;; scratch バッファを消さないようにする
+;;; ----------------------------------------------------------------------
+(defun my/make-scratch (&optional arg)
+  (interactive)
+  (progn
+    ;; "*scratch*" を作成して buffer-list に放り込む
+    (set-buffer (get-buffer-create "*scratch*"))
+    (funcall initial-major-mode)
+    (erase-buffer)
+    (when (and initial-scratch-message (not inhibit-startup-message))
+      (insert initial-scratch-message))
+    (or arg (progn (setq arg 0)
+                   (switch-to-buffer "*scratch*")))
+    (cond ((= arg 0) (message "*scratch* is cleared up."))
+          ((= arg 1) (message "another *scratch* is created")))))
+
+(add-hook 'kill-buffer-query-functions
+          ;; *scratch* バッファで kill-buffer したら内容を消去するだけにする
+          (lambda ()
+            (if (string= "*scratch*" (buffer-name))
+                (progn (my/make-scratch 0) nil)
+              t)))
+
+(add-hook 'after-save-hook
+          ;; *scratch* バッファの内容を保存したら *scratch* バッファを新しく作る
+          (lambda ()
+            (unless (member (get-buffer "*scratch*") (buffer-list))
+              (my/make-scratch 1))))
 
 ;;; ----------------------------------------------------------------------
 ;;; 終了前に確認する
@@ -2406,14 +2369,6 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
-
-;;; ----------------------------------------------------------------------
-;;; exec-path-from-shell
-;;; ----------------------------------------------------------------------
-(use-package exec-path-from-shell
-  :unless (eq window-system 'w32)
-  :ensure t
-  :init (exec-path-from-shell-initialize))
 
 ;;; ----------------------------------------------------------------------
 ;;; gnuserv
