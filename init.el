@@ -1350,6 +1350,13 @@
   (setq py-indent-offset 4))
 
 ;;; ----------------------------------------------------------------------
+;;; add-node-module-path
+;;; ----------------------------------------------------------------------
+(use-package add-node-modules-path
+  :ensure t
+  :defer t)
+
+;;; ----------------------------------------------------------------------
 ;;; php-mode
 ;;; ----------------------------------------------------------------------
 (use-package php-mode
@@ -1376,13 +1383,6 @@
   (php-align-setup))
 
 ;;; ----------------------------------------------------------------------
-;;; add-node-module-path
-;;; ----------------------------------------------------------------------
-(use-package add-node-modules-path
-  :ensure t
-  :defer t)
-
-;;; ----------------------------------------------------------------------
 ;;; web-mode
 ;;; ----------------------------------------------------------------------
 (use-package web-mode
@@ -1391,7 +1391,6 @@
          "\\.erb\\'"
          "\\.rhtml?\\'"
          "\\.php\\'")
-  :hook (web-mode . add-node-modules-path)
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
@@ -1402,6 +1401,7 @@
   (web-mode-tag-auto-close-style 2)
   :config
   (defun my/web-mode-setup ()
+    (add-node-modules-path)
     (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
       (modify-syntax-entry ?% "w"))
     (when (string-match "\\.php" (buffer-file-name (current-buffer)))
@@ -1421,7 +1421,6 @@
 (use-package js2-mode
   :if (< emacs-major-version 27)
   :ensure t
-  :hook (js2-mode . add-node-modules-path)
   :custom
   (js2-include-browser-externs nil)
   (js2-mode-show-parse-errors nil)
@@ -1431,6 +1430,7 @@
   :config
   (add-hook 'js2-mode-hook
             (lambda()
+	      (add-node-modules-path)
               (setq js2-basic-offset 2)
               (electric-indent-mode t)
               (setq-local electric-layout-rules
@@ -1481,10 +1481,10 @@
 ;;; ----------------------------------------------------------------------
 (use-package typescript-mode
   :ensure t
-  :hook (typescript-mode . add-node-modules-path)
   :config
   (add-hook 'typescript-mode-hook
             (lambda ()
+	      (add-node-modules-path)
               (setq typescript-indent-level 2)
               (electric-indent-mode t)
               (setq-local electric-layout-rules
