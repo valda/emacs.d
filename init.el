@@ -889,115 +889,91 @@
 ;;; ----------------------------------------------------------------------
 (defconst my/cc-style
   '(
-    ;; インデント幅を空白2コ分にする
+    ;; インデント幅を空白2コ分に設定
     (c-basic-offset . 2)
     ;; tab キーでインデントを実行
-    (c-tab-always-indent        . t)
-    ;; コメントだけの行のインデント幅
+    (c-tab-always-indent . t)
+    ;; コメント行のインデント幅
     (c-comment-only-line-offset . 0)
 
     ;; カッコ前後の自動改行処理の設定
     (c-hanging-braces-alist
      . (
-        (class-open before after)       ; クラス宣言の'{'の前後
-        (class-close before)            ; クラス宣言の'}'の前
-        (defun-open before after)       ; 関数宣言の'{'の前後
-        (defun-close before after)      ; 関数宣言の'}'の前後
-        ;;(inline-open after)           ; クラス内のインライン
-                                        ; 関数宣言の'{'の後
-        (inline-close after)            ; クラス内のインライン
-                                        ; 関数宣言の'}'の後
-        (brace-list-open after)         ; 列挙型、配列宣言の'{'の後
-        (brace-list-close before)       ; 列挙型、配列宣言の'}'の前
-        (block-open after)              ; ステートメントの'{'の後
+        (class-open before after)   ; クラス宣言の'{'前後
+        (class-close before)        ; クラス宣言の'}'前
+        (defun-open before after)   ; 関数宣言の'{'前後
+        (defun-close before after)  ; 関数宣言の'}'前後
+        (inline-close after)        ; インライン関数の'}'後
+        (brace-list-open after)     ; 配列・列挙型宣言の'{'後
+        (brace-list-close before)   ; 配列・列挙型宣言の'}'前
+        (block-open after)          ; ブロックの'{'後
         (block-close . c-snug-do-while) ; ステートメントの'}'前
-        (substatement-open after)       ; サブステートメント
-                                        ; (if 文等)の'{'の後
-        (statement-case-open after)     ; case 文の'{'の後
-        (extern-lang-open before after) ; 他言語へのリンケージ宣言の
-                                        ; '{'の前後
-        (extern-lang-close before)      ; 他言語へのリンケージ宣言の
-                                        ; '}'の前
-        (namespace-open before after)   ; 名前空間宣言の'{'の前後
-        (namespace-close before)        ; 名前空間宣言の'}'の前
-                                        ;(arglist-cont-noempty after)
-                                        ;(statement-cont after)
+        (substatement-open after)   ; サブステートメントの'{'後
+        (statement-case-open after) ; case 文の'{'後
+        (extern-lang-open before after) ; 他言語リンケージの'{'前後
+        (extern-lang-close before)  ; 他言語リンケージの'}'前
+        (namespace-open before after) ; 名前空間の'{'前後
+        (namespace-close before)    ; 名前空間の'}'前
         ))
 
     ;; コロン前後の自動改行処理の設定
     (c-hanging-colons-alist
      . (
-        (case-label after)              ; case ラベルの':'の後
-        (label after)                   ; ラベルの':'の後
-        (access-label after)            ; アクセスラベル(public等)の':'の後
-        (member-init-intro after)       ; コンストラクタでのメンバー初期化
-                                        ; リストの先頭の':'の後
-        ;;(inher-intro before)          ; クラス宣言での継承リストの先頭の
-                                        ; ':'では改行しない
+        (case-label after)          ; case ラベルの':'後
+        (label after)               ; ラベルの':'後
+        (access-label after)        ; アクセスラベルの':'後
+        (member-init-intro after)   ; コンストラクタのメンバ初期化の':'後
         ))
 
-    ;; 挿入された余計な空白文字のキャンセル条件の設定
-    ;; 下記の*を削除する
+    ;; 挿入された余計な空白文字のキャンセル条件設定
     (c-cleanup-list . (
-                       brace-else-brace ; else の直前
-                                        ; "} * else {"  ->  "} else {"
-                       brace-elseif-brace ; else if の直前
-                                        ; "} * else if {"  ->  "} else {"
-                       brace-catch-brace ; catch の直前
-                                        ; "} * catch ("  ->  "} catch ("
-                       empty-defun-braces ; else if の直前
-                                        ; "} * else if (.*) {"
-                                        ; ->  } "else if (.*) {"
-                       defun-close-semi ; クラス・関数定義後の';' の直前
-                                        ; "} * ;"  ->  "};"
-                       list-close-comma ; 配列初期化時の'},'の直前
-                                        ; "} * ,"  ->  "},"
-                       scope-operator   ; スコープ演算子'::' の間
-                                        ; ": * :"  ->  "::"
+                       brace-else-brace   ; else の直前の空白を削除
+                       brace-elseif-brace ; else if の直前の空白を削除
+                       brace-catch-brace  ; catch の直前の空白を削除
+                       empty-defun-braces ; 関数定義後の空白削除
+                       defun-close-semi   ; 関数閉じ括弧後のセミコロン削除
+                       list-close-comma   ; 配列宣言後のコンマ削除
+                       scope-operator     ; スコープ演算子間の空白削除
                        ))
 
-    ;; オフセット量の設定
-    ;; 必要部分のみ抜粋(他の設定に付いては info 参照)
-    ;; オフセット量は下記で指定
-    ;; +  c-basic-offsetの 1倍, ++ c-basic-offsetの 2倍
-    ;; -  c-basic-offsetの-1倍, -- c-basic-offsetの-2倍
+    ;; オフセット設定
     (c-offsets-alist
      . (
-        (arglist-intro          . ++)   ; 引数リストの開始行
-        (arglist-close          . c-lineup-arglist) ; 引数リストの終了行
-        (substatement-open      . 0)    ; サブステートメントの開始行
-        (statement-case-open    . +)    ; case 文の後の '{'
-        (statement-cont         . ++)   ; ステートメントの継続行
-        (case-label             . 0)    ; case 文のラベル行
-        (label                  . 0)    ; ラベル行
-        (block-open             . 0)    ; ブロックの開始行
-        (inline-open            . 0)    ; クラス内のインラインメソッドを開始する中括弧
-        (member-init-intro      . ++)   ; （構造体の）メンバ初期化リストの最初の行
+        (arglist-intro . ++)       ; 引数リスト開始行
+        (arglist-close . c-lineup-arglist) ; 引数リスト終了行
+        (substatement-open . 0)    ; サブステートメントの開始行
+        (statement-case-open . +)  ; case 文後の'{'位置
+        (statement-cont . ++)      ; ステートメント継続行
+        (case-label . 0)           ; case 文ラベル位置
+        (label . 0)                ; ラベル位置
+        (block-open . 0)           ; ブロック開始行
+        (inline-open . 0)          ; インライン関数開始中括弧
+        (member-init-intro . ++)   ; メンバ初期化リスト開始行
         ))
 
-    ;; インデント時に構文解析情報を表示する
+    ;; インデント時に構文解析情報を表示
     (c-echo-syntactic-information-p . t)
-    )
+  )
   "My C/C++ Programming Style")
 
 (add-hook 'c-mode-common-hook
           (lambda ()
             ;; my/cc-stye を登録して有効にする
             (c-add-style "PERSONAL" my/cc-style t)
-            ;; 自動改行(auto-newline)を有効にする
+            ;; 自動改行を有効にする
             (when (fboundp 'c-toggle-auto-newline)
               (c-toggle-auto-newline t))
             ;; セミコロンで自動改行しない
             (setq c-hanging-semi&comma-criteria nil)
             ;; コンパイルコマンドの設定
-            (setq compile-command "make -k" )     ; Cygwin の make
-            ;; (setq compile-command "nmake /NOLOGO /S") ; VC++ の nmake
+            (setq compile-command "make -k") ; Cygwin の make
             (setq compilation-window-height 16)
-            ;; (electric-pair-mode t)
+            ;; キーバインディング設定
             (define-key c-mode-base-map "\C-cc" 'compile)
             (define-key c-mode-base-map "\C-xt" 'ff-find-other-file)
             (define-key c-mode-base-map [mouse-2] 'ff-mouse-find-other-file)))
 
+;; C/C++ ファイルの自動モード設定
 (setq auto-mode-alist
       (append '(("\\.C\\'"            . c-mode)
                 ("\\.[Hh]\\'"         . c++-mode)
