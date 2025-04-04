@@ -1784,7 +1784,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package copilot
   :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
-  :hook ((prog-mode git-commit-mode) . copilot-mode)
+  :hook (prog-mode . copilot-mode)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
