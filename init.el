@@ -189,6 +189,7 @@
 ;;; solarized-theme
 ;;; ----------------------------------------------------------------------
 (use-package solarized-theme
+  :disabled
   :ensure t
   :custom
   (solarized-use-variable-pitch nil)
@@ -227,6 +228,16 @@
                         :inherit '(mode-line-active tab-bar)))
   (load-theme 'solarized-dark-high-contrast t))
 
+;;; ---------------------------------------------------------------------
+;;; catppuccin-theme
+;;; ----------------------------------------------------------------------
+(use-package catppuccin-theme
+  :ensure t
+  :custom
+  (catppuccin-flavor 'macchiato)
+  :config
+  (load-theme 'catppuccin :no-confirm))
+
 ;;; ----------------------------------------------------------------------
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
@@ -240,14 +251,12 @@
   (doom-modeline-github t)
   (doom-modeline-workspace-name nil)
   :custom-face
-  (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "DeepSkyBlue4" :inherit mode-line-buffer-id))))
+  (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "chocolate4" :inherit mode-line-buffer-id))))
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
-  (doom-modeline-bar       ((t (:background "DeepSkyBlue2" :inherit mode-line-buffer-id))))
+  (doom-modeline-bar       ((t (:background "chocolate2" :inherit mode-line-buffer-id))))
   :config
   (use-package async :ensure t)
-  (use-package ghub :ensure t)
-  (with-eval-after-load 'flycheck
-    (diminish 'flycheck-mode)))
+  (use-package ghub :ensure t))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
@@ -257,6 +266,15 @@
   :hook emacs-startup
   :custom (nyan-bar-length 16)
   :config (nyan-start-animation))
+
+;;; ----------------------------------------------------------------------
+;;; beacon
+;;; ----------------------------------------------------------------------
+(use-package beacon
+  :ensure t
+  :diminish beacon-mode
+  :config
+  (beacon-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; tab-bar
@@ -1484,6 +1502,7 @@
 (use-package flycheck
   :ensure t
   :hook (emacs-startup . global-flycheck-mode)
+  :diminish flycheck-mode
   :custom
   (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-gcc-language-standard "c++11")
@@ -1719,13 +1738,6 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;; (use-package all-the-icons-completion
-;;   :ensure t
-;;   :after (marginalia all-the-icons)
-;;   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-;;   :init
-;;   (all-the-icons-completion-mode))
-
 (use-package nerd-icons-completion
   :ensure t
   :hook (emacs-startup . nerd-icons-completion-mode))
@@ -1737,6 +1749,12 @@
              ("C-c p p" . consult-projectile-switch-project)
              ("C-c p d" . consult-projectile-find-dir)
              ("C-c p f" . consult-projectile-find-file)))
+
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)))
 
 ;;; ----------------------------------------------------------------------
 ;;; corfu/cape
@@ -1776,24 +1794,6 @@
 ;; Add extensions
 (use-package cape
   :ensure t
-  ;; Bind dedicated completion commands
-  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  ;; :bind (("C-c p p" . completion-at-point) ;; capf
-  ;;        ("C-c p t" . complete-tag)        ;; etags
-  ;;        ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-  ;;        ("C-c p h" . cape-history)
-  ;;        ("C-c p f" . cape-file)
-  ;;        ("C-c p k" . cape-keyword)
-  ;;        ("C-c p s" . cape-symbol)
-  ;;        ("C-c p a" . cape-abbrev)
-  ;;        ("C-c p i" . cape-ispell)
-  ;;        ("C-c p l" . cape-line)
-  ;;        ("C-c p w" . cape-dict)
-  ;;        ("C-c p \\" . cape-tex)
-  ;;        ("C-c p _" . cape-tex)
-  ;;        ("C-c p ^" . cape-tex)
-  ;;        ("C-c p &" . cape-sgml)
-  ;;        ("C-c p r" . cape-rfc1345))
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1812,17 +1812,6 @@
   :after corfu nerd-icons
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
-
-;;; ----------------------------------------------------------------------
-;;; eglot
-;;; ----------------------------------------------------------------------
-;; (use-package eglot
-;;   :ensure t
-;;   :hook ((enh-ruby-mode ruby-mode python-mode) . eglot-ensure)
-;;   :config
-;;   (add-to-list 'eglot-server-programs `(enh-ruby-mode ,@(alist-get 'ruby-mode eglot-server-programs)))
-;;   (add-to-list 'eglot-server-programs
-;;                '((web-mode :language-id "html") . ("npx" "tailwindcss-language-server" "--stdio"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; lsp-mode
@@ -2370,42 +2359,6 @@
            " " filename-and-process+)
      (mark " " (name 30 -1) " " (coding 15 15) " " filename)))
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
-
-;;; ----------------------------------------------------------------------
-;;; neotree
-;;; ----------------------------------------------------------------------
-(use-package neotree
-  :ensure t
-  :after
-  projectile
-  :commands
-  (neotree-show neotree-hide neotree-dir neotree-find)
-  :custom
-  (neo-theme 'icons)
-  :bind
-  ("C-t" . neotree-projectile-toggle)
-  :preface
-  (defun neotree-projectile-toggle ()
-    (interactive)
-    (let ((project-dir
-           (ignore-errors
-             ;;; Pick one: projectile or find-file-in-project
-             (projectile-project-root)
-             ))
-          (file-name (buffer-file-name))
-          (original-neo-smart-open neo-smart-open))
-      (setq neo-smart-open t)
-      (unwind-protect
-          (if (and (fboundp 'neo-global--window-exists-p)
-                   (neo-global--window-exists-p))
-              (neotree-hide)
-            (progn
-              (neotree-show)
-              (if project-dir
-                  (neotree-dir project-dir))
-              (if file-name
-                  (neotree-find file-name))))
-        (setq neo-smart-open original-neo-smart-open)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; which-key
