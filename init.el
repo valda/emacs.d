@@ -427,29 +427,38 @@
   (tab-bar-show 1)
   :config
   (defvar my/tab-prefix-key-map (make-sparse-keymap))
-  (define-key my/tab-prefix-key-map "\C-c" 'tab-new)
-  (define-key my/tab-prefix-key-map "c" 'tab-new)
-  (define-key my/tab-prefix-key-map "\C-k" 'tab-close)
-  (define-key my/tab-prefix-key-map "k" 'tab-close)
-  (define-key my/tab-prefix-key-map "K" 'tab-close-other)
-  (define-key my/tab-prefix-key-map "\C-p" 'tab-previous)
-  (define-key my/tab-prefix-key-map "p" 'tab-previous)
-  (define-key my/tab-prefix-key-map "\C-n" 'tab-next)
-  (define-key my/tab-prefix-key-map "n" 'tab-next)
-  (define-key my/tab-prefix-key-map "\C-z" 'tab-recent)
-  (define-key my/tab-prefix-key-map "'" 'tab-bar-switch-to-tab)
-  (define-key my/tab-prefix-key-map "1" (lambda () (interactive) (tab-select 1)))
-  (define-key my/tab-prefix-key-map "2" (lambda () (interactive) (tab-select 2)))
-  (define-key my/tab-prefix-key-map "3" (lambda () (interactive) (tab-select 3)))
-  (define-key my/tab-prefix-key-map "4" (lambda () (interactive) (tab-select 4)))
-  (define-key my/tab-prefix-key-map "5" (lambda () (interactive) (tab-select 5)))
-  (define-key my/tab-prefix-key-map "6" (lambda () (interactive) (tab-select 6)))
-  (define-key my/tab-prefix-key-map "7" (lambda () (interactive) (tab-select 7)))
-  (define-key my/tab-prefix-key-map "8" (lambda () (interactive) (tab-select 8)))
-  (define-key my/tab-prefix-key-map "9" (lambda () (interactive) (tab-select 9)))
-  (define-key my/tab-prefix-key-map "A" 'tab-bar-rename-tab)
-  (define-key my/tab-prefix-key-map "i" (lambda () (interactive) (setq tab-bar-tab-hints (null tab-bar-tab-hints))))
-  (define-key my/tab-prefix-key-map "t" (lambda () (interactive) (tab-bar-mode (if tab-bar-mode -1 t))))
+
+  ;; ユーティリティ関数
+  (defun my/toggle-tab-bar-tab-hints ()
+    (interactive)
+    (setq tab-bar-tab-hints (not tab-bar-tab-hints)))
+
+  (defun my/toggle-tab-bar-mode ()
+    (interactive)
+    (tab-bar-mode (if tab-bar-mode -1 1)))
+
+  ;; 基本操作
+  (define-key my/tab-prefix-key-map "c" #'tab-new)
+  (define-key my/tab-prefix-key-map "\C-c" #'tab-new)
+  (define-key my/tab-prefix-key-map "k" #'tab-close)
+  (define-key my/tab-prefix-key-map "\C-k" #'tab-close)
+  (define-key my/tab-prefix-key-map "K" #'tab-close-other)
+  (define-key my/tab-prefix-key-map "p" #'tab-previous)
+  (define-key my/tab-prefix-key-map "\C-p" #'tab-previous)
+  (define-key my/tab-prefix-key-map "n" #'tab-next)
+  (define-key my/tab-prefix-key-map "\C-n" #'tab-next)
+  (define-key my/tab-prefix-key-map "\C-z" #'tab-recent)
+  (define-key my/tab-prefix-key-map "'" #'tab-bar-switch-to-tab)
+  (define-key my/tab-prefix-key-map "A" #'tab-bar-rename-tab)
+  (define-key my/tab-prefix-key-map "i" #'my/toggle-tab-bar-tab-hints)
+  (define-key my/tab-prefix-key-map "t" #'my/toggle-tab-bar-mode)
+
+  ;; 1〜9 に tab-select を割り当てる
+  (dotimes (i 9)
+    (define-key my/tab-prefix-key-map
+      (number-to-string (1+ i))
+      `(lambda () (interactive) (tab-select ,(1+ i)))))
+
   (bind-key "C-z" my/tab-prefix-key-map))
 
 ;;; ----------------------------------------------------------------------
