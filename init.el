@@ -1810,7 +1810,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package treemacs
   :ensure t
-  :after (projectile lsp-mode)
+  :after projectile
   :bind
   (("C-c t t" . treemacs)                 ; トグル表示
    ("C-c t f" . treemacs-find-file)       ; 現在のファイルにジャンプ
