@@ -467,11 +467,11 @@
   :ensure t
   :diminish which-key-mode
   :custom
-  (which-key-idle-delay 3.0)
+  (which-key-idle-delay 1.0)
   (which-key-idle-secondary-delay 0.05)
   (which-key-show-early-on-C-h t)
   :config
-  (which-key-setup-side-window-right-bottom)
+  (which-key-setup-minibuffer)
   (which-key-mode))
 
 ;;; ----------------------------------------------------------------------
@@ -1805,14 +1805,14 @@
   :bind
   (("C-c t t" . treemacs)                 ; トグル表示
    ("C-c t f" . treemacs-find-file)       ; 現在のファイルにジャンプ
-   ("<f9>"     . my/toggle-treemacs-focus)
+   ("C-'"     . my/toggle-treemacs-focus)
    :map treemacs-mode-map
    ("<left>"  . treemacs-COLLAPSE-action)
    ("<right>" . treemacs-TAB-action))
   :custom
   (treemacs-width 35)                     ; ウィンドウの幅
   (treemacs-no-png-images t)              ; PNGアイコンを使わない
-  (treemacs-is-never-other-window t)      ; 他のウィンドウに切り替えない
+  (treemacs-is-never-other-window nil)    ; 他のウィンドウに切り替えない
   (treemacs-silent-refresh t)             ; 静かに再描画
   (treemacs-silent-filewatch t)
   (treemacs-follow-after-init t)          ; 起動時にプロジェクトを追尾
@@ -1879,6 +1879,12 @@
   :after (treemacs tab-bar)
   :config
   (treemacs-set-scope-type 'Tabs))
+
+(use-package lsp-treemacs
+  :ensure t
+  :after (lsp-mode treemacs)
+  :config
+  (lsp-treemacs-sync-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -2017,7 +2023,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package popper
   :ensure t
-  :bind (("C-`"   . popper-toggle-latest)
+  :bind (("C-`"   . popper-toggle)
          ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :custom
