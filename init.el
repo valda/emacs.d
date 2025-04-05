@@ -1803,9 +1803,9 @@
   :ensure t
   :after (projectile lsp-mode)
   :bind
-  (("<f9>"    . treemacs)                 ; トグル表示
-   ("C-c t t" . treemacs)
+  (("C-c t t" . treemacs)                 ; トグル表示
    ("C-c t f" . treemacs-find-file)       ; 現在のファイルにジャンプ
+   ("<f9>"     . my/toggle-treemacs-focus)
    :map treemacs-mode-map
    ("<left>"  . treemacs-COLLAPSE-action)
    ("<right>" . treemacs-TAB-action))
@@ -1818,6 +1818,24 @@
   (treemacs-follow-after-init t)          ; 起動時にプロジェクトを追尾
   (treemacs-text-scale -1)
   :config
+  (defun my/toggle-treemacs-focus ()
+    "Toggle Treemacs visibility and focus intelligently.
+- If Treemacs is focused, close it.
+- If Treemacs is open but not focused, focus it.
+- If Treemacs is not open, open it."
+    (interactive)
+    (let ((treemacs-window (treemacs-get-local-window)))
+      (cond
+       ;; Treemacs is focused → kill the window (close)
+       ((eq (selected-window) treemacs-window)
+	(delete-window treemacs-window))
+       ;; Treemacs is open but not focused → focus it
+       (treemacs-window
+	(select-window treemacs-window))
+       ;; Treemacs is not open → open it
+       (t
+	(treemacs)))))
+
   ;; UIカスタム：背景色をテーマに連動して明るめにする
   (defun my/treemacs-set-bg-based-on-theme ()
     "Set Treemacs background based on current theme's default background."
@@ -1855,6 +1873,12 @@
   :after (treemacs nerd-icons)
   :config
   (treemacs-load-theme "nerd-icons"))
+
+(use-package treemacs-tab-bar
+  :ensure t
+  :after (treemacs tab-bar)
+  :config
+  (treemacs-set-scope-type 'Tabs))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -2000,8 +2024,7 @@
   (popper-display-control nil)
   :config
   (setq popper-reference-buffers
-        '(
-          compilation-mode
+        '(compilation-mode
           rspec-compilation-mode
           help-mode
           epa-key-list-mode
@@ -2009,8 +2032,7 @@
           "\\*Apropos\\*"
           "\\*Warnings\\*"
           "\\(Messages\\|Report\\)\\*\\'"
-          "\\*git-gutter:diff\\*"
-          ))
+          "\\*git-gutter:diff\\*"))
   (popper-mode +1))
 
 ;;; ----------------------------------------------------------------------
