@@ -1152,6 +1152,262 @@
   (add-hook 'calendar-move-hook 'my/japanese-holiday-show))
 
 ;;; ----------------------------------------------------------------------
+;;; moccur
+;;; ----------------------------------------------------------------------
+(use-package color-moccur
+  :ensure t
+  :bind (("M-o"         . occur-by-moccur)
+         ("C-c C-x C-o" . moccur))
+  :custom
+  (moccur-split-word t) ; スペース区切りでAND検索
+  (moccur-use-migemo t)
+  (*moccur-buffer-name-exclusion-list*
+   '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
+  :config
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (bind-key "O" 'dired-do-moccur dired-mode-map))))
+
+(use-package moccur-edit
+  :ensure (:host github :repo "myuhe/moccur-edit.el")
+  :after color-moccur
+  :config
+  (defadvice moccur-edit-change-file
+      (after save-after-moccur-edit-buffer activate)
+    (save-buffer)))
+
+;;; ----------------------------------------------------------------------
+;;; magit
+;;; ----------------------------------------------------------------------
+(use-package llama :ensure t)
+(use-package transient :ensure t)
+(use-package magit
+  :ensure t
+  :defer t
+  :bind ("C-x g" . magit-status)
+  :custom
+  (magit-push-always-verify nil)
+  (magit-log-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+  :config
+  (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
+  (bind-key [C-tab]         nil magit-status-mode-map)
+  (bind-key [C-iso-lefttab] nil magit-status-mode-map)
+  (bind-key [C-tab]         nil magit-diff-mode-map)
+  (bind-key [C-iso-lefttab] nil magit-diff-mode-map)
+  (add-hook 'git-commit-mode-hook (lambda ()
+                                    (setq-local fill-column 80)
+                                    (display-fill-column-indicator-mode t))))
+
+;;; ----------------------------------------------------------------------
+;;; recentf / recentf-ext
+;;; ----------------------------------------------------------------------
+(use-package recentf
+  :custom
+  (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
+  (recentf-max-saved-items 2000)
+  (recentf-exclude '("recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "bookmarks"))
+  (recentf-auto-cleanup 'never)
+  :config
+  (advice-add 'recentf-save-list
+              :around (lambda (orig-fun &rest args)
+                        (let ((inhibit-message t))
+                          (apply orig-fun args))))
+  (run-with-idle-timer 30 t 'recentf-save-list)
+  (recentf-mode 1))
+
+(use-package recentf-ext
+  :ensure t :after recentf)
+
+;;; ----------------------------------------------------------------------
+;;; bm
+;;; ----------------------------------------------------------------------
+(use-package bm
+  :ensure t
+  :custom
+  (bm-buffer-persistence t)
+  :config
+  (add-hook 'emacs-startup-hook 'bm-repository-load)
+  (add-hook 'find-file-hook 'bm-buffer-restore)
+  (add-hook 'kill-buffer-hook 'bm-buffer-save)
+  (add-hook 'auto-save-hook 'bm-buffer-save)
+  (add-hook 'after-save-hook 'bm-buffer-save)
+  (add-hook 'kill-emacs-hook (lambda nil
+                               (bm-buffer-save-all)
+                               (bm-repository-save)))
+  ;; M$ Visual Studio key setup.
+  (bind-key "<C-f2>" 'bm-toggle)
+  (bind-key "<f2>"   'bm-next)
+  (bind-key "<S-f2>" 'bm-previous))
+
+;;; ----------------------------------------------------------------------
+;;; gxref
+;;; ----------------------------------------------------------------------
+(use-package gxref
+  :ensure t
+  :after xref
+  :config
+  (add-to-list 'xref-backend-functions 'gxref-xref-backend))
+
+;;; ----------------------------------------------------------------------
+;;; projectile
+;;; ----------------------------------------------------------------------
+(use-package projectile
+  :ensure t
+  :diminish projectile-mode
+  :config
+  (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
+  (bind-key "C-c C-p" 'projectile-command-map projectile-mode-map)
+  (projectile-mode +1))
+
+(use-package projectile-rails
+  :ensure t
+  :config
+  (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
+  (add-hook 'projectile-rails-mode-hook
+            (lambda ()
+              (with-eval-after-load 'yasnippet
+                (yas-activate-extra-mode 'rails-mode))))
+  (projectile-rails-global-mode))
+
+(use-package consult-projectile
+  :ensure t
+  :after (consult projectile)
+  :config
+  (bind-keys :map projectile-mode-map
+             ("C-c p p" . consult-projectile-switch-project)
+             ("C-c p d" . consult-projectile-find-dir)
+             ("C-c p f" . consult-projectile-find-file)))
+
+;;; ----------------------------------------------------------------------
+;;; lsp-mode
+;;; ----------------------------------------------------------------------
+
+;; Ruby用LSPの設定（enh-ruby-mode対応）
+(use-package lsp-mode
+  :ensure t
+  :commands (lsp lsp-deferred)
+  :hook
+  (enh-ruby-mode . my/setup-ruby-lsp)
+
+  :custom
+  ;; bundler経由で起動する設定
+  (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
+  (lsp-solargraph-use-bundler t)
+
+  :config
+  ;; Gemfile を見て LSP クライアントを選ぶ
+  (defun my/lsp-ruby-client-from-gemfile ()
+    (let* ((gemfile (locate-dominating-file default-directory "Gemfile"))
+           (gemfile-path (and gemfile (expand-file-name "Gemfile" gemfile))))
+      (when gemfile-path
+        (with-temp-buffer
+          (insert-file-contents gemfile-path)
+          (cond
+           ((re-search-forward "gem ['\"]ruby-lsp['\"]" nil t) 'ruby-lsp-enh)
+           ((re-search-forward "gem ['\"]solargraph['\"]" nil t) 'solargraph-enh)
+           (t nil))))))
+
+  ;; enh-ruby-mode 用の LSP クライアントを手動登録
+  (add-to-list 'lsp-language-id-configuration '(enh-ruby-mode . "ruby"))
+
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection '("bundle" "exec" "ruby-lsp"))
+    :major-modes '(enh-ruby-mode)
+    :priority -1
+    :server-id 'ruby-lsp-enh))
+
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection '("bundle" "exec" "solargraph" "stdio"))
+    :major-modes '(enh-ruby-mode)
+    :priority -1
+    :server-id 'solargraph-enh))
+
+  ;; フックで自動セットアップ
+  (defun my/setup-ruby-lsp ()
+    (let ((client (my/lsp-ruby-client-from-gemfile)))
+      (when client
+        (setq-local lsp-enabled-clients (list client))
+        (lsp-deferred)))))
+
+(use-package lsp-ui
+  :ensure t
+  :after lsp-mode
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-enable nil)           ;; ポップアップ邪魔だから無効
+  (lsp-ui-sideline-enable nil)      ;; 行横もうざいので無効
+  (lsp-eldoc-enable-hover t)        ;; ミニバッファに表示させる
+  (lsp-headerline-breadcrumb-enable nil)) ;; 上のファイルパス表示もOFF
+
+;;; ----------------------------------------------------------------------
+;;; editorconfig
+;;; ----------------------------------------------------------------------
+(use-package editorconfig
+  :ensure t
+  :diminish editorconfig-mode
+  :config
+  (editorconfig-mode 1))
+
+;;; ----------------------------------------------------------------------
+;;; whitespace-mode
+;;; ----------------------------------------------------------------------
+(use-package whitespace
+  :custom-face
+  (whitespace-tab ((t (:foreground "#335544" :inverse-video nil :bold t))))
+  (whitespace-space ((t (:italic nil))))
+  (whitespace-newline ((t (:foreground "#335544" :bold t))))
+  :config
+  (setq whitespace-style
+        '(face
+          tabs spaces newline trailing space-before-tab space-after-tab
+          space-mark tab-mark newline-mark))
+  (setq whitespace-space-regexp "\\(\u3000+\\)")
+  (setq whitespace-display-mappings
+        '(
+          ;; (space-mark   ?\u3000 [?□] [?＿])         ; full-width space - square
+          ;; 改行マークを表示すると copilot.el と競合するのでコメントアウト
+          ;; (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
+          (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
+          ))
+  ;;(set-face-italic-p 'whitespace-space nil)
+  ;;(set-face-foreground 'whitespace-newline "#335544")
+  ;;(set-face-bold-p 'whitespace-newline t)
+  (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode vterm-mode))
+  (with-eval-after-load 'whitespace
+    (with-eval-after-load 'diminish
+      (diminish 'whitespace-mode)))
+  (global-whitespace-mode 1))
+
+;;; ----------------------------------------------------------------------
+;;; 行末の空白とファイル末尾の余分な改行を削除する
+;;; ----------------------------------------------------------------------
+(defun my/cleanup-for-spaces ()
+  "Delete trailing whitespace and excessive newlines at the end of the buffer."
+  (interactive)
+  (delete-trailing-whitespace)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-max))
+      (delete-blank-lines))))
+
+(add-hook 'before-save-hook #'my/cleanup-for-spaces)
+
+(defun toggle-cleanup-for-spaces ()
+  "Toggle automatic cleanup of trailing spaces before save."
+  (interactive)
+  (if (memq #'my/cleanup-for-spaces before-save-hook)
+      (progn
+        (remove-hook 'before-save-hook #'my/cleanup-for-spaces)
+        (message "🧹 Cleanup for spaces: OFF"))
+    (add-hook 'before-save-hook #'my/cleanup-for-spaces)
+    (message "🧹 Cleanup for spaces: ON")))
+
+(global-set-key (kbd "C-c M-d") #'toggle-cleanup-for-spaces)
+
+;;; ----------------------------------------------------------------------
 ;;; cc-mode
 ;;; ----------------------------------------------------------------------
 (defconst my/cc-style
@@ -1246,54 +1502,6 @@
                 ("\\.[Hh]\\'"         . c++-mode)
                 ("\\.[Hh][Pp][Pp]\\'" . c++-mode))
               auto-mode-alist))
-
-;;; ----------------------------------------------------------------------
-;;; moccur
-;;; ----------------------------------------------------------------------
-(use-package color-moccur
-  :ensure t
-  :bind (("M-o"         . occur-by-moccur)
-         ("C-c C-x C-o" . moccur))
-  :custom
-  (moccur-split-word t) ; スペース区切りでAND検索
-  (moccur-use-migemo t)
-  (*moccur-buffer-name-exclusion-list*
-   '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
-  :config
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (bind-key "O" 'dired-do-moccur dired-mode-map))))
-
-(use-package moccur-edit
-  :ensure (:host github :repo "myuhe/moccur-edit.el")
-  :after color-moccur
-  :config
-  (defadvice moccur-edit-change-file
-      (after save-after-moccur-edit-buffer activate)
-    (save-buffer)))
-
-;;; ----------------------------------------------------------------------
-;;; magit
-;;; ----------------------------------------------------------------------
-(use-package llama :ensure t)
-(use-package transient :ensure t)
-(use-package magit
-  :ensure t
-  :defer t
-  :bind ("C-x g" . magit-status)
-  :custom
-  (magit-push-always-verify nil)
-  (magit-log-margin '(t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
-  :config
-  (add-to-list 'auto-coding-alist '("COMMIT_EDITMSG" . utf-8-unix))
-  (bind-key [C-tab]         nil magit-status-mode-map)
-  (bind-key [C-iso-lefttab] nil magit-status-mode-map)
-  (bind-key [C-tab]         nil magit-diff-mode-map)
-  (bind-key [C-iso-lefttab] nil magit-diff-mode-map)
-  (add-hook 'git-commit-mode-hook (lambda ()
-                                    (setq-local fill-column 80)
-                                    (display-fill-column-indicator-mode t))))
-
 ;;; ----------------------------------------------------------------------
 ;;; (enhanced-)ruby-mode
 ;;; ----------------------------------------------------------------------
@@ -1457,24 +1665,11 @@
   :ensure t
   :mode ("\\.json\\'" "\\.babelrc\\'" "\\.eslintrc\\'"))
 
-;;; ----------------------------------------------------------------------
-;;; for json format
-;;; ----------------------------------------------------------------------
+;; jqでJSONを整形
 (defun jq-format (beg end)
+  "Format JSON in the region using jq."
   (interactive "r")
   (shell-command-on-region beg end "jq ." nil t))
-
-;;; ----------------------------------------------------------------------
-;;; coffee-mode
-;;; ----------------------------------------------------------------------
-(use-package coffee-mode
-  :ensure t
-  :mode ("\\.coffee\\'" "\\.coffee\\.erb\\'")
-  :config
-  (add-hook 'coffee-mode-hook
-            (lambda()
-               (setq-local tab-width 2)
-               (setq coffee-tab-width 2))))
 
 ;;; ----------------------------------------------------------------------
 ;;; typescript-mode
@@ -1540,15 +1735,6 @@
   :mode ("\\.es\\'"))
 
 ;;; ----------------------------------------------------------------------
-;;; editorconfig
-;;; ----------------------------------------------------------------------
-(use-package editorconfig
-  :ensure t
-  :diminish editorconfig-mode
-  :config
-  (editorconfig-mode 1))
-
-;;; ----------------------------------------------------------------------
 ;;; yaml-mode
 ;;; ----------------------------------------------------------------------
 (use-package yaml-mode
@@ -1570,6 +1756,15 @@
 ;;; ----------------------------------------------------------------------
 ;;; その他の major-mode
 ;;; ----------------------------------------------------------------------
+(use-package coffee-mode
+  :ensure t
+  :mode ("\\.coffee\\'" "\\.coffee\\.erb\\'")
+  :config
+  (add-hook 'coffee-mode-hook
+            (lambda()
+               (setq-local tab-width 2)
+               (setq coffee-tab-width 2))))
+
 (use-package lua-mode
   :ensure t :defer t)
 
@@ -1602,24 +1797,64 @@
               auto-mode-alist))
 
 ;;; ----------------------------------------------------------------------
-;;; recentf / recentf-ext
+;;; treemacs
 ;;; ----------------------------------------------------------------------
-(use-package recentf
+(use-package treemacs
+  :ensure t
+  :after (projectile lsp-mode)
+  :bind
+  (("<f9>"    . treemacs)                 ; トグル表示
+   ("C-c t t" . treemacs)
+   ("C-c t f" . treemacs-find-file)       ; 現在のファイルにジャンプ
+   :map treemacs-mode-map
+   ("<left>"  . treemacs-COLLAPSE-action)
+   ("<right>" . treemacs-TAB-action))
   :custom
-  (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
-  (recentf-max-saved-items 2000)
-  (recentf-exclude '("recentf" "COMMIT_EDITMSG" "/.?TAGS" "^/sudo:" "/\\.emacs\\.d/games/*-scores" "bookmarks"))
-  (recentf-auto-cleanup 'never)
+  (treemacs-width 35)                     ; ウィンドウの幅
+  (treemacs-no-png-images t)              ; PNGアイコンを使わない
+  (treemacs-is-never-other-window t)      ; 他のウィンドウに切り替えない
+  (treemacs-silent-refresh t)             ; 静かに再描画
+  (treemacs-silent-filewatch t)
+  (treemacs-follow-after-init t)          ; 起動時にプロジェクトを追尾
+  (treemacs-text-scale -1)
   :config
-  (advice-add 'recentf-save-list
-              :around (lambda (orig-fun &rest args)
-                        (let ((inhibit-message t))
-                          (apply orig-fun args))))
-  (run-with-idle-timer 30 t 'recentf-save-list)
-  (recentf-mode 1))
+  ;; UIカスタム：背景色をテーマに連動して明るめにする
+  (defun my/treemacs-set-bg-based-on-theme ()
+    "Set Treemacs background based on current theme's default background."
+    (let* ((default-bg (face-attribute 'default :background nil t))
+           (treemacs-bg (color-lighten-name default-bg 10)))
+      (custom-set-faces
+       `(treemacs-window-background-face ((t (:background ,treemacs-bg)))))))
 
-(use-package recentf-ext
-  :ensure t :after recentf)
+  ;; モード起動時にUI/フォント調整
+  (defun my/treemacs-ui-setup ()
+    "Setup UI tweaks for Treemacs buffer."
+    (variable-pitch-mode 1)
+    (setq variable-pitch-use-font-rescale nil)
+    (setq-local line-spacing 2)
+    (setq-local truncate-lines t))
+
+  ;; モードフック登録
+  (add-hook 'treemacs-mode-hook #'my/treemacs-set-bg-based-on-theme)
+  (add-hook 'treemacs-mode-hook #'my/treemacs-ui-setup)
+  (add-hook 'after-load-theme-hook #'my/treemacs-set-bg-based-on-theme)
+
+  ;; Treemacs機能のON
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-git-mode 'deferred))
+
+(use-package treemacs-projectile
+  :ensure t
+  :after (treemacs projectile)
+  :config
+  (treemacs-project-follow-mode))
+
+(use-package treemacs-nerd-icons
+  :ensure t
+  :after (treemacs nerd-icons)
+  :config
+  (treemacs-load-theme "nerd-icons"))
 
 ;;; ----------------------------------------------------------------------
 ;;; flycheck
@@ -1655,129 +1890,6 @@
   (set-face-underline 'flymake-error nil)
   (set-face-underline 'flymake-warning nil)
   (set-face-underline 'flymake-note nil))
-
-;;; ----------------------------------------------------------------------
-;;; bm
-;;; ----------------------------------------------------------------------
-(use-package bm
-  :ensure t
-  :custom
-  (bm-buffer-persistence t)
-  :config
-  (add-hook 'emacs-startup-hook 'bm-repository-load)
-  (add-hook 'find-file-hook 'bm-buffer-restore)
-  (add-hook 'kill-buffer-hook 'bm-buffer-save)
-  (add-hook 'auto-save-hook 'bm-buffer-save)
-  (add-hook 'after-save-hook 'bm-buffer-save)
-  (add-hook 'kill-emacs-hook (lambda nil
-                               (bm-buffer-save-all)
-                               (bm-repository-save)))
-  ;; M$ Visual Studio key setup.
-  (bind-key "<C-f2>" 'bm-toggle)
-  (bind-key "<f2>"   'bm-next)
-  (bind-key "<S-f2>" 'bm-previous))
-
-;;; ----------------------------------------------------------------------
-;;; gxref
-;;; ----------------------------------------------------------------------
-(use-package gxref
-  :ensure t
-  :after xref
-  :config
-  (add-to-list 'xref-backend-functions 'gxref-xref-backend))
-
-;;; ----------------------------------------------------------------------
-;;; projectile
-;;; ----------------------------------------------------------------------
-(use-package projectile
-  :ensure t
-  :diminish projectile-mode
-  :config
-  (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
-  (bind-key "C-c C-p" 'projectile-command-map projectile-mode-map)
-  (projectile-mode +1))
-
-(use-package projectile-rails
-  :ensure t
-  :config
-  (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
-  (add-hook 'projectile-rails-mode-hook
-            (lambda ()
-              (with-eval-after-load 'yasnippet
-                (yas-activate-extra-mode 'rails-mode))))
-  (projectile-rails-global-mode))
-
-(use-package consult-projectile
-  :ensure t
-  :after (consult projectile)
-  :config
-  (bind-keys :map projectile-mode-map
-             ("C-c p p" . consult-projectile-switch-project)
-             ("C-c p d" . consult-projectile-find-dir)
-             ("C-c p f" . consult-projectile-find-file)))
-
-;;; ----------------------------------------------------------------------
-;;; lsp-mode
-;;; ----------------------------------------------------------------------
-
-;; Ruby用LSPの設定（enh-ruby-mode対応）
-(use-package lsp-mode
-  :ensure t
-  :commands (lsp lsp-deferred)
-  :hook
-  (enh-ruby-mode . my/setup-ruby-lsp)
-
-  :custom
-  ;; bundler経由で起動する設定
-  (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
-  (lsp-solargraph-use-bundler t)
-
-  :config
-  ;; Gemfile を見て LSP クライアントを選ぶ
-  (defun my/lsp-ruby-client-from-gemfile ()
-    (let* ((gemfile (locate-dominating-file default-directory "Gemfile"))
-           (gemfile-path (and gemfile (expand-file-name "Gemfile" gemfile))))
-      (when gemfile-path
-        (with-temp-buffer
-          (insert-file-contents gemfile-path)
-          (cond
-           ((re-search-forward "gem ['\"]ruby-lsp['\"]" nil t) 'ruby-lsp-enh)
-           ((re-search-forward "gem ['\"]solargraph['\"]" nil t) 'solargraph-enh)
-           (t nil))))))
-
-  ;; enh-ruby-mode 用の LSP クライアントを手動登録
-  (add-to-list 'lsp-language-id-configuration '(enh-ruby-mode . "ruby"))
-
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection '("bundle" "exec" "ruby-lsp"))
-    :major-modes '(enh-ruby-mode)
-    :priority -1
-    :server-id 'ruby-lsp-enh))
-
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection '("bundle" "exec" "solargraph" "stdio"))
-    :major-modes '(enh-ruby-mode)
-    :priority -1
-    :server-id 'solargraph-enh))
-
-  ;; フックで自動セットアップ
-  (defun my/setup-ruby-lsp ()
-    (let ((client (my/lsp-ruby-client-from-gemfile)))
-      (when client
-        (setq-local lsp-enabled-clients (list client))
-        (lsp-deferred)))))
-
-(use-package lsp-ui
-  :ensure t
-  :after lsp-mode
-  :hook (lsp-mode . lsp-ui-mode)
-  :custom
-  (lsp-ui-doc-enable nil)           ;; ポップアップ邪魔だから無効
-  (lsp-ui-sideline-enable nil)      ;; 行横もうざいので無効
-  (lsp-eldoc-enable-hover t)        ;; ミニバッファに表示させる
-  (lsp-headerline-breadcrumb-enable nil)) ;; 上のファイルパス表示もOFF
 
 ;;; ----------------------------------------------------------------------
 ;;; copilot
@@ -1962,36 +2074,6 @@
                  (window-height . 0.4))))
 
 ;;; ----------------------------------------------------------------------
-;;; whitespace-mode
-;;; ----------------------------------------------------------------------
-(use-package whitespace
-  :custom-face
-  (whitespace-tab ((t (:foreground "#335544" :inverse-video nil :bold t))))
-  (whitespace-space ((t (:italic nil))))
-  (whitespace-newline ((t (:foreground "#335544" :bold t))))
-  :config
-  (setq whitespace-style
-        '(face
-          tabs spaces newline trailing space-before-tab space-after-tab
-          space-mark tab-mark newline-mark))
-  (setq whitespace-space-regexp "\\(\u3000+\\)")
-  (setq whitespace-display-mappings
-        '(
-          ;; (space-mark   ?\u3000 [?□] [?＿])         ; full-width space - square
-          ;; 改行マークを表示すると copilot.el と競合するのでコメントアウト
-          ;; (newline-mark ?\n    [?↵ ?\n] [?$ ?\n])    ; eol - downwards arrow
-          (tab-mark     ?\t    [?» ?\t] [?\\ ?\t])   ; tab - right guillemet
-          ))
-  ;;(set-face-italic-p 'whitespace-space nil)
-  ;;(set-face-foreground 'whitespace-newline "#335544")
-  ;;(set-face-bold-p 'whitespace-newline t)
-  (setq whitespace-global-modes '(not dired-mode tar-mode magit-log-mode vterm-mode))
-  (with-eval-after-load 'whitespace
-    (with-eval-after-load 'diminish
-      (diminish 'whitespace-mode)))
-  (global-whitespace-mode 1))
-
-;;; ----------------------------------------------------------------------
 ;;; google-translate.el
 ;;; ----------------------------------------------------------------------
 (use-package google-translate
@@ -2002,7 +2084,7 @@
   (google-translate-default-target-language "ja")
   (google-translate-translation-directions-alist '(("en" . "ja")))
   (google-translate-backend-method 'curl)
-  :bind ("\C-c t" . google-translate-smooth-translate))
+  :bind ("\C-c t g" . google-translate-smooth-translate))
 
 ;;; ----------------------------------------------------------------------
 ;;; gptel
@@ -2056,36 +2138,6 @@
                  ?づ ?で ?ど ?ば ?び ?ぶ ?べ ?ぼ ?ぱ ?ぴ ?ぷ ?ぺ ?ぽ ?ぁ ?ぃ
                  ?ぅ ?ぇ ?ぉ ?っ ?ゃ ?ゅ ?ょ ?ゎ ?ヮ ?ヶ ?ヵ))
   (put-char-code-property c 'jisx0201 nil))
-
-;;; ----------------------------------------------------------------------
-;;; delete-trailing-whitespace の hook の状態をモードラインに表示する
-;;; http://syohex.hatenablog.com/entry/20130617/1371480584
-;;; ----------------------------------------------------------------------
-(defvar my/current-cleanup-state "")
-;; 行末のスペース + ファイル末尾の連続する改行の除去を行う
-(defun my/cleanup-for-spaces ()
-  (interactive)
-  (delete-trailing-whitespace)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-max))
-      (delete-blank-lines))))
-(add-hook 'before-save-hook 'my/cleanup-for-spaces)
-(setq-default mode-line-format
-              (cons '(:eval my/current-cleanup-state)
-                    mode-line-format))
-(defun toggle-cleanup-spaces ()
-  (interactive)
-  (cond ((memq 'my/cleanup-for-spaces before-save-hook)
-         (setq my/current-cleanup-state
-               (propertize "[DT-]" 'face '((:foreground "turquoise1" :weight bold))))
-         (remove-hook 'before-save-hook 'my/cleanup-for-spaces))
-        (t
-         (setq my/current-cleanup-state "")
-         (add-hook 'before-save-hook 'my/cleanup-for-spaces)))
-  (force-mode-line-update))
-(global-set-key (kbd "C-c M-d") 'toggle-cleanup-spaces)
 
 ;;; ----------------------------------------------------------------------
 ;;; ファイルをシステムの関連付けで開く
@@ -2245,7 +2297,7 @@
 (use-package hide-mode-line
   :ensure t
   :hook
-  ((imenu-list-minor-mode) . hide-mode-line-mode))
+  ((imenu-list-minor-mode treemacs-mode) . hide-mode-line-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; desktop / session
