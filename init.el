@@ -28,9 +28,7 @@
       case-replace t
       transient-mark-mode t
       indent-line-function #'indent-relative-maybe
-      truncate-partial-width-windows nil
       line-move-visual nil
-      tab-width 4
       blink-matching-paren nil
       confirm-kill-emacs nil
       indicate-empty-lines t
@@ -57,9 +55,7 @@
 ;; バックアップ / 保存まわり
 (setq backup-directory-alist `(("." . ,(expand-file-name "~/bak")))
       delete-old-versions t
-      make-backup-files t
-      require-final-newline t
-      mode-require-final-newline t)
+      make-backup-files t)
 
 ;; 補完 / 履歴
 (setq read-buffer-completion-ignore-case t
@@ -72,6 +68,14 @@
 (setq user-full-name "YAMAGUCHI, Seiji"
       user-mail-address "valda@underscore.jp")
 
+;; バッファローカル系
+(setq-default
+ indent-tabs-mode nil
+ tab-width 4
+ truncate-partial-width-windows nil
+ require-final-newline t
+ mode-require-final-newline t)
+
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
 (set-scroll-bar-mode nil)
@@ -80,7 +84,6 @@
 (delete-selection-mode t)
 (show-paren-mode t)
 (defalias 'yes-or-no-p 'y-or-n-p)
-(setq-default indent-tabs-mode nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
