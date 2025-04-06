@@ -31,7 +31,6 @@
       truncate-partial-width-windows nil
       line-move-visual nil
       tab-width 4
-      indent-tabs-mode nil
       blink-matching-paren nil
       confirm-kill-emacs nil
       indicate-empty-lines t
@@ -81,6 +80,7 @@
 (delete-selection-mode t)
 (show-paren-mode t)
 (defalias 'yes-or-no-p 'y-or-n-p)
+(setq-default indent-tabs-mode nil)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
 (global-auto-revert-mode 1)
