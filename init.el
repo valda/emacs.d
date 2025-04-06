@@ -40,7 +40,8 @@
       find-file-visit-truename t
       vc-follow-symlinks t
       auto-revert-check-vc-info nil
-      inhibit-compacting-font-caches t)
+      inhibit-compacting-font-caches t
+      imenu-auto-rescan t)
 
 ;; モードライン / 表示まわり
 (setq mode-line-frame-identification " "
@@ -187,6 +188,14 @@
       use-package-compute-statistics t
       use-package-minimum-reported-time 0.01
       use-package-enable-imenu-support t)
+
+(defun my/imenu-use-package-hook ()
+  (when (and (buffer-file-name)
+             (string-match-p "\\.el\\'" (buffer-file-name)))
+    (add-to-list 'imenu-generic-expression
+                 '("Use-Package" "^\\s-*(use-package\\s-+\\(\\_<.+?\\_>\\)" 1))))
+
+(add-hook 'emacs-lisp-mode-hook #'my/imenu-use-package-hook)
 
 ;;; ----------------------------------------------------------------------
 ;;; diminish (use-packageが利用)
@@ -406,13 +415,21 @@
   :config (nyan-start-animation))
 
 ;;; ----------------------------------------------------------------------
-;;; beacon
+;;; pulsar
 ;;; ----------------------------------------------------------------------
-(use-package beacon
+(use-package pulsar
   :ensure t
-  :diminish beacon-mode
   :config
-  (beacon-mode 1))
+  (add-hook 'next-error-hook #'pulsar-pulse-line)
+  (add-hook 'minibuffer-setup-hook #'pulsar-pulse-line-blue)
+  ;; integration with the `consult' package:
+  (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+  ;; integration with the built-in `imenu':
+  (add-hook 'imenu-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'imenu-after-jump-hook #'pulsar-reveal-entry)
+
+  (pulsar-global-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; tab-bar
@@ -456,8 +473,8 @@
   ;; 1〜9 に tab-select を割り当てる
   (dotimes (i 9)
     (define-key my/tab-prefix-key-map
-      (number-to-string (1+ i))
-      `(lambda () (interactive) (tab-select ,(1+ i)))))
+                (number-to-string (1+ i))
+                `(lambda () (interactive) (tab-select ,(1+ i)))))
 
   (bind-key "C-z" my/tab-prefix-key-map))
 
@@ -573,6 +590,7 @@
   :bind (("C-;" . consult-buffer)
          ("C-x b" . consult-buffer)
          ("C-c b" . consult-bookmark)
+         ("C-c i" . consult-imenu)
          ("M-y" . consult-yank-pop)
          ("M-g" . consult-goto-line)
          ;; M-s bindings (search-map)
@@ -653,13 +671,13 @@
 ;;; ----------------------------------------------------------------------
 (use-package corfu
   :ensure (corfu :files (:defaults "extensions/*")
-                   :includes (corfu-info corfu-history))
+                 :includes (corfu-info corfu-history))
   :custom
   (corfu-cycle t)
   (corfu-auto t)
   (corfu-auto-delay 0.2)
   (corfu-auto-prefix 2)
-  (corfu-preselect 'prompt)
+  (corfu-preselect 'lambda)
   (corfu-popupinfo-delay 0.5)
   (corfu-on-exact-match nil)
   :config
@@ -1047,6 +1065,7 @@
              ([S-C-up]   . nil)
              ([S-C-down] . nil)
              ("C-c ,"    . nil)
+             ("C-'"      . nil)
              :map org-read-date-minibuffer-local-map
              ([S-up]    . (lambda () (interactive)
                             (org-eval-in-calendar '(calendar-backward-week 1))))
@@ -1082,7 +1101,7 @@
          (org-agenda-finalize . org-modern-agenda))
   :custom
   (setq org-modern-todo-faces '(("SOMEDAY"  :background "cyan4" :foreground "black")
-                           ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
+                                ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
 
 (use-package org-roam
   :ensure t
@@ -1485,7 +1504,7 @@
 
     ;; インデント時に構文解析情報を表示
     (c-echo-syntactic-information-p . t)
-  )
+    )
   "My C/C++ Programming Style")
 
 (add-hook 'c-mode-common-hook
@@ -1758,9 +1777,9 @@
   :init
   (add-hook 'yaml-mode-hook
             (lambda ()
-               (when (string-match "ansible.*/\\(tasks\\|handlers\\)/.*\\.yml\\'"
-                                   (buffer-file-name (current-buffer)))
-                 (ansible 1)))))
+              (when (string-match "ansible.*/\\(tasks\\|handlers\\)/.*\\.yml\\'"
+                                  (buffer-file-name (current-buffer)))
+                (ansible 1)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の major-mode
@@ -1771,8 +1790,8 @@
   :config
   (add-hook 'coffee-mode-hook
             (lambda()
-               (setq-local tab-width 2)
-               (setq coffee-tab-width 2))))
+              (setq-local tab-width 2)
+              (setq coffee-tab-width 2))))
 
 (use-package lua-mode
   :ensure t :defer t)
@@ -1866,10 +1885,20 @@
   (add-hook 'treemacs-mode-hook #'my/treemacs-ui-setup)
   (add-hook 'after-load-theme-hook #'my/treemacs-set-bg-based-on-theme)
 
+  ;; Treemacs上で tab-new したとき、scratchバッファを自動で開く
+  (with-eval-after-load 'tab-bar
+    (defun my/tab-bar-new-tab-with-fallback (orig_fn &rest args)
+      (let ((tab (apply orig_fn args)))
+        (when (string-prefix-p " *Treemacs-" (buffer-name))
+          (switch-to-buffer "*scratch*"))
+        tab))
+    (advice-add 'tab-bar-new-tab :around #'my/tab-bar-new-tab-with-fallback))
+
   ;; Treemacs機能のON
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
-  (treemacs-git-mode 'deferred))
+  (treemacs-git-mode 'deferred)
+  (treemacs-git-commit-diff-mode t))
 
 (use-package treemacs-projectile
   :ensure t
@@ -1877,17 +1906,22 @@
   :config
   (treemacs-project-follow-mode))
 
+(use-package treemacs-magit
+  :ensure t
+  :after (treemacs magit))
+
+(use-package treemacs-tab-bar
+  :disabled  ; treemacs-follow-mode との競合を避けるために無効化
+  :ensure t
+  :after (treemacs tab-bar)
+  :config
+  (treemacs-set-scope-type 'Tabs))
+
 (use-package treemacs-nerd-icons
   :ensure t
   :after (treemacs nerd-icons)
   :config
   (treemacs-load-theme "nerd-icons"))
-
-(use-package treemacs-tab-bar
-  :ensure t
-  :after (treemacs tab-bar)
-  :config
-  (treemacs-set-scope-type 'Tabs))
 
 (use-package lsp-treemacs
   :ensure t
@@ -1942,9 +1976,9 @@
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word))
   :custom
+  (copilot-idle-delay 0.7)
   (copilot-indent-offset-warning-disable t)
-  :config
-  (setq warning-suppress-log-types '((copilot copilot-exceeds-max-char))))
+  (copilot-max-char-warning-disable t))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
@@ -2130,8 +2164,8 @@
   "指定された HOST または ENV-VAR から APIキーを取得。"
   (or (and env-var (getenv env-var))
       (let* ((auth-info (car (auth-source-search :host host
-                                                  :user "apikey"
-                                                  :port "https")))
+                                                 :user "apikey"
+                                                 :port "https")))
              (secret (plist-get auth-info :secret)))
         (when secret
           (if (functionp secret)
