@@ -1297,8 +1297,14 @@
   (bind-key "<S-f2>" 'bm-previous))
 
 ;;; ----------------------------------------------------------------------
-;;; gxref
+;;; xref
 ;;; ----------------------------------------------------------------------
+(use-package xref
+  :bind (("M-." . xref-find-definitions)
+         ("M-?" . project-find-regexp))
+  :custom
+  (xref-search-program 'ripgrep))
+
 (use-package gxref
   :ensure t
   :after xref
