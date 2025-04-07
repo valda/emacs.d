@@ -1861,8 +1861,9 @@
   :after projectile
   :bind
   (("C-c t t" . treemacs)                 ; トグル表示
-   ("C-c t f" . treemacs-find-file)       ; 現在のファイルにジャンプ
-   ("C-'"     . my/toggle-treemacs-focus)
+   ("C-c t f" .                           ; 現在のファイルにジャンプ
+    my/treemacs-find-file-or-add-project+focus)
+   ("C-'"     . my/toggle-treemacs-focus) ; スマートトグル
    :map treemacs-mode-map
    ("<left>"  . treemacs-COLLAPSE-action)
    ("<right>" . treemacs-TAB-action))
@@ -1875,6 +1876,19 @@
   (treemacs-follow-after-init t)          ; 起動時にプロジェクトを追尾
   (treemacs-text-scale -1)
   :config
+  (defun my/treemacs-find-file-or-add-project+focus ()
+    "Add project if needed, jump to file in Treemacs, and focus Treemacs window."
+    (interactive)
+    (let* ((path (or buffer-file-name default-directory))
+           (project (treemacs--find-project-for-path path)))
+      (unless project
+        (when (fboundp 'projectile-project-root)
+          (let ((root (projectile-project-root)))
+            (when root
+              (treemacs-add-project-to-workspace root (file-name-nondirectory (directory-file-name root)))))))
+      (treemacs-find-file)
+      (treemacs-select-window)))
+
   (defun my/toggle-treemacs-focus ()
     "Toggle Treemacs visibility and focus intelligently.
 - If Treemacs is focused, close it.
@@ -1891,7 +1905,7 @@
 	(select-window treemacs-window))
        ;; Treemacs is not open → open it
        (t
-	(treemacs)))))
+	(my/treemacs-find-file-or-add-project+focus)))))
 
   ;; UIカスタム：背景色をテーマに連動して明るめにする
   (defun my/treemacs-set-bg-based-on-theme ()
