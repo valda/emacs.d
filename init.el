@@ -742,9 +742,9 @@
 
 (use-package company
   :ensure t
-  :diminish company-mode
   :init
-  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags)))
+  (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags))
+  (advice-add 'company-mode :override (lambda (&optional _) (message "🔇 company-mode suppressed"))))
 
 (use-package nerd-icons-corfu
   :ensure (:host github :repo "LuigiPiucco/nerd-icons-corfu")
@@ -1356,6 +1356,7 @@
   ;; bundler経由で起動する設定
   (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
   (lsp-solargraph-use-bundler t)
+  (lsp-completion-provider :capf)
 
   :config
   ;; Gemfile を見て LSP クライアントを選ぶ
