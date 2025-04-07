@@ -427,10 +427,10 @@
   (add-hook 'next-error-hook #'pulsar-pulse-line)
   (add-hook 'minibuffer-setup-hook #'pulsar-pulse-line-blue)
   ;; integration with the `consult' package:
-  (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'consult-after-jump-hook #'pulsar-recenter-center)
   (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
   ;; integration with the built-in `imenu':
-  (add-hook 'imenu-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'imenu-after-jump-hook #'pulsar-recenter-center)
   (add-hook 'imenu-after-jump-hook #'pulsar-reveal-entry)
 
   (pulsar-global-mode 1))
