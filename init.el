@@ -78,11 +78,12 @@
 
 (temp-buffer-resize-mode t)
 (menu-bar-mode -1)
-(set-scroll-bar-mode nil)
+(scroll-bar-mode -1)
 (tool-bar-mode -1)
 (blink-cursor-mode -1)
 (delete-selection-mode t)
 (show-paren-mode t)
+(pixel-scroll-precision-mode t)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Automatically reload files after they've been modified (typically in Visual C++)
@@ -480,14 +481,6 @@
                 `(lambda () (interactive) (tab-select ,(1+ i)))))
 
   (bind-key "C-z" my/tab-prefix-key-map))
-
-;;; ----------------------------------------------------------------------
-;;; good-scroll
-;;; ----------------------------------------------------------------------
-(use-package good-scroll
-  :ensure t
-  :config
-  (good-scroll-mode 1))
 
 ;;; ----------------------------------------------------------------------
 ;;; which-key
