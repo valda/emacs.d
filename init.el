@@ -1877,7 +1877,7 @@
    ("<left>"  . treemacs-COLLAPSE-action)
    ("<right>" . treemacs-TAB-action))
   :custom
-  (treemacs-width 35)                     ; ウィンドウの幅
+  (treemacs-width 30)                     ; ウィンドウの幅
   (treemacs-no-png-images t)              ; PNGアイコンを使わない
   (treemacs-is-never-other-window nil)    ; 他のウィンドウに切り替えない
   (treemacs-silent-refresh t)             ; 静かに再描画
