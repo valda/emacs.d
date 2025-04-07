@@ -312,9 +312,9 @@
     :after mozc
     :config
     (setq mozc-cursor-color-alist
-          '((direct        . "green")
-            (read-only     . "yellow")
-            (hiragana      . "red")
+          '((direct        . "YellowGreen")
+            (read-only     . "LightGoldenrod")
+            (hiragana      . "IndianRed")
             (full-katakana . "goldenrod")
             (half-ascii    . "dark orchid")
             (full-ascii    . "orchid")
@@ -403,7 +403,7 @@
   :custom-face
   (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "chocolate4" :inherit mode-line-buffer-id))))
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
-  (doom-modeline-bar       ((t (:background "chocolate2" :inherit mode-line-buffer-id))))
+  (doom-modeline-bar       ((t (:background "IndianRed" :inherit mode-line-buffer-id))))
   :config
   (use-package async :ensure t)
   (use-package ghub :ensure t))
