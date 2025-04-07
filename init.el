@@ -1673,10 +1673,13 @@
   :config
   (defun my/web-mode-setup ()
     (add-node-modules-path)
-    (when (string-match "\\.erb" (buffer-file-name (current-buffer)))
-      (modify-syntax-entry ?% "w"))
-    (when (string-match "\\.php" (buffer-file-name (current-buffer)))
-      (modify-syntax-entry ?? "w")))
+    (cond
+        ((string= web-mode-engine "erb")
+         (modify-syntax-entry ?% "w")
+         (modify-syntax-entry ?? "w"))
+        ((string= web-mode-engine "php")
+         (modify-syntax-entry ?? "w"))))
+
   (add-hook 'web-mode-hook #'my/web-mode-setup))
 
 ;;; ----------------------------------------------------------------------
