@@ -1295,7 +1295,7 @@
 ;;; ----------------------------------------------------------------------
 (use-package xref
   :bind (("M-." . xref-find-definitions)
-         ("M-?" . project-find-regexp))
+         ("M-?" . xref-find-references))
   :custom
   (xref-search-program 'ripgrep))
 
@@ -1403,10 +1403,13 @@
   :after lsp-mode
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-enable nil)           ;; ポップアップ邪魔だから無効
-  (lsp-ui-sideline-enable nil)      ;; 行横もうざいので無効
-  (lsp-eldoc-enable-hover t)        ;; ミニバッファに表示させる
-  (lsp-headerline-breadcrumb-enable nil)) ;; 上のファイルパス表示もOFF
+  (lsp-ui-doc-enable nil)                ;; ポップアップ邪魔だから無効
+  (lsp-ui-sideline-enable nil)           ;; 行横もうざいので無効
+  (lsp-headerline-breadcrumb-enable nil) ;; 上のファイルパス表示もOFF
+  :bind (:map lsp-ui-mode-map
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references] . lsp-ui-peek-find-references)
+              ("C-c i" . lsp-ui-imenu)))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
