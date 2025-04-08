@@ -1310,9 +1310,18 @@
 (use-package projectile
   :ensure t
   :diminish projectile-mode
+  :bind (:map projectile-mode-map
+         ("C-c p" . projectile-command-map)
+         ("C-c C-p" . projectile-command-map))
+  :init
+  (setq projectile-project-search-path '("~/wc"))
+  (setq projectile-ignored-project-function
+      (lambda (project-root)
+        (string-prefix-p (expand-file-name "~/.emacs.d/elpaca/repos/")
+                         (expand-file-name project-root))))
+  (setq projectile-auto-discover t)
+  (setq projectile-auto-cleanup-known-projects t)
   :config
-  (bind-key "C-c p" 'projectile-command-map projectile-mode-map)
-  (bind-key "C-c C-p" 'projectile-command-map projectile-mode-map)
   (projectile-mode +1))
 
 (use-package projectile-rails
