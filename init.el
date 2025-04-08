@@ -894,7 +894,7 @@
 (use-package undo-tree
   :ensure t
   :diminish undo-tree-mode
-  :bind ("C-." . 'undo-tree-redo)
+  :bind ("C-." . undo-tree-redo)
   :custom
   (undo-tree-auto-save-history nil)
   (undo-tree-history-directory-alist `(("." . ,(expand-file-name "undo" user-emacs-directory))))
@@ -2027,10 +2027,10 @@
   :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :hook (prog-mode . copilot-mode)
   :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word))
+              ("<tab>" . copilot-accept-completion)
+              ("TAB" . copilot-accept-completion)
+              ("C-TAB" . copilot-accept-completion-by-word)
+              ("C-<tab>" . copilot-accept-completion-by-word))
   :custom
   (copilot-idle-delay 0.7)
   (copilot-indent-offset-warning-disable t)
