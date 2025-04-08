@@ -1117,6 +1117,10 @@
   (advice-add 'org-agenda :around #'bypass-org-switch-to-buffer-other-window)
   (advice-add 'org-agenda :around #'skip-delete-other-windows))
 
+(use-package org-tempo
+  :ensure t
+  :after org)
+
 (use-package org-modern
   :ensure t
   :after org
@@ -1360,7 +1364,7 @@
   (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
   (lsp-solargraph-use-bundler t)
   (lsp-completion-provider :capf)
-
+  (lsp-enable-indentation nil)
   :config
   ;; Gemfile を見て LSP クライアントを選ぶ
   (defun my/lsp-ruby-client-from-gemfile ()
