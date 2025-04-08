@@ -1117,10 +1117,6 @@
   (advice-add 'org-agenda :around #'bypass-org-switch-to-buffer-other-window)
   (advice-add 'org-agenda :around #'skip-delete-other-windows))
 
-(use-package org-tempo
-  :ensure t
-  :after org)
-
 (use-package org-modern
   :ensure t
   :after org
