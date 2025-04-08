@@ -974,6 +974,7 @@
 ;;; howm
 ;;; ----------------------------------------------------------------------
 (use-package howm
+  :disabled
   :ensure t
   :commands (howm-list-all
              howm-list-recent
@@ -1145,19 +1146,19 @@
   (setq org-roam-capture-templates
         '(("d" "Default" plain
            "%?"
-           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+           :if-new (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+filetags: :note:\n#+date: %U\n\n")
            :unnarrowed t)
 
           ("t" "Tech Note" plain
            "* 概要\n%?\n\n* 詳細\n\n* 関連ノート\n"
-           :if-new (file+head "tech/%<%Y%m%d%H%M%S>-${slug}.org"
+           :if-new (file+head "tech/%<%Y-%m-%d-%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+filetags: :tech:\n#+date: %U\n\n")
            :unnarrowed t)
 
           ("m" "Memo" plain
            "- %?"
-           :if-new (file+head "memos/%<%Y%m%d%H%M%S>-${slug}.org"
+           :if-new (file+head "memos/%<%Y-%m-%d-%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+filetags: :memo:\n#+date: %U\n\n")
            :unnarrowed t)))
 
