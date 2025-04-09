@@ -1352,51 +1352,29 @@
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook
-  (enh-ruby-mode . my/setup-ruby-lsp)
-
+  :hook ((ruby-mode ruby-ts-mode enh-ruby-mode) . my/setup-ruby-lsp)
   :custom
   ;; bundler経由で起動する設定
-  (lsp-ruby-lsp-server-command '("bundle" "exec" "ruby-lsp"))
+  (lsp-ruby-lsp-use-bundler t)
   (lsp-solargraph-use-bundler t)
   (lsp-completion-provider :capf)
   (lsp-enable-indentation nil)
   :config
-  ;; Gemfile を見て LSP クライアントを選ぶ
-  (defun my/lsp-ruby-client-from-gemfile ()
-    (let* ((gemfile (locate-dominating-file default-directory "Gemfile"))
-           (gemfile-path (and gemfile (expand-file-name "Gemfile" gemfile))))
-      (when gemfile-path
-        (with-temp-buffer
-          (insert-file-contents gemfile-path)
-          (cond
-           ((re-search-forward "gem ['\"]ruby-lsp['\"]" nil t) 'ruby-lsp-enh)
-           ((re-search-forward "gem ['\"]solargraph['\"]" nil t) 'solargraph-enh)
-           (t nil))))))
+  ;; Gemfile の内容に応じて ruby-lsp or solargraph を選択
+  (defun my/gemfile-has (gem-name)
+    (when-let ((gemfile (locate-dominating-file default-directory "Gemfile")))
+      (with-temp-buffer
+        (insert-file-contents (expand-file-name "Gemfile" gemfile))
+        (re-search-forward (format "gem ['\"]%s['\"]" gem-name) nil t))))
 
-  ;; enh-ruby-mode 用の LSP クライアントを手動登録
-  (add-to-list 'lsp-language-id-configuration '(enh-ruby-mode . "ruby"))
-
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection '("bundle" "exec" "ruby-lsp"))
-    :major-modes '(enh-ruby-mode)
-    :priority -1
-    :server-id 'ruby-lsp-enh))
-
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection '("bundle" "exec" "solargraph" "stdio"))
-    :major-modes '(enh-ruby-mode)
-    :priority -1
-    :server-id 'solargraph-enh))
-
-  ;; フックで自動セットアップ
   (defun my/setup-ruby-lsp ()
-    (let ((client (my/lsp-ruby-client-from-gemfile)))
-      (when client
-        (setq-local lsp-enabled-clients (list client))
-        (lsp-deferred)))))
+    (when-let ((client
+           (cond
+            ((my/gemfile-has "ruby-lsp") 'ruby-lsp-ls)
+            ((my/gemfile-has "solargraph") 'ruby-ls)
+            (t nil))))
+      (setq-local lsp-enabled-clients (list client))
+      (lsp-deferred))))
 
 (use-package lsp-ui
   :ensure t
