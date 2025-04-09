@@ -2103,30 +2103,25 @@
 ;;; ----------------------------------------------------------------------
 (use-package shackle
   :ensure t
+  :custom
+  (shackle-rules '((compilation-mode :align below :size 0.3)
+                   (rspec-compilation-mode :align below :size 0.3)
+                   ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
+                   (calendar-mode :align below :popup t)
+                   (epa-key-list-mode :align below :size 0.3)
+                   ("*Backtrace*" :align below :size 0.3 :noselect t)
+                   ("*Apropos*" :align below :size 0.4 :select t)
+                   ("*Warnings*" :align below :size 0.1)
+                   ("*Org Select*" :align below :size 0.3)
+                   ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.5)
+                   (" *Agenda Commands*" :align below :size 0.3)
+                   (" *Org todo*" :align below :size 0.3 :popup t)
+                   ("*rg*" :align right :size 0.4 :select t)
+                   ("*git-gutter:diff*" :align below :size 0.4)
+                   ("\\(Messages\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
+                   ("*Google Translate*" :align below :size 0.3 :popup t :select t)))
   :config
-  (setq shackle-rules
-        '(
-          (compilation-mode :align below :size 0.3)
-          (rspec-compilation-mode :align below :size 0.3)
-          ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
-          (calendar-mode :align below :popup t)
-          (epa-key-list-mode :align below :size 0.3)
-          ("*Backtrace*" :align below :size 0.3 :noselect t)
-          ("*Apropos*" :align below :size 0.4 :select t)
-          ("*Warnings*" :align below :size 0.1)
-          ("*Org Select*" :align below :size 0.3)
-          ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.5)
-          (" *Agenda Commands*" :align below :size 0.3)
-          (" *Org todo*" :align below :size 0.3 :popup t)
-          ("*rg*" :other t :select t :inhibit-window-quit t)
-          ("*git-gutter:diff*" :align below :size 0.4)
-          ("\\(Messages\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
-          ("*Google Translate*" :align below :size 0.3 :popup t :select t)
-          ))
   (shackle-mode 1))
-
-;;;; test
-;; (display-buffer (get-buffer-create " *Org todo*"))
 
 ;;; ----------------------------------------------------------------------
 ;;; popper.el
@@ -2138,17 +2133,17 @@
          ("C-M-`" . popper-toggle-type))
   :custom
   (popper-display-control nil)
+  (popper-reference-buffers '(compilation-mode
+                              rspec-compilation-mode
+                              help-mode
+                              epa-key-list-mode
+                              "\\*Backtrace\\*"
+                              "\\*Apropos\\*"
+                              "\\*Warnings\\*"
+                              "\\(Messages\\|Report\\)\\*\\'"
+                              "\\*rg\\*"
+                              "\\*git-gutter:diff\\*"))
   :config
-  (setq popper-reference-buffers
-        '(compilation-mode
-          rspec-compilation-mode
-          help-mode
-          epa-key-list-mode
-          "\\*Backtrace\\*"
-          "\\*Apropos\\*"
-          "\\*Warnings\\*"
-          "\\(Messages\\|Report\\)\\*\\'"
-          "\\*git-gutter:diff\\*"))
   (popper-mode +1))
 
 ;;; ----------------------------------------------------------------------
