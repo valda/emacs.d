@@ -1385,9 +1385,6 @@
   :commands (lsp lsp-deferred)
   :hook ((ruby-mode ruby-ts-mode enh-ruby-mode) . my/setup-ruby-lsp)
   :custom
-  ;; bundler経由で起動する設定
-  (lsp-ruby-lsp-use-bundler t)
-  (lsp-solargraph-use-bundler t)
   (lsp-completion-provider :capf)
   (lsp-enable-indentation nil)
   :config
@@ -1404,6 +1401,9 @@
             ((my/gemfile-has "ruby-lsp") 'ruby-lsp-ls)
             ((my/gemfile-has "solargraph") 'ruby-ls)
             (t nil))))
+      ;; bundler経由で起動する設定
+      (setq-local lsp-ruby-lsp-use-bundler t)
+      (setq-local lsp-solargraph-use-bundler t)
       (setq-local lsp-enabled-clients (list client))
       (lsp-deferred))))
 
