@@ -838,27 +838,58 @@
   :commands (iflipb-next-buffer iflipb-previous-buffer iflipb-kill-buffer)
   :init
   (with-eval-after-load 'hydra
-    (defhydra hydra-buff (global-map "C-x")
+    (defhydra hydra-iflipb (:hint nil)
       "iflipb"
-      ("<left>" iflipb-previous-buffer "previous buffer")
-      ("<right>" iflipb-next-buffer "next buffer"))))
+      ("<left>"  iflipb-previous-buffer "previous" :exit nil)
+      ("<right>" iflipb-next-buffer "next" :exit nil)
+      ("<down>" consult-buffer "consult-buffer" :exit t)
+      ("q" nil "quit" :exit t)
+      ("<return>" nil)
+      ))
+
+  (defun my/iflipb-previous-and-hydra ()
+    (interactive)
+    (iflipb-previous-buffer)
+    (hydra-iflipb/body))
+
+  (defun my/iflipb-next-and-hydra ()
+    (interactive)
+    (iflipb-next-buffer nil)
+    (hydra-iflipb/body))
+
+  (bind-key "C-x <right>" #'my/iflipb-next-and-hydra)
+  (bind-key "C-x <left>"  #'my/iflipb-previous-and-hydra))
 
 ;;; ----------------------------------------------------------------------
 ;;; winner-mode
 ;;; ----------------------------------------------------------------------
 (use-package winner
-  :custom (winner-dont-bind-my-keys t)
+  :custom
+  (winner-dont-bind-my-keys t)  ;; ← 自動バインドを無効にしておく
   :config
-  (winner-mode t)
+  (winner-mode 1)
+
   (with-eval-after-load 'hydra
-    (defhydra hydra-winner (winner-mode-map "C-c")
-      "Winner"
-      ("<left>" (progn
-                  (winner-undo)
-                  (setq this-command 'winner-undo))
-       "back")
-      ("<right>" winner-redo "forward"
-       :exit t :bind nil))))
+    (defhydra hydra-winner (:hint nil)
+      "winner"
+      ("<left>"  winner-undo "undo" :exit nil)
+      ("<right>" winner-redo "redo" :exit nil)
+      ("q" nil "quit" :exit t)
+      ("<return>" nil)
+      ))
+
+  (defun my/winner-undo-and-hydra ()
+    (interactive)
+    (winner-undo)
+    (hydra-winner/body))
+
+  (defun my/winner-redo-and-hydra ()
+    (interactive)
+    (winner-redo)
+    (hydra-winner/body))
+
+  (bind-key "C-c <left>" #'my/winner-undo-and-hydra)
+  (bind-key "C-c <right>" #'my/winner-redo-and-hydra))
 
 ;;; ----------------------------------------------------------------------
 ;;; emacs-w3m と browse-url の設定
