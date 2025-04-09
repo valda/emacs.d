@@ -2116,7 +2116,7 @@
                    ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.5)
                    (" *Agenda Commands*" :align below :size 0.3)
                    (" *Org todo*" :align below :size 0.3 :popup t)
-                   ("*rg*" :align right :size 0.4 :select t)
+                   ("*rg*" :align right :size 0.4 :select t :popup t)
                    ("*git-gutter:diff*" :align below :size 0.4)
                    ("\\(Messages\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
                    ("*Google Translate*" :align below :size 0.3 :popup t :select t)))
