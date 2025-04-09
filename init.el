@@ -678,41 +678,7 @@
   (corfu-on-exact-match nil)
   :config
   (global-corfu-mode)
-  (corfu-popupinfo-mode)
-  (defun my/corfu-insert-or-newline ()
-    "Insert Corfu candidate if selected, otherwise insert newline."
-    (interactive)
-    (if (>= corfu--index 0)
-        (corfu--insert 'finished)
-      (corfu-quit)
-      (call-interactively 'newline)))
-
-  (defun my/corfu-popup-visible-p ()
-    "Return t if Corfu popup frame is both live and visible."
-    (and (boundp 'corfu--frame)
-         (frame-live-p corfu--frame)
-         (frame-visible-p corfu--frame)))
-
-  (defun my/corfu-quit-or-right ()
-    "If Corfu popup is active, quit it. Otherwise, move right visually."
-    (interactive)
-    (if (my/corfu-popup-visible-p)
-        (corfu-quit)
-      (call-interactively #'right-char)))
-
-  (defun my/corfu-quit-or-left ()
-    "If Corfu popup is active, quit it and move left visually."
-    (interactive)
-    (if (my/corfu-popup-visible-p)
-        (progn
-          (corfu-quit)
-          (call-interactively #'left-char))
-      (call-interactively #'left-char)))
-
-  (bind-keys :map corfu-map
-             ("RET" . my/corfu-insert-or-newline)
-             ("<left>" . my/corfu-quit-or-left)
-             ("<right>" . my/corfu-quit-or-right)))
+  (corfu-popupinfo-mode))
 
 (use-package corfu-terminal
   :ensure
