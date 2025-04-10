@@ -1378,13 +1378,21 @@
   :after lsp-mode
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-enable nil)                ;; ポップアップ邪魔だから無効
-  (lsp-ui-sideline-enable nil)           ;; 行横もうざいので無効
-  (lsp-headerline-breadcrumb-enable nil) ;; 上のファイルパス表示もOFF
+  (lsp-ui-doc-enable nil)                 ;; ポップアップ邪魔だから無効
+  (lsp-ui-doc-position 'at-point)         ;; ポップアップの位置をカーソル位置に
+  (lsp-ui-sideline-enable t)              ;; サイドラインの表示 → ON
+  (lsp-ui-sideline-show-hover nil)        ;; カーソル乗せたときの doc 表示 → OFF（うざい）
+  (lsp-ui-sideline-show-code-actions t)   ;; アクション（リファクタリングのヒントなど）の表示 → ON
+  (lsp-ui-sideline-show-diagnostics t)    ;; 警告・エラー表示 → ON（便利）
+  (lsp-ui-sideline-show-symbol nil)       ;; カーソル下の symbol 情報 → OFF（チラつく）
+  (lsp-ui-sideline-delay 0.5)             ;; 表示までの遅延 → チラつき防止
+  (lsp-ui-sideline-ignore-duplicate t)    ;; 同じメッセージ繰り返さない
+  (lsp-headerline-breadcrumb-enable nil)  ;; 上のファイルパス表示もOFF
   :bind (:map lsp-ui-mode-map
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
-              ("C-c i" . lsp-ui-imenu)))
+              ("C-c C-i" . lsp-ui-imenu)
+              ("C-c C-d" . lsp-ui-doc-glance)))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
