@@ -563,9 +563,9 @@
 (use-package embark
   :ensure t
   :bind
-  (;;("C-." . embark-act)
+  (("C-," . embark-act)
    ("M-." . embark-dwim)
-   ("C-h b" . embark-bindings))
+   ("C-h B" . embark-bindings))
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
@@ -573,12 +573,6 @@
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :ensure t
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package consult
   :ensure t
@@ -655,6 +649,13 @@
   ;;;; 4. locate-dominating-file
   ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
   )
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package consult-dir
   :ensure t
@@ -1291,8 +1292,9 @@
 ;;; xref
 ;;; ----------------------------------------------------------------------
 (use-package xref
-  :bind (("M-." . xref-find-definitions)
-         ("M-?" . xref-find-references))
+  :bind ( ;; ("M-." . xref-find-definitions) ; embark-dwim に割り当て
+         ("M-?" . xref-find-references)
+         ("M-," . xref-go-back))
   :custom
   (xref-search-program 'ripgrep))
 
