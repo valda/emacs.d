@@ -1390,11 +1390,26 @@
   (lsp-ui-sideline-delay 0.5)             ;; 表示までの遅延 → チラつき防止
   (lsp-ui-sideline-ignore-duplicate t)    ;; 同じメッセージ繰り返さない
   (lsp-headerline-breadcrumb-enable nil)  ;; 上のファイルパス表示もOFF
+  :custom-face
+  ;; catppuccin macchiato 風
+  (lsp-ui-peek-peek         ((t (:background "#1E2030"))))
+  (lsp-ui-peek-list         ((t (:background "#1E2030"))))
+  (lsp-ui-peek-filename     ((t (:foreground "#8AADF4" :weight bold))))
+  (lsp-ui-peek-selection    ((t (:background "#363A4F" :foreground "#CAD3F5" :weight bold))))
+  (lsp-ui-peek-header       ((t (:background "#1E2030" :foreground "#C6A0F6" :weight bold))))
+  (lsp-ui-peek-highlight    ((t (:background "#EED49F" :foreground "#24273A"
+                                              :distant-foreground "#F4DBD6"
+                                              :box (:line-width -1 :color "#A5ADCB")))))
   :bind (:map lsp-ui-mode-map
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
               ("C-c C-i" . lsp-ui-imenu)
-              ("C-c C-d" . lsp-ui-doc-glance)))
+              ("C-c C-d" . lsp-ui-doc-glance)
+              ("C-c l a" . lsp-execute-code-action)
+              ("C-c l r" . lsp-rename)
+              ("C-c l f" . lsp-format-buffer)
+              ("C-c l q" . lsp-ui-peek-find-references)
+              ("C-c l Q" . lsp-ui-peek-find-definitions)))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -2081,7 +2096,7 @@
   :ensure t
   :custom
   (shackle-rules '((compilation-mode :align below :size 0.3)
-                   (rspec-compilation-mode :align below :size 0.3)
+                   (rspec-compilation-mode :align below :size 0.5 :select t)
                    ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
                    (calendar-mode :align below :popup t)
                    (epa-key-list-mode :align below :size 0.3)
