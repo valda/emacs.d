@@ -121,23 +121,25 @@
 ;;; ----------------------------------------------------------------------
 ;;; フォント設定
 ;;; ----------------------------------------------------------------------
-;; abcdefghijklmnopqrst
-;; あいうえおかきくけこ
-;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗
-;; ■□◆◇←↓↑→……
+;; abcdefghijklmnopqrst |
+;; あいうえおかきくけこ |
+;; 🥺😼🐕🎴🌈🕒🍣🍰🍲🍗 |
+;; ■□◆◇←↓↑→…… |
 
-(setq-default line-spacing 0)  ;; 行間を狭くする
-(setq use-default-font-for-symbols nil)
-(set-face-attribute 'default nil :font "Ricty Discord" :height 150)
-;; Cicaを使うと右寄せの時の文字数がずれるので Ricty Discord に戻す
-;; (set-face-attribute 'default nil :font "Cica" :height 150)
-;; (dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
+(setq-default line-spacing 0)           ;; 行間を狭くする
+(setq use-default-font-for-symbols nil) ;; シンボルは他のフォントから補完
+;; (set-face-attribute 'default nil :font "Ricty Discord" :height 150)
+(set-face-attribute 'default nil :font "MomiageMono Nerd Font" :height 130)
+;; ■□◆◇←↓↑→ のフォントを Ricty Discord で描画
+(dolist (c '(?… ?■ ?□ ?◆ ?◇ ?← ?↓ ?↑ ?→)) (set-fontset-font t c "Ricty Discord"))
+(add-to-list 'face-font-rescale-alist '(".*Ricty Discord.*" . 1.2))
 ;; ;; Box Drawing (U+2500-U+257F) を別のフォントで描画
 ;; (set-fontset-font t '(#x2500 . #x257F) "Noto Sans Mono" nil 'prepend)
 ;; ;; Block Elements (U+2580-U+259F) も念のため
 ;; (set-fontset-font t '(#x2580 . #x259F) "Noto Sans Mono" nil 'prepend)
-(set-fontset-font t '(#x1F000 . #x1FAFF) "Noto Color Emoji")
-(add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.82))
+;; Emoji Symbols (U+1F300-U+1F5FF) を Noto Color Emoji で描画
+(set-fontset-font t '(#x1F300 . #x1F5FF) "Noto Color Emoji" nil 'prepend)
+(add-to-list 'face-font-rescale-alist '(".*Noto Color Emoji.*" . 0.95))
 
 ;;; ----------------------------------------------------------------------
 ;;; elpaca
