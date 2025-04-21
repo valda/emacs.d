@@ -66,7 +66,7 @@
 
 ;; ユーザー情報
 (setq user-full-name "YAMAGUCHI, Seiji"
-      user-mail-address "valda@underscore.jp")
+      user-mail-address "valda68k@gmail.com")
 
 ;; バッファローカル系
 (setq-default
@@ -1357,6 +1357,8 @@
   :custom
   (lsp-completion-provider :capf)
   (lsp-enable-indentation nil)
+  (lsp-enable-symbol-highlighting t)
+  (lsp-pyright-use-library-code-for-types t)
   :config
   ;; Gemfile の内容に応じて ruby-lsp or solargraph を選択
   (defun my/gemfile-has (gem-name)
@@ -1376,6 +1378,17 @@
       (setq-local lsp-solargraph-use-bundler t)
       (setq-local lsp-enabled-clients (list client))
       (lsp-deferred))))
+
+
+(use-package lsp-pyright
+  :if (executable-find "pyright")
+  :ensure t
+  :after lsp-mode
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred)))
+  :config
+  (setq lsp-pyright-typechecking-mode "basic"))
 
 (use-package lsp-ui
   :ensure t
@@ -1628,6 +1641,15 @@
   :mode ("\\.pyw\\'")
   :init
   (setq py-indent-offset 4))
+
+(use-package pyvenv
+  :ensure t
+  :config
+  (pyvenv-mode 1)
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (when-let ((venv (locate-dominating-file default-directory ".venv")))
+                (pyvenv-activate (expand-file-name ".venv" venv))))))
 
 ;;; ----------------------------------------------------------------------
 ;;; add-node-module-path
