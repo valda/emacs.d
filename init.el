@@ -264,15 +264,23 @@
     ;;                        (when (eq (nth 0 args) 'CreateSession)
     ;;                          ;; (mozc-session-sendkey '(hiragana)))))
     ;;                          (mozc-session-sendkey '(Hankaku/Zenkaku))))))
-    (define-key global-map [henkan]
-                (lambda () (interactive)
-                  (activate-input-method default-input-method)))
-    (define-key global-map [muhenkan]
-                (lambda () (interactive)
-                  (deactivate-input-method)))
-    (define-key global-map [zenkaku-hankaku] 'toggle-input-method)
-    (define-key isearch-mode-map [henkan] 'isearch-toggle-input-method)
-    (define-key isearch-mode-map [muhenkan] 'isearch-toggle-input-method)
+    (bind-keys
+     ;; 変換キーで入力メソッドを有効化
+     ([henkan] . (lambda () (interactive) (activate-input-method default-input-method)))
+     ;; XF86Launch5キーでも入力メソッドを有効化
+     ("<XF86Launch5>" . (lambda () (interactive) (activate-input-method default-input-method)))
+     ;; 無変換キーで入力メソッドを無効化
+     ([muhenkan] . (lambda () (interactive) (deactivate-input-method)))
+     ;; XF86Toolsキーで入力メソッドを無効化
+     ("<XF86Tools>" . (lambda () (interactive) (deactivate-input-method)))
+     ;; 全角半角キーで入力メソッドを切り替え
+     ([zenkaku-hankaku] . toggle-input-method)
+     ;; isearch-modeのキー設定
+     :map isearch-mode-map
+     ([henkan] . isearch-toggle-input-method)
+     ([muhenkan] . isearch-toggle-input-method)
+     ([zenkaku-hankaku] . isearch-toggle-input-method))
+
     (defadvice mozc-handle-event (around intercept-keys (event))
       "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
       (if (member event (list 'zenkaku-hankaku 'muhenkan))
