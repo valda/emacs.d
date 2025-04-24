@@ -1367,6 +1367,11 @@
   (lsp-enable-indentation nil)
   (lsp-enable-symbol-highlighting t)
   (lsp-pyright-use-library-code-for-types t)
+  (lsp-keymap-prefix "C-c l")
+  :bind (:map lsp-mode-map
+              ("C-c l a" . lsp-execute-code-action)
+              ("C-c l r" . lsp-rename)
+              ("C-c l f" . lsp-format-buffer))
   :config
   ;; Gemfile の内容に応じて ruby-lsp or solargraph を選択
   (defun my/gemfile-has (gem-name)
@@ -1386,7 +1391,6 @@
       (setq-local lsp-solargraph-use-bundler t)
       (setq-local lsp-enabled-clients (list client))
       (lsp-deferred))))
-
 
 (use-package lsp-pyright
   :if (executable-find "pyright")
@@ -1427,12 +1431,7 @@
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
               ("C-c C-i" . lsp-ui-imenu)
-              ("C-c C-d" . lsp-ui-doc-glance)
-              ("C-c l a" . lsp-execute-code-action)
-              ("C-c l r" . lsp-rename)
-              ("C-c l f" . lsp-format-buffer)
-              ("C-c l q" . lsp-ui-peek-find-references)
-              ("C-c l Q" . lsp-ui-peek-find-definitions)))
+              ("C-c C-d" . lsp-ui-doc-glance)))
 
 ;;; ----------------------------------------------------------------------
 ;;; editorconfig
@@ -1620,7 +1619,12 @@
               (electric-indent-mode t)
               (electric-layout-mode t)
               (rubocop-mode t)
-              (modify-syntax-entry ?: "."))))
+              (modify-syntax-entry ?: ".")
+              (modify-syntax-entry ?@ "w")
+              (modify-syntax-entry ?$ "w")
+              (modify-syntax-entry ?? "w")
+              (modify-syntax-entry ?! "w")
+              (modify-syntax-entry ?= "w"))))
 
 (use-package inf-ruby
   :ensure t)
@@ -2128,7 +2132,7 @@
   :ensure t
   :custom
   (shackle-rules '((compilation-mode :align below :size 0.3)
-                   (rspec-compilation-mode :align below :size 0.5 :select t)
+                   (rspec-compilation-mode :align below :size 0.4 :select t)
                    ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
                    (calendar-mode :align below :popup t)
                    (epa-key-list-mode :align below :size 0.3)
