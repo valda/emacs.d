@@ -2133,14 +2133,13 @@
   :custom
   (shackle-rules '((compilation-mode :align below :size 0.3)
                    (rspec-compilation-mode :align below :size 0.4 :select t)
-                   ;;(help-mode :align below :select t :popup t) ;; conflict company-quickhelp
                    (calendar-mode :align below :popup t)
                    (epa-key-list-mode :align below :size 0.3)
                    ("*Backtrace*" :align below :size 0.3 :noselect t)
                    ("*Apropos*" :align below :size 0.4 :select t)
                    ("*Warnings*" :align below :size 0.1)
                    ("*Org Select*" :align below :size 0.3)
-                   ("^CAPTURE-.*\\.org\\'" :regexp t :align below :size 0.5)
+                   ("^CAPTURE-.*\\.org\\'" :regexp t :select t :popup t :inhibit-window-quit t)
                    (" *Agenda Commands*" :align below :size 0.3)
                    (" *Org todo*" :align below :size 0.3 :popup t)
                    ("*rg*" :align right :size 0.4 :select t :popup t)
