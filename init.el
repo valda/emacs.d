@@ -267,12 +267,12 @@
     (bind-keys
      ;; 変換キーで入力メソッドを有効化
      ([henkan] . (lambda () (interactive) (activate-input-method default-input-method)))
-     ;; XF86Launch6キーでも入力メソッドを有効化
-     ("<XF86Launch6>" . (lambda () (interactive) (activate-input-method default-input-method)))
+     ;; XF86Launch5キーでも入力メソッドを有効化
+     ("<XF86Launch5>" . (lambda () (interactive) (activate-input-method default-input-method)))
      ;; 無変換キーで入力メソッドを無効化
      ([muhenkan] . (lambda () (interactive) (deactivate-input-method)))
-     ;; XF86Launch5キーで入力メソッドを無効化
-     ("<XF86Launch5>" . (lambda () (interactive) (deactivate-input-method)))
+     ;; XF86Toolsキーで入力メソッドを無効化
+     ("<XF86Tools>" . (lambda () (interactive) (deactivate-input-method)))
      ;; 全角半角キーで入力メソッドを切り替え
      ([zenkaku-hankaku] . toggle-input-method)
      ;; isearch-modeのキー設定
