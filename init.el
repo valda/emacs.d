@@ -139,7 +139,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; elpaca
 ;;; ----------------------------------------------------------------------
-(defvar elpaca-installer-version 0.10)
+(defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -174,7 +174,7 @@
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
@@ -1057,9 +1057,8 @@
 ;;; ----------------------------------------------------------------------
 (use-package org
   :ensure t
-  :bind
-  ("\C-c c" . org-capture)
-  ("\C-c a" . org-agenda)
+  :bind (("\C-c c" . org-capture)
+         ("\C-c a" . org-agenda))
   :custom
   (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -2140,7 +2139,7 @@
                    ("*rg*" :align right :size 0.4 :select t :popup t)
                    ("*git-gutter:diff*" :align below :size 0.4)
                    ("\\(Messages\\|Report\\)\\*\\'" :regexp t :align below :size 0.3)
-                   ("*Google Translate*" :align below :size 0.3 :popup t :select t)))
+                   ("*Google Translate*" :popup t :select t)))
   :config
   (shackle-mode 1))
 
@@ -2234,11 +2233,46 @@
   :ensure t
   :defer t
   :custom
-  (google-translate-default-source-language "en")
+  (google-translate-default-source-language "auto")
   (google-translate-default-target-language "ja")
-  (google-translate-translation-directions-alist '(("en" . "ja")))
+  (google-translate-translation-directions-alist '(("en" . "ja") ("ja" . "en")))
   (google-translate-backend-method 'curl)
-  :bind ("\C-c t g" . google-translate-smooth-translate))
+  :bind (("\C-c t g" . google-translate-at-point-autodetect)
+         ("\C-c t G" . google-translate-smooth-translate))
+  :config
+  (require 'cl-lib)
+  (defun google-translate-at-point-autodetect (&optional override-p)
+    "選択リージョンを整形し、内容に応じて翻訳方向を自動判定して翻訳する。"
+    (interactive "P")
+    (cl-letf* ((orig-fn (symbol-function 'google-translate-translate))
+               ((symbol-function 'google-translate-translate)
+                (lambda (source-language target-language text &optional output-destination)
+                  (when (use-region-p)
+                    (setq text (funcall region-extract-function nil))
+                    (deactivate-mark)
+                    (when (fboundp 'cua-cancel)
+                      (cua-cancel)))
+
+                  ;; 整形処理（改行→スペース、コメントマーク除去、空白除去）
+                  (let* ((lines (split-string text "\n"))
+                         (stripped-lines
+                          (cl-remove-if
+                           #'string-empty-p
+                           (mapcar (lambda (line)
+                                     (string-trim
+                                      (replace-regexp-in-string
+                                       "^[ \t]*\\([#;]+\\|//\\|--\\)[ \t]*" "" line)))
+                                   lines)))
+                         (str (mapconcat #'identity stripped-lines " ")))
+
+                    (if current-prefix-arg
+                        (funcall orig-fn source-language target-language str output-destination)
+                      (if (>= (/ (* (length (replace-regexp-in-string "[[:ascii:]]" "" str)) 100)
+                                 (length str)) ; ゼロ除算対策
+                              20)
+                          (funcall orig-fn "ja" "en" str output-destination)
+                        (funcall orig-fn "en" "ja" str output-destination)))))))
+      (google-translate-at-point override-p))))
 
 ;;; ----------------------------------------------------------------------
 ;;; gptel
@@ -2385,23 +2419,24 @@
 ;;; ----------------------------------------------------------------------
 (use-package tempbuf
   :ensure (:host github :repo "valda/tempbuf")
-  :hook ((
-          dired-mode
+  :hook ((dired-mode
           custom-mode-hook
           w3-mode-hook
           Man-mode-hook
           view-mode-hook
           compilation-mode-hook
-          calendar-mode-hook
-          )
-         . turn-on-tempbuf-mode)
+          calendar-mode-hook) . turn-on-tempbuf-mode)
   :custom
   (tempbuf-kill-message nil)
   :init
+  (defun my/tempbuf-mode-if-match (pattern)
+    (when (and (buffer-name)
+               (string-match pattern (buffer-name)))
+      (turn-on-tempbuf-mode)))
   (add-hook 'fundamental-mode-hook
-            (lambda ()
-              (when (string-match "*Flycheck error messages*" (buffer-name))
-                'turn-on-tempbuf-mode))))
+            (lambda () (my/tempbuf-mode-if-match "\\*Flycheck error messages\\*")))
+  (add-hook 'diff-mode-hook
+            (lambda () (my/tempbuf-mode-if-match "\\*git-gutter:diff\\*"))))
 
 ;;; ----------------------------------------------------------------------
 ;;; ibuffer
