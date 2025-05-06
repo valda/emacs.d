@@ -1057,8 +1057,6 @@
 ;;; ----------------------------------------------------------------------
 (use-package org
   :ensure t
-  :bind (("\C-c c" . org-capture)
-         ("\C-c a" . org-agenda))
   :custom
   (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -1086,7 +1084,8 @@
   (org-outline-path-complete-in-steps nil)
   (org-refile-use-outline-path t)
   :config
-  (bind-keys :map org-mode-map
+  (bind-keys ("\C-c a" . org-agenda)
+             :map org-mode-map
              ([S-C-up]   . nil)
              ([S-C-down] . nil)
              ("C-c ,"    . nil)
@@ -1136,36 +1135,22 @@
   :custom
   (org-roam-db-update-method 'idle)
   (org-roam-completion-everywhere t)
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture)
-         ("C-c n d" . org-roam-dailies-capture-today))
+  :bind (("C-c , l" . org-roam-buffer-toggle)
+         ("C-c , f" . org-roam-node-find)
+         ("C-c , i" . org-roam-node-insert)
+         ("C-c , c" . org-roam-capture)
+         ("C-c , d" . org-roam-dailies-capture-today))
   :config
   (org-roam-db-autosync-mode)
 
   ;; ノート作成用テンプレート
   (setq org-roam-capture-templates
-        '(("d" "Default" plain
-           "%?"
+        '(("d" "Default" plain "%?"
            :if-new (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+filetags: :note:\n#+date: %U\n\n")
-           :unnarrowed t)
-
-          ("t" "Tech Note" plain
-           "* 概要\n%?\n\n* 詳細\n\n* 関連ノート\n"
-           :if-new (file+head "tech/%<%Y-%m-%d-%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+filetags: :tech:\n#+date: %U\n\n")
-           :unnarrowed t)
-
-          ("m" "Memo" plain
-           "- %?"
-           :if-new (file+head "memos/%<%Y-%m-%d-%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+filetags: :memo:\n#+date: %U\n\n")
            :unnarrowed t)))
 
   ;; 日次ノートのテンプレート
-  (setq org-roam-dailies-directory "daily/")
   (setq org-roam-dailies-capture-templates
         '(("d" "Default" entry
            "* %<%H:%M> %?"
@@ -1362,6 +1347,7 @@
   (lsp-enable-symbol-highlighting t)
   (lsp-pyright-use-library-code-for-types t)
   (lsp-keymap-prefix "C-c l")
+  (lsp-headerline-breadcrumb-enable nil)
   :bind (:map lsp-mode-map
               ("C-c l a" . lsp-execute-code-action)
               ("C-c l r" . lsp-rename)
@@ -1410,7 +1396,6 @@
   (lsp-ui-sideline-show-symbol nil)       ;; カーソル下の symbol 情報 → OFF（チラつく）
   (lsp-ui-sideline-delay 0.5)             ;; 表示までの遅延 → チラつき防止
   (lsp-ui-sideline-ignore-duplicate t)    ;; 同じメッセージ繰り返さない
-  (lsp-headerline-breadcrumb-enable nil)  ;; 上のファイルパス表示もOFF
   :custom-face
   ;; catppuccin macchiato 風
   (lsp-ui-peek-peek         ((t (:background "#1E2030"))))
@@ -1606,6 +1591,7 @@
   :custom
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
+  (enh-ruby-deep-indent-construct nil)
   :config
   (add-hook 'enh-ruby-mode-hook
             (lambda ()
