@@ -38,7 +38,8 @@
       vc-follow-symlinks t
       auto-revert-check-vc-info nil
       inhibit-compacting-font-caches t
-      imenu-auto-rescan t)
+      imenu-auto-rescan t
+      word-wrap-by-category t)
 
 ;; モードライン / 表示まわり
 (setq mode-line-frame-identification " "
@@ -388,6 +389,7 @@
 ;;; catppuccin-theme
 ;;; ----------------------------------------------------------------------
 (use-package catppuccin-theme
+  :if (display-graphic-p)
   :ensure t
   :custom
   (catppuccin-flavor 'macchiato)
@@ -398,6 +400,7 @@
 ;;; doom-modeline
 ;;; ----------------------------------------------------------------------
 (use-package doom-modeline
+  :if (display-graphic-p)
   :ensure t
   :hook (emacs-startup . doom-modeline-mode)
   :custom
@@ -418,6 +421,7 @@
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
 (use-package nyan-mode
+  :if (display-graphic-p)
   :ensure t
   :hook (emacs-startup . nyan-mode)
   :custom (nyan-bar-length 16)
@@ -1053,10 +1057,20 @@
         (insert day)))))
 
 ;;; ----------------------------------------------------------------------
+;;; adaptive-wrap
+;;; ----------------------------------------------------------------------
+(use-package adaptive-wrap
+  :ensure t
+  :custom
+  (adaptive-wrap-extra-indent 0)
+  :hook (visual-line-mode . adaptive-wrap-prefix-mode))
+
+;;; ----------------------------------------------------------------------
 ;;; org-mode
 ;;; ----------------------------------------------------------------------
 (use-package org
   :ensure t
+  :hook (org-mode . visual-line-mode)
   :custom
   (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -1156,6 +1170,19 @@
            "* %<%H:%M> %?"
            :if-new (file+head "%<%Y-%m-%d>.org"
                               "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n")))))
+
+;;; ----------------------------------------------------------------------
+;;; markdown-mode
+;;; ----------------------------------------------------------------------
+(use-package markdown-mode
+  :ensure t
+  :mode (("\\.md\\'" . gfm-mode)
+         ("\\.markdown\\'" . gfm-mode))
+  :hook (markdown-mode . visual-line-mode)
+  :custom
+  (markdown-fontify-code-blocks-natively t)
+  (markdown-fontify-headings-face-dynamically t)
+  (markdown-indent-on-enter 'indent-and-new-item))
 
 ;;; ----------------------------------------------------------------------
 ;;; calendar / japanese-holidays
