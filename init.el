@@ -1070,7 +1070,6 @@
 ;;; ----------------------------------------------------------------------
 (use-package org
   :ensure t
-  :hook (org-mode . visual-line-mode)
   :custom
   (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -1098,6 +1097,7 @@
   (org-outline-path-complete-in-steps nil)
   (org-refile-use-outline-path t)
   :config
+  (add-hook 'org-mode-hook #'visual-line-mode)
   (bind-keys ("\C-c a" . org-agenda)
              :map org-mode-map
              ([S-C-up]   . nil)
@@ -1149,11 +1149,11 @@
   :custom
   (org-roam-db-update-method 'idle)
   (org-roam-completion-everywhere t)
-  :bind (("C-c , l" . org-roam-buffer-toggle)
-         ("C-c , f" . org-roam-node-find)
-         ("C-c , i" . org-roam-node-insert)
-         ("C-c , c" . org-roam-capture)
-         ("C-c , d" . org-roam-dailies-capture-today))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ("C-c n d" . org-roam-dailies-capture-today))
   :config
   (org-roam-db-autosync-mode)
 
@@ -1178,8 +1178,8 @@
   :ensure t
   :mode (("\\.md\\'" . gfm-mode)
          ("\\.markdown\\'" . gfm-mode))
-  :hook (markdown-mode . visual-line-mode)
   :custom
+  (add-hook 'markdown-mode-hook #'visual-line-mode)
   (markdown-fontify-code-blocks-natively t)
   (markdown-fontify-headings-face-dynamically t)
   (markdown-indent-on-enter 'indent-and-new-item))
