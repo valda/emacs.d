@@ -1327,14 +1327,14 @@
   :ensure t
   :diminish projectile-mode
   :bind (:map projectile-mode-map
-         ("C-c p" . projectile-command-map)
-         ("C-c C-p" . projectile-command-map))
+              ("C-c p" . projectile-command-map)
+              ("C-c C-p" . projectile-command-map))
   :init
   (setq projectile-project-search-path '("~/wc"))
   (setq projectile-ignored-project-function
-      (lambda (project-root)
-        (string-prefix-p (expand-file-name "~/.emacs.d/elpaca/repos/")
-                         (expand-file-name project-root))))
+        (lambda (project-root)
+          (string-prefix-p (expand-file-name "~/.emacs.d/elpaca/repos/")
+                           (expand-file-name project-root))))
   (setq projectile-auto-discover t)
   (setq projectile-auto-cleanup-known-projects t)
   :config
@@ -1389,10 +1389,10 @@
 
   (defun my/setup-ruby-lsp ()
     (when-let ((client
-           (cond
-            ((my/gemfile-has "ruby-lsp") 'ruby-lsp-ls)
-            ((my/gemfile-has "solargraph") 'ruby-ls)
-            (t nil))))
+                (cond
+                 ((my/gemfile-has "ruby-lsp") 'ruby-lsp-ls)
+                 ((my/gemfile-has "solargraph") 'ruby-ls)
+                 (t nil))))
       ;; bundler経由で起動する設定
       (setq-local lsp-ruby-lsp-use-bundler t)
       (setq-local lsp-solargraph-use-bundler t)
@@ -1431,8 +1431,8 @@
   (lsp-ui-peek-selection    ((t (:background "#363A4F" :foreground "#CAD3F5" :weight bold))))
   (lsp-ui-peek-header       ((t (:background "#1E2030" :foreground "#C6A0F6" :weight bold))))
   (lsp-ui-peek-highlight    ((t (:background "#EED49F" :foreground "#24273A"
-                                              :distant-foreground "#F4DBD6"
-                                              :box (:line-width -1 :color "#A5ADCB")))))
+                                             :distant-foreground "#F4DBD6"
+                                             :box (:line-width -1 :color "#A5ADCB")))))
   :bind (:map lsp-ui-mode-map
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
@@ -1711,26 +1711,49 @@
   :mode ("\\.html?\\'"
          "\\.erb\\'"
          "\\.rhtml?\\'"
-         "\\.php\\'")
+         "\\.php\\'"
+         "\\.svelte\\'")
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
   (web-mode-markup-indent-offset 2)
-  (web-mode-enable-auto-indentation nil)
+  (web-mode-block-padding 2)
+  (web-mode-part-padding 2)
   (web-mode-enable-auto-closing t)
   (web-mode-auto-close-style 2)
-  (web-mode-tag-auto-close-style 2)
+
   :config
   (defun my/web-mode-setup ()
     (add-node-modules-path)
+    (setq web-mode-indentation-params
+          '(("case-extra-offset" . nil)))
     (cond
-        ((string= web-mode-engine "erb")
-         (modify-syntax-entry ?% "w")
-         (modify-syntax-entry ?? "w"))
-        ((string= web-mode-engine "php")
-         (modify-syntax-entry ?? "w"))))
+     ((string= web-mode-engine "erb")
+      (modify-syntax-entry ?% "w")
+      (modify-syntax-entry ?? "w"))
+     ((string= web-mode-engine "php")
+      (modify-syntax-entry ?? "w"))))
 
-  (add-hook 'web-mode-hook #'my/web-mode-setup))
+  (add-hook 'web-mode-hook #'my/web-mode-setup)
+
+  (defun my/web-mode-svelte-setup ()
+    "Svelte 用に web-mode の継続行インデントを 2スペ固定にする。"
+    (when (and buffer-file-name
+               (string= (file-name-extension buffer-file-name) "svelte"))
+      ;; 基本オフセットを 2 に変更
+      (setq web-mode-code-indent-offset 2)
+      (setq web-mode-css-indent-offset 2)
+      (setq web-mode-indentation-params
+            '(("lineup-args"       . nil)     ; 引数リスト
+              ("lineup-calls"      . nil)     ; 関数呼び出しチェーン
+              ("lineup-concats"    . nil)     ; 文字列の連結
+              ("lineup-quotes"     . nil)     ; 文字列リテラル
+              ("lineup-ternary"    . nil)     ; ?: 三項演算子
+              ("lineup-operators"  . nil)     ; + - * / 等
+              ("case-extra-offset" . nil)     ; case 文
+              ))))
+
+  (add-hook 'web-mode-hook #'my/web-mode-svelte-setup))
 
 ;;; ----------------------------------------------------------------------
 ;;; js-mode
@@ -1754,7 +1777,7 @@
   :config
   (add-hook 'js2-mode-hook
             (lambda()
-	      (add-node-modules-path)
+	          (add-node-modules-path)
               (setq js2-basic-offset 2)
               (electric-indent-mode t)
               (setq-local electric-layout-rules
@@ -1795,7 +1818,7 @@
   :config
   (add-hook 'typescript-mode-hook
             (lambda ()
-	      (add-node-modules-path)
+	          (add-node-modules-path)
               (setq typescript-indent-level 2)
               (electric-indent-mode t)
               (setq-local electric-layout-rules
@@ -1958,13 +1981,13 @@
       (cond
        ;; Treemacs is focused → kill the window (close)
        ((eq (selected-window) treemacs-window)
-	(delete-window treemacs-window))
+	    (delete-window treemacs-window))
        ;; Treemacs is open but not focused → focus it
        (treemacs-window
-	(select-window treemacs-window))
+	    (select-window treemacs-window))
        ;; Treemacs is not open → open it
        (t
-	(my/treemacs-find-file-or-add-project+focus)))))
+	    (my/treemacs-find-file-or-add-project+focus)))))
 
   ;; UIカスタム：背景色をテーマに連動して明るめにする
   (defun my/treemacs-set-bg-based-on-theme ()
