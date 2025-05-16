@@ -1957,19 +1957,39 @@
   (treemacs-silent-filewatch t)
   (treemacs-follow-after-init t)          ; 起動時にプロジェクトを追尾
   (treemacs-text-scale -1)
+  (treemacs-select-when-already-in-treemacs 'close)
   :config
   (defun my/treemacs-find-file-or-add-project+focus ()
-    "Add project if needed, jump to file in Treemacs, and focus Treemacs window."
+    "Add project if needed, jump to file (or dir in dired) in Treemacs, and focus Treemacs window."
     (interactive)
-    (let* ((path (or buffer-file-name default-directory))
+    (let* ((path (cond
+                  ;; diredバッファなら開いているディレクトリを使う
+                  ((derived-mode-p 'dired-mode)
+                   (expand-file-name default-directory))
+                  ;; それ以外は visiting file or default-directory
+                  (buffer-file-name)
+                  (t (expand-file-name default-directory))))
            (project (treemacs--find-project-for-path path)))
+      ;; プロジェクトが登録されてなければ追加
       (unless project
-        (when (fboundp 'projectile-project-root)
-          (let ((root (projectile-project-root)))
-            (when root
-              (treemacs-add-project-to-workspace root (file-name-nondirectory (directory-file-name root)))))))
-      (treemacs-find-file)
-      (treemacs-select-window)))
+        (let ((root (when (and (fboundp 'projectile-project-root)
+                               (ignore-errors (projectile-project-root)))
+                      (projectile-project-root))))
+          (if root
+              (treemacs-add-project-to-workspace
+               root (file-name-nondirectory (directory-file-name root)))
+            ;; projectile で取れなかった場合は path 側を追加
+            (let ((dir (if (file-directory-p path)
+                           (expand-file-name path)
+                         (file-name-directory (expand-file-name path)))))
+              (treemacs-add-project-to-workspace
+               dir (file-name-nondirectory (directory-file-name dir)))))))
+      ;; Treemacs側でファイルを表示
+      ;; デバッグ出力
+      (message "path: %s, project: %s" path project)
+      (if (file-directory-p path)
+          (treemacs-select-window)
+        (treemacs-find-file))))
 
   (defun my/toggle-treemacs-focus ()
     "Toggle Treemacs visibility and focus intelligently.
@@ -2009,6 +2029,7 @@
   (add-hook 'treemacs-mode-hook #'my/treemacs-set-bg-based-on-theme)
   (add-hook 'treemacs-mode-hook #'my/treemacs-ui-setup)
   (add-hook 'after-load-theme-hook #'my/treemacs-set-bg-based-on-theme)
+  (add-hook 'image-mode-hook #'treemacs-find-file)
 
   ;; Treemacs上で tab-new したとき、scratchバッファを自動で開く
   (with-eval-after-load 'tab-bar
@@ -2021,7 +2042,9 @@
 
   ;; Treemacs機能のON
   (treemacs-follow-mode t)
+  (treemacs-tag-follow-mode t)
   (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode 'always)
   (treemacs-git-mode 'deferred)
   (treemacs-git-commit-diff-mode t))
 
