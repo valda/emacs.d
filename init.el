@@ -406,7 +406,8 @@
   :custom
   (doom-modeline-height 34)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
-  (doom-modeline-minor-modes t)
+  (doom-modeline-percent-position nil)
+  (doom-modeline-buffer-encoding 'nondefault)
   (doom-modeline-github t)
   (doom-modeline-workspace-name nil)
   :custom-face
@@ -424,7 +425,7 @@
   :if (display-graphic-p)
   :ensure t
   :hook (emacs-startup . nyan-mode)
-  :custom (nyan-bar-length 16)
+  :custom (nyan-bar-length 16) (nyan-wavy-trail t)
   :config (nyan-start-animation))
 
 ;;; ----------------------------------------------------------------------
@@ -703,11 +704,13 @@
 (use-package cape
   :ensure t
   :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (advice-add 'lsp-completion-at-point :around #'cape-wrap-buster)
+  (advice-add 'lsp-completion-at-point :around #'cape-wrap-nonexclusive)
+  (advice-add 'lsp-completion-at-point :around #'cape-wrap-noninterruptible)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-emoji))
+  (add-to-list 'completion-at-point-functions #'cape-elisp-block))
 
 (use-package company
   :ensure t
@@ -724,21 +727,40 @@
 ;;; ----------------------------------------------------------------------
 ;;; yasnippet.el
 ;;; ----------------------------------------------------------------------
-(use-package yasnippet
-  :ensure t
-  :diminish yas-minor-mode
-  :hook
-  (prog-mode . yas-minor-mode)
-  :config
-  ;; 無効化: デフォルトのTABバインディング
-  (bind-keys :map yas-minor-mode-map
-             ("<tab>" . nil)
-             ("TAB" . nil))
-  (yas-reload-all))
+;; (use-package yasnippet
+;;   :ensure t
+;;   :diminish yas-minor-mode
+;;   :hook
+;;   (prog-mode . yas-minor-mode)
+;;   :config
+;;   ;; 無効化: デフォルトのTABバインディング
+;;   (bind-keys :map yas-minor-mode-map
+;;              ("<tab>" . nil)
+;;              ("TAB" . nil))
+;;   (yas-reload-all))
 
-(use-package yasnippet-snippets
+;; (use-package yasnippet-snippets
+;;   :ensure t
+;;   :after yasnippet)
+
+
+;;; ----------------------------------------------------------------------
+;;; tempel
+;;; ----------------------------------------------------------------------
+(use-package tempel
   :ensure t
-  :after yasnippet)
+  :init
+  (defun tempel-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons #'tempel-expand
+                      completion-at-point-functions)))
+  (add-hook 'conf-mode-hook #'tempel-setup-capf)
+  (add-hook 'prog-mode-hook #'tempel-setup-capf)
+  (add-hook 'text-mode-hook #'tempel-setup-capf)
+  (add-hook 'prog-mode-hook #'tempel-abbrev-mode)
+  (global-tempel-abbrev-mode))
+
+(use-package tempel-collection :ensure t)
 
 ;;; ----------------------------------------------------------------------
 ;;; dabbrev / hippie-expand
@@ -747,18 +769,22 @@
   (with-eval-after-load 'diminish
     (diminish 'abbrev-mode)))
 
+(defun try-expand-abbrev (old)
+  (if (expand-abbrev) t nil))
+
 ;; 補完の挙動設定
 (setq dabbrev-case-fold-search t   ; 補完時に大文字小文字を区別しない
       dabbrev-case-replace t       ; 挿入時も元の単語の大文字小文字に合わせる
       hippie-expand-try-functions-list
-      '(try-expand-dabbrev
+      '(try-expand-abbrev
+        try-expand-dabbrev
         try-expand-dabbrev-all-buffers
         try-expand-dabbrev-from-kill
         try-complete-file-name-partially
         try-complete-file-name))
 
-(with-eval-after-load 'yasnippet
-  (add-to-list 'hippie-expand-try-functions-list 'yas/hippie-try-expand))
+;; (with-eval-after-load 'yasnippet
+;;   (add-to-list 'hippie-expand-try-functions-list 'yas/hippie-try-expand))
 
 ;; M-/ で hippie-expand（`dabbrev-expand` の上位互換）
 (bind-key "/" 'hippie-expand esc-map)
@@ -1344,10 +1370,10 @@
   :ensure t
   :config
   (bind-key "C-c r" 'projectile-rails-command-map projectile-rails-mode-map)
-  (add-hook 'projectile-rails-mode-hook
-            (lambda ()
-              (with-eval-after-load 'yasnippet
-                (yas-activate-extra-mode 'rails-mode))))
+  ;; (add-hook 'projectile-rails-mode-hook
+  ;;           (lambda ()
+  ;;             (with-eval-after-load 'yasnippet
+  ;;               (yas-activate-extra-mode 'rails-mode))))
   (projectile-rails-global-mode))
 
 (use-package consult-projectile

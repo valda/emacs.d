@@ -1,0 +1,11 @@
+;;; ~/.emacs.d/templates -*- mode: lisp-data -*-
+
+emacs-lisp-mode
+
+(up "(use-package " p n> ":straight t" n> ":defer t" n> ":config" n> p ")")
+
+web-mode html-mode css-mode
+
+(r "<% " p " -%>")
+(rr "<%= " p " %>")
+(pe "<?php echo " p " ?>")
