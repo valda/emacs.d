@@ -2387,7 +2387,8 @@
 (use-package gptel
   :ensure (gptel :type git :host github :repo "karthink/gptel")
   :custom
-  (gptel-api-key (my/get-openai-api-key)))
+  (gptel-api-key (my/get-openai-api-key))
+  (gptel-model 'gpt-4.1-mini))
 
 ;;; ----------------------------------------------------------------------
 ;;; org-ai
