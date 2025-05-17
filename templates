@@ -1,4 +1,4 @@
-;;; ~/.emacs.d/templates -*- mode: lisp-data -*-
+;;; ~/.emacs.d/templates
 
 emacs-lisp-mode
 
@@ -9,3 +9,13 @@ web-mode html-mode css-mode
 (r "<% " p " -%>")
 (rr "<%= " p " %>")
 (pe "<?php echo " p " ?>")
+
+org-mode
+
+(ai      & "#+begin_ai" n> r> n> "#+end_ai")
+(image   & "#+begin_ai :image" n> r> n> "#+end_ai")
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:

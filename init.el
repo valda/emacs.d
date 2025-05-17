@@ -1124,6 +1124,7 @@
   (org-refile-use-outline-path t)
   :config
   (add-hook 'org-mode-hook #'visual-line-mode)
+  (add-hook 'org-mode-hook #'org-display-inline-images)
   (bind-keys ("\C-c a" . org-agenda)
              :map org-mode-map
              ([S-C-up]   . nil)
@@ -2387,6 +2388,17 @@
   :ensure (gptel :type git :host github :repo "karthink/gptel")
   :custom
   (gptel-api-key (my/get-openai-api-key)))
+
+;;; ----------------------------------------------------------------------
+;;; org-ai
+;;; ----------------------------------------------------------------------
+(use-package org-ai
+  :ensure t
+  :after org
+  :custom
+  (org-ai-default-chat-model "gpt-4.1-mini")
+  (org-ai-openai-api-token (my/get-openai-api-key))
+  :hook (org-mode . org-ai-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
