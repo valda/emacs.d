@@ -403,20 +403,18 @@
   :if (display-graphic-p)
   :ensure t
   :hook (emacs-startup . doom-modeline-mode)
+  :init
+  (setq doom-modeline-github nil)
   :custom
   (doom-modeline-height 34)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
   (doom-modeline-percent-position nil)
   (doom-modeline-buffer-encoding 'nondefault)
-  (doom-modeline-github t)
   (doom-modeline-workspace-name nil)
   :custom-face
   (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "chocolate4" :inherit mode-line-buffer-id))))
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
-  (doom-modeline-bar       ((t (:background "IndianRed" :inherit mode-line-buffer-id))))
-  :config
-  (use-package async :ensure t)
-  (use-package ghub :ensure t))
+  (doom-modeline-bar       ((t (:background "IndianRed" :inherit mode-line-buffer-id)))))
 
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
