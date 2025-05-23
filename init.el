@@ -1783,9 +1783,8 @@
 ;;; ----------------------------------------------------------------------
 ;;; js-mode
 ;;; ----------------------------------------------------------------------
-(setq js-chain-indent t
-      js-indent-level 2
-      js-indent-first-init 'dynamic)
+(setq js-indent-level 2
+      js-indent-align-list-continuation nil)
 
 ;;; ----------------------------------------------------------------------
 ;;; js2-mode
@@ -1957,6 +1956,7 @@
                 ("\\.doc\\'"               . text-mode)
                 ("\\.text\\.erb\\'"        . text-mode)     ;; Text(erb)
                 ("\\.rtext\\'"             . text-mode)     ;; Text(erb)
+                ("\\.[mc]js\\'"            . js-mode)
                 )
               auto-mode-alist))
 
@@ -2067,7 +2067,6 @@
 
   ;; Treemacs機能のON
   (treemacs-follow-mode t)
-  (treemacs-tag-follow-mode t)
   (treemacs-filewatch-mode t)
   (treemacs-fringe-indicator-mode 'always)
   (treemacs-git-mode 'deferred)
