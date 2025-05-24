@@ -1388,11 +1388,11 @@
 ;;; lsp-mode
 ;;; ----------------------------------------------------------------------
 
-;; Ruby用LSPの設定（enh-ruby-mode対応）
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook ((ruby-mode ruby-ts-mode enh-ruby-mode) . my/setup-ruby-lsp)
+  :hook (((ruby-mode ruby-ts-mode enh-ruby-mode) . my/setup-ruby-lsp)
+         ((typescript-mode tsx-ts-mode js-ts-mode) . lsp-deferred))
   :custom
   (lsp-completion-provider :capf)
   (lsp-enable-indentation nil)
@@ -1400,18 +1400,20 @@
   (lsp-pyright-use-library-code-for-types t)
   (lsp-keymap-prefix "C-c l")
   (lsp-headerline-breadcrumb-enable nil)
+  (lsp-clients-svelte-server "svelteserver")
   :bind (:map lsp-mode-map
               ("C-c l a" . lsp-execute-code-action)
               ("C-c l r" . lsp-rename)
               ("C-c l f" . lsp-format-buffer))
   :config
-  ;; Gemfile の内容に応じて ruby-lsp or solargraph を選択
+  ;; Gemfile に任意の gem が含まれているかどうかをチェックする関数
   (defun my/gemfile-has (gem-name)
     (when-let ((gemfile (locate-dominating-file default-directory "Gemfile")))
       (with-temp-buffer
         (insert-file-contents (expand-file-name "Gemfile" gemfile))
         (re-search-forward (format "gem ['\"]%s['\"]" gem-name) nil t))))
 
+  ;; (enh-)ruby-mode 用LSPの設定
   (defun my/setup-ruby-lsp ()
     (when-let ((client
                 (cond
@@ -1736,8 +1738,7 @@
   :mode ("\\.html?\\'"
          "\\.erb\\'"
          "\\.rhtml?\\'"
-         "\\.php\\'"
-         "\\.svelte\\'")
+         "\\.php\\'")
   :custom
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
@@ -1813,13 +1814,12 @@
               )))
 
 ;;; ----------------------------------------------------------------------
-;;; rjsx-mode
+;;; svelte-mode
 ;;; ----------------------------------------------------------------------
-(use-package rjsx-mode
-  :if (< emacs-major-version 27)
+(use-package svelte-mode
   :ensure t
-  :hook (rjsx-mode . add-node-modules-path)
-  :mode (".*\\.jsx\\'" ".*\\.js\\'"))
+  :mode "\\.svelte\\'"
+  :hook (svelte-mode . lsp))
 
 ;;; ----------------------------------------------------------------------
 ;;; json-mode
@@ -1852,23 +1852,6 @@
                             ;; (?\; . after)
                             ))
               )))
-
-;;; ----------------------------------------------------------------------
-;;; tide
-;;; ----------------------------------------------------------------------
-(use-package tide
-  :ensure t
-  :init
-  (defun setup-tide-mode ()
-    (interactive)
-    (add-node-modules-path)
-    (tide-setup)
-    (flycheck-mode +1)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled))
-    (eldoc-mode +1)
-    (tide-hl-identifier-mode +1))
-  (add-hook 'before-save-hook 'tide-format-before-save)
-  (add-hook 'typescript-mode-hook #'setup-tide-mode))
 
 ;;; ----------------------------------------------------------------------
 ;;; csharp-mode
@@ -1946,6 +1929,24 @@
 
 (use-package logstash-conf
   :ensure t :defer t)
+
+;;; ----------------------------------------------------------------------
+;;; tree-sitter
+;;; ----------------------------------------------------------------------
+(setq treesit-language-source-alist
+      '((javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+        (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+        (ruby       . ("https://github.com/tree-sitter/tree-sitter-ruby"))
+        (python     . ("https://github.com/tree-sitter/tree-sitter-python"))))
+
+;; 一度だけ実行（C-x C-eで評価）
+;; (mapc #'treesit-install-language-grammar '(javascript typescript tsx ruby python))
+
+(add-to-list 'major-mode-remap-alist
+             '(javascript-mode . js-ts-mode))
+(add-to-list 'major-mode-remap-alist
+             '(typescript-mode . tsx-ts-mode)) ;; JSX込みならtsx-ts-mode
 
 ;;; ----------------------------------------------------------------------
 ;;; その他の拡張子に対応する編集モードを設定
