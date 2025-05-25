@@ -2472,16 +2472,18 @@
 (setq eldoc-minor-mode-string "")
 
 ;;; ----------------------------------------------------------------------
-;;; highlight-symbol
+;;; symbol-overlay
 ;;; ----------------------------------------------------------------------
-(use-package highlight-symbol
+(use-package symbol-overlay
   :ensure t
-  :diminish highlight-symbol-mode
-  :hook (prog-mode . highlight-symbol-mode)
-  :bind (([(control f3)] . highlight-symbol-at-point)
-         ([f3]           . highlight-symbol-next)
-         ([(shift f3)]   . highlight-symbol-prev)
-         ([(meta f3)]    . highlight-symbol-query-replace)))
+  :hook (prog-mode . symbol-overlay-mode)
+  :bind (("<C-f3>"     . symbol-overlay-put)             ;; 現在のsymbolをハイライト
+         ("<f3>"       . symbol-overlay-jump-next)       ;; 次のハイライトへ移動
+         ("<S-f3>"     . symbol-overlay-jump-prev)       ;; 前のハイライトへ戻る
+         ("ESC <C-f3>" . symbol-overlay-remove-all)      ;; 全ハイライト消す
+         ("ESC <f3>"   . symbol-overlay-query-replace))  ;; ハイライト対象を置換
+  :custom
+  (setq symbol-overlay-idle-time 0.2))
 
 ;;; ----------------------------------------------------------------------
 ;;; highlight-indent-guides

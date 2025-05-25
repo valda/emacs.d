@@ -2,7 +2,7 @@
 
 emacs-lisp-mode
 
-(up "(use-package " p n> ":straight t" n> ":defer t" n> ":config" n> p ")")
+(up "(use-package " p n> ":ensure t" n> ":defer t" n> ":init" n> ":custom" n> ":config" n> p ")")
 
 web-mode html-mode css-mode
 
