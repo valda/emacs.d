@@ -1445,7 +1445,7 @@
   (lsp-ui-doc-position 'at-point)         ;; ポップアップの位置をカーソル位置に
   (lsp-ui-sideline-enable t)              ;; サイドラインの表示 → ON
   (lsp-ui-sideline-show-hover nil)        ;; カーソル乗せたときの doc 表示 → OFF（うざい）
-  (lsp-ui-sideline-show-code-actions t)   ;; アクション（リファクタリングのヒントなど）の表示 → ON
+  (lsp-ui-sideline-show-code-actions nil) ;; アクション（リファクタリングのヒントなど）の表示 → OFF
   (lsp-ui-sideline-show-diagnostics t)    ;; 警告・エラー表示 → ON（便利）
   (lsp-ui-sideline-show-symbol nil)       ;; カーソル下の symbol 情報 → OFF（チラつく）
   (lsp-ui-sideline-delay 0.5)             ;; 表示までの遅延 → チラつき防止
