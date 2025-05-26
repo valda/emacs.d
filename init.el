@@ -366,12 +366,6 @@
   (with-eval-after-load 'flycheck-posframe
     (set-face-attribute 'flycheck-posframe-background-face nil
                         :background (face-attribute 'mode-line :background)))
-  (with-eval-after-load 'highlight-symbol
-    (setq highlight-symbol-colors
-          `(,@(mapcar
-               (lambda (color) (solarized-color-blend color (face-attribute 'default :background) 0.4))
-               '("yellow" "DeepPink" "cyan" "MediumPurple1" "SpringGreen1"
-                 "DarkOrange" "HotPink1" "RoyalBlue1" "OliveDrab")))))
   (with-eval-after-load 'tab-bar
     (set-face-attribute 'tab-bar nil
                         :foreground 'unspecified :background 'unspecified
