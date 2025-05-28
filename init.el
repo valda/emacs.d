@@ -1395,6 +1395,7 @@
   (lsp-keymap-prefix "C-c l")
   (lsp-headerline-breadcrumb-enable nil)
   (lsp-clients-svelte-server "svelteserver")
+  (lsp-enable-snippet nil)
   :bind (:map lsp-mode-map
               ("C-c l a" . lsp-execute-code-action)
               ("C-c l r" . lsp-rename)
