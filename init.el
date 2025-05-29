@@ -986,95 +986,6 @@
   :hook (dired-mode . nerd-icons-dired-mode))
 
 ;;; ----------------------------------------------------------------------
-;;; Dropbox のパス
-;;; ----------------------------------------------------------------------
-;; (defvar my/dropbox-directory
-;;   (cond ((string-equal (system-name) "SILVER")
-;;          "D:/Dropbox/")
-;;         (t
-;;          "~/Dropbox/")))
-(defvar my/dropbox-directory "~/Dropbox/")
-
-;;; ----------------------------------------------------------------------
-;;; howm
-;;; ----------------------------------------------------------------------
-(use-package howm
-  :disabled
-  :ensure t
-  :commands (howm-list-all
-             howm-list-recent
-             howm-list-grep
-             howm-keyword-to-kill-ring)
-  :bind (("\C-c,," . howm-menu)
-         ("\C-c,c" . howm-create))
-  :mode ("\\.howm\\'" . howm-mode)
-  :custom
-  (howm-directory (expand-file-name "Documents/howm" my/dropbox-directory))
-  (howm-menu-lang 'ja)
-  (howm-process-coding-system 'utf-8)
-  ;; 「最近のメモ」一覧時にタイトル表示
-  (howm-list-recent-title t)
-  ;; 全メモ一覧時にタイトル表示
-  (howm-list-all-title t)
-  ;; メニューを 2 時間キャッシュ
-  (howm-menu-expiry-hours 2)
-  ;; howm の時は auto-fill で
-  ;; (add-hook 'howm-mode-on-hook 'auto-fill-mode)
-  ;; RET でファイルを開く際, 一覧バッファを消す
-  ;; C-u RET なら残る
-  (howm-view-summary-persistent nil)
-  ;; 検索しないファイルの正規表現
-  (howm-excluded-file-regexp "/\\.#\\|[~#]$\\|\\.bak$\\|/CVS/\\|\\.doc$\\|\\.pdf$\\|\\.ppt$\\|\\.xls$")
-  ;; howmメニューの完了済みToDoは非表示にする
-  (howm-todo-menu-types "[-+~!]")
-  :custom-face
-  (howm-mode-title-face ((t (:foreground "cyan"))))
-  (howm-reminder-normal-face ((t (:foreground "deep sky blue"))))
-  :config
-  (add-hook 'find-file-hook
-            (lambda ()
-              (when (and
-                     (buffer-file-name)
-                     (string-match (expand-file-name howm-directory)
-                                   (expand-file-name buffer-file-name)))
-                (howm-mode))))
-  ;; いちいち消すのも面倒なので
-  ;; 内容が 0 ならファイルごと削除する
-  (defun delete-file-if-no-contents ()
-    (when (and
-           (buffer-file-name (current-buffer))
-           (string-match (expand-file-name howm-directory)
-                         (expand-file-name buffer-file-name))
-           (= (point-min) (point-max)))
-      (delete-file
-       (buffer-file-name (current-buffer)))))
-  (add-hook 'after-save-hook #'delete-file-if-no-contents)
-  ;; http://howm.sourceforge.jp/cgi-bin/hiki/hiki.cgi?SaveAndKillBuffer
-  ;; C-cC-c で保存してバッファをキルする
-  (defun my/save-and-kill-buffer-howm ()
-    (interactive)
-    (when (and
-           (buffer-file-name)
-           (string-match (expand-file-name howm-directory)
-                         (expand-file-name buffer-file-name)))
-      (save-buffer)
-      (kill-buffer nil)))
-  (define-key howm-mode-map "\C-c\C-c" 'my/save-and-kill-buffer-howm)
-  ;; 日付けの入力が面倒
-  (with-eval-after-load 'calendar
-    (define-key calendar-mode-map "\C-m" 'my/insert-day)
-    (defun my/insert-day ()
-      (interactive)
-      (let ((day nil)
-            (calendar-date-display-form
-             '("[" year "-" (format "%02d" (string-to-int month))
-               "-" (format "%02d" (string-to-int day)) "]")))
-        (setq day (calendar-date-string
-                   (calendar-cursor-to-date t)))
-        (exit-calendar)
-        (insert day)))))
-
-;;; ----------------------------------------------------------------------
 ;;; adaptive-wrap
 ;;; ----------------------------------------------------------------------
 (use-package adaptive-wrap
@@ -1086,10 +997,11 @@
 ;;; ----------------------------------------------------------------------
 ;;; org-mode
 ;;; ----------------------------------------------------------------------
+(defvar my/syncthing-directory "~/Sync/") ; Syncthing で同期しているディレクトリ
 (use-package org
   :ensure t
   :custom
-  (org-directory (expand-file-name "Documents/org/" my/dropbox-directory))
+  (org-directory (expand-file-name "org" my/syncthing-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
   (org-capture-templates
    '(("t" "Task" entry (file+headline org-default-notes-file "Tasks")
@@ -1164,7 +1076,7 @@
   :ensure t
   :after org
   :init
-  (setq org-roam-directory (expand-file-name "Documents/org/roam" my/dropbox-directory))
+  (setq org-roam-directory (expand-file-name "org/roam" my/syncthing-directory))
   :custom
   (org-roam-db-update-method 'idle)
   (org-roam-completion-everywhere t)
