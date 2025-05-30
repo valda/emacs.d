@@ -401,7 +401,7 @@
   (setq doom-modeline-github nil)
   :custom
   (doom-modeline-height 34)
-  (doom-modeline-buffer-file-name-style 'truncate-with-project)
+  (doom-modeline-buffer-file-name-style 'auto)
   (doom-modeline-percent-position nil)
   (doom-modeline-buffer-encoding 'nondefault)
   (doom-modeline-workspace-name nil)
