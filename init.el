@@ -410,6 +410,14 @@
   (doom-modeline-panel     ((t (:inherit doom-modeline-highlight))))
   (doom-modeline-bar       ((t (:background "IndianRed" :inherit mode-line-buffer-id)))))
 
+
+;;; ----------------------------------------------------------------------
+;;; window-divider
+;;; ----------------------------------------------------------------------
+(setq window-divider-default-right-width 1)
+(set-face-foreground 'window-divider "gray30")
+(window-divider-mode 1)
+
 ;;; ----------------------------------------------------------------------
 ;;; nyan-mode
 ;;; ----------------------------------------------------------------------
