@@ -415,9 +415,9 @@
 ;;; window-divider
 ;;; ----------------------------------------------------------------------
 (setq window-divider-default-right-width 5)
-(let ((fringe-bg (face-attribute 'fringe :background nil 'default)))
-  (set-face-foreground 'window-divider fringe-bg)
-  (set-face-foreground 'window-divider-first-pixel fringe-bg)
+(let ((default-bg (face-attribute 'default :background)))
+  (set-face-foreground 'window-divider default-bg)
+  (set-face-foreground 'window-divider-first-pixel default-bg)
   (set-face-foreground 'window-divider-last-pixel "gray30"))
 (window-divider-mode 1)
 
