@@ -1319,6 +1319,15 @@
   (lsp-headerline-breadcrumb-enable nil)
   (lsp-clients-svelte-server "svelteserver")
   (lsp-enable-snippet nil)
+  (lsp-enable-file-watchers t)
+  (lsp-file-watch-ignored-directories
+   '("[/\\\\]\\.git$"
+     "[/\\\\]node_modules$"
+     "[/\\\\]vendor$"
+     "[/\\\\]\\.bundle$"
+     "[/\\\\]tmp$"
+     "[/\\\\]log$"
+     "[/\\\\]public/packs$"))
   :bind (:map lsp-mode-map
               ("C-c l a" . lsp-execute-code-action)
               ("C-c l r" . lsp-rename)
@@ -2058,18 +2067,30 @@
 ;;; ----------------------------------------------------------------------
 ;;; copilot
 ;;; ----------------------------------------------------------------------
-(use-package copilot
-  :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . copilot-accept-completion)
-              ("TAB" . copilot-accept-completion)
-              ("C-TAB" . copilot-accept-completion-by-word)
-              ("C-<tab>" . copilot-accept-completion-by-word))
-  :custom
-  (copilot-idle-delay 0.7)
-  (copilot-indent-offset-warning-disable t)
-  (copilot-max-char-warning-disable t))
+;; (use-package copilot
+;;   :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+;;   :hook (prog-mode . copilot-mode)
+;;   :bind (:map copilot-completion-map
+;;               ("<tab>" . copilot-accept-completion)
+;;               ("TAB" . copilot-accept-completion)
+;;               ("C-TAB" . copilot-accept-completion-by-word)
+;;               ("C-<tab>" . copilot-accept-completion-by-word))
+;;   :custom
+;;   (copilot-idle-delay 0.7)
+;;   (copilot-indent-offset-warning-disable t)
+;;   (copilot-max-char-warning-disable t))
+
+;;; ----------------------------------------------------------------------
+;;; codeium
+;;; ----------------------------------------------------------------------
+(use-package codeium
+  :ensure (:host github :repo "Exafunction/codeium.el")
+  :init
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
+  :config
+  (setq codeium-mode-line-enable
+        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
 ;;; ----------------------------------------------------------------------
 ;;; anzu
