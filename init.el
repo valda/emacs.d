@@ -975,11 +975,23 @@
   (let* ((file (dired-get-filename nil t)))
     (call-process "xdg-open" nil 0 nil file)))
 
+(defun my/dired-copy-file-path-relative ()
+  "Copy file path relative to projectile root, or full path if not in a project."
+  (interactive)
+  (let* ((full-path (dired-get-file-for-visit))
+         (path (if (and (fboundp 'projectile-project-root)
+                        (projectile-project-p))
+                   (file-relative-name full-path (projectile-project-root))
+                 full-path)))
+    (kill-new path)
+    (message "Copied: %s" path)))
+
 (with-eval-after-load 'dired
   (require 'dired-x)
   (require 'wdired)
   (bind-key "r" 'wdired-change-to-wdired-mode dired-mode-map)
   (bind-key "C-c o" 'my/dired-open-file dired-mode-map)
+  (bind-key "W" 'my/dired-copy-file-path-relative dired-mode-map)
   (advice-add 'wdired-finish-edit
               :after (lambda ()
                        (deactivate-input-method)
