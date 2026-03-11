@@ -601,7 +601,7 @@
          ("M-s D" . consult-locate)
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
+         ("M-s r" . consult-ripgrep-dwim)
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
          ("M-s k" . consult-keep-lines)
@@ -661,6 +661,21 @@
   ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
   ;;;; 4. locate-dominating-file
   ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+
+  (defun consult-ripgrep-dwim ()
+    "DWIM version of `consult-ripgrep'.
+1. Region active → use region as initial query.
+2. Symbol at point → use symbol as initial query.
+3. Otherwise → empty query.
+Search directory: project root if available, else `default-directory'."
+    (interactive)
+    (let ((initial (cond
+                    ((use-region-p)
+                     (buffer-substring-no-properties (region-beginning) (region-end)))
+                    ((thing-at-point 'symbol t))
+                    (t nil)))
+          (dir (or (consult--project-root) default-directory)))
+      (consult-ripgrep dir initial)))
   )
 
 ;; Consult users will also want the embark-consult package.
