@@ -44,3 +44,4 @@ server/
 elpaca/
 tree-sitter/
 codeium/
+.claude/settings.local.json
