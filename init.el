@@ -1110,35 +1110,63 @@ Search directory: project root if available, else `default-directory'."
   (setq org-modern-todo-faces '(("SOMEDAY"  :background "cyan4" :foreground "black")
                                 ("WAITING"  :background "DarkOrange2"    :foreground "black"))))
 
-(use-package org-roam
+;; org-roam は使っていないためコメントアウト (obsidian.el へ移行)
+;; (use-package org-roam
+;;   :ensure t
+;;   :after org
+;;   :init
+;;   (setq org-roam-directory (expand-file-name "org/roam" my/syncthing-directory))
+;;   :custom
+;;   (org-roam-db-update-method 'idle)
+;;   (org-roam-completion-everywhere t)
+;;   :bind (("C-c n l" . org-roam-buffer-toggle)
+;;          ("C-c n f" . org-roam-node-find)
+;;          ("C-c n i" . org-roam-node-insert)
+;;          ("C-c n c" . org-roam-capture)
+;;          ("C-c n d" . org-roam-dailies-capture-today))
+;;   :config
+;;   (org-roam-db-autosync-mode)
+;;
+;;   ;; ノート作成用テンプレート
+;;   (setq org-roam-capture-templates
+;;         '(("d" "Default" plain "%?"
+;;            :if-new (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
+;;                               "#+title: ${title}\n#+filetags: :note:\n#+date: %U\n\n")
+;;            :unnarrowed t)))
+;;
+;;   ;; 日次ノートのテンプレート
+;;   (setq org-roam-dailies-capture-templates
+;;         '(("d" "Default" entry
+;;            "* %<%H:%M> %?"
+;;            :if-new (file+head "%<%Y-%m-%d>.org"
+;;                               "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n")))))
+
+;;; ----------------------------------------------------------------------
+;;; obsidian.el
+;;; ----------------------------------------------------------------------
+(use-package obsidian
   :ensure t
-  :after org
-  :init
-  (setq org-roam-directory (expand-file-name "org/roam" my/syncthing-directory))
+  :after markdown-mode
   :custom
-  (org-roam-db-update-method 'idle)
-  (org-roam-completion-everywhere t)
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture)
-         ("C-c n d" . org-roam-dailies-capture-today))
+  (obsidian-directory (expand-file-name "~/wiki"))
+  (obsidian-daily-notes-directory "daily")
+  (obsidian-inbox-directory "inbox")
+  :bind (:map obsidian-mode-map
+              ("C-c C-o" . obsidian-follow-link-at-point)
+              ("C-c C-b" . obsidian-backlink-jump)
+              ("C-c C-l" . obsidian-insert-wikilink))
+  :bind (("C-c n f" . obsidian-jump)
+         ("C-c n i" . obsidian-insert-wikilink)
+         ("C-c n c" . obsidian-capture)
+         ("C-c n d" . obsidian-daily-note)
+         ("C-c n s" . my/obsidian-consult-ripgrep))
   :config
-  (org-roam-db-autosync-mode)
+  (global-obsidian-mode t)
 
-  ;; ノート作成用テンプレート
-  (setq org-roam-capture-templates
-        '(("d" "Default" plain "%?"
-           :if-new (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+filetags: :note:\n#+date: %U\n\n")
-           :unnarrowed t)))
-
-  ;; 日次ノートのテンプレート
-  (setq org-roam-dailies-capture-templates
-        '(("d" "Default" entry
-           "* %<%H:%M> %?"
-           :if-new (file+head "%<%Y-%m-%d>.org"
-                              "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n")))))
+  (defun my/obsidian-consult-ripgrep ()
+    "`obsidian-directory' を対象に `consult-ripgrep' を起動する。"
+    (interactive)
+    (consult-ripgrep obsidian-directory)))
 
 ;;; ----------------------------------------------------------------------
 ;;; markdown-mode
