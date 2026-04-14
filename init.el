@@ -1179,7 +1179,19 @@ Search directory: project root if available, else `default-directory'."
   (add-hook 'markdown-mode-hook #'visual-line-mode)
   (markdown-fontify-code-blocks-natively t)
   (markdown-fontify-headings-face-dynamically t)
-  (markdown-indent-on-enter 'indent-and-new-item))
+  (markdown-indent-on-enter 'indent-and-new-item)
+  (markdown-header-scaling t)
+  (markdown-header-scaling-values '(1.6 1.4 1.2 1.1 1.05 1.0)))
+
+;;; ----------------------------------------------------------------------
+;;; valign - テーブルをピクセル単位で揃えて表示する
+;;; ----------------------------------------------------------------------
+(use-package valign
+  :ensure t
+  :hook ((markdown-mode . valign-mode)
+         (org-mode . valign-mode))
+  :custom
+  (valign-fancy-bar t))
 
 ;;; ----------------------------------------------------------------------
 ;;; calendar / japanese-holidays
