@@ -1151,10 +1151,14 @@ Search directory: project root if available, else `default-directory'."
   (obsidian-directory (expand-file-name "~/wiki"))
   (obsidian-daily-notes-directory "daily")
   (obsidian-inbox-directory "inbox")
+  (obsidian-backlinks-panel-position 'left)
+  (obsidian-backlinks-panel-width 50)
+  (markdown-enable-wiki-links t)
   :bind (:map obsidian-mode-map
               ("C-c C-o" . obsidian-follow-link-at-point)
               ("C-c C-b" . obsidian-backlink-jump)
-              ("C-c C-l" . obsidian-insert-wikilink))
+              ("C-c C-l" . obsidian-insert-wikilink)
+              ("C-'"     . obsidian-toggle-backlinks-panel))
   :bind (("C-c n f" . obsidian-jump)
          ("C-c n i" . obsidian-insert-wikilink)
          ("C-c n c" . obsidian-capture)
@@ -1162,11 +1166,81 @@ Search directory: project root if available, else `default-directory'."
          ("C-c n s" . my/obsidian-consult-ripgrep))
   :config
   (global-obsidian-mode t)
+  (obsidian-backlinks-mode t)
 
   (defun my/obsidian-consult-ripgrep ()
     "`obsidian-directory' を対象に `consult-ripgrep' を起動する。"
     (interactive)
-    (consult-ripgrep obsidian-directory)))
+    (consult-ripgrep obsidian-directory))
+
+  ;; markdown-mode はリンク領域に markdown-mode-mouse-map を貼っており、
+  ;; テキストプロパティ経由のキーマップは minor-mode-map より優先されるため、
+  ;; obsidian-mode-map で [mouse-2] を上書きしても効かない。
+  ;; obsidian-mode が ON のときだけ obsidian-aware な追従関数に差し替える。
+  (defun my/obsidian-follow-thing-at-point-advice (orig-fun &rest args)
+    (if (bound-and-true-p obsidian-mode)
+        (obsidian-follow-link-at-point)
+      (apply orig-fun args)))
+  (advice-add 'markdown-follow-thing-at-point :around
+              #'my/obsidian-follow-thing-at-point-advice)
+
+  ;; バックリンクパネル内のリンクをクリックで開けるようにする。
+  ;; パネル各行には obsidian--file / obsidian--position プロパティが
+  ;; 付くだけで mouse-face / keymap が無いため、populate 後に付与する。
+  (defun my/obsidian-mouse-follow-backlink (event)
+    "クリック位置のバックリンクを `obsidian-follow-link-at-point' で開く。"
+    (interactive "e")
+    (mouse-set-point event)
+    (obsidian-follow-link-at-point))
+
+  (defvar my/obsidian-backlinks-link-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [mouse-2]     #'my/obsidian-mouse-follow-backlink)
+      (define-key map [follow-link] 'mouse-face)
+      (define-key map (kbd "RET")   #'obsidian-follow-link-at-point)
+      map)
+    "バックリンクパネル内のリンク行に貼るキーマップ。")
+
+  (defun my/obsidian-decorate-backlinks-buffer (&rest _)
+    (when-let ((buf (get-buffer obsidian-backlinks-buffer-name)))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (save-excursion
+            (goto-char (point-min))
+            (while (not (eobp))
+              (when (get-text-property (point) 'obsidian--file)
+                (add-text-properties
+                 (line-beginning-position) (line-end-position)
+                 `(mouse-face highlight
+                   keymap ,my/obsidian-backlinks-link-map
+                   help-echo "mouse-1: バックリンクを開く")))
+              (forward-line 1)))))))
+  (advice-add 'obsidian--populate-backlinks-buffer :after
+              #'my/obsidian-decorate-backlinks-buffer)
+
+  ;; obsidian-follow-backlink-at-point は find-file-other-window を使うため、
+  ;; サイドウィンドウのバックリンクパネルから呼ぶと既存メインウィンドウを
+  ;; 再利用せず新規スプリットを作ってしまう。非サイドウィンドウを明示的に
+  ;; 選択してから find-file するように差し替える。
+  (defun my/obsidian-follow-backlink-at-point ()
+    "Open the backlink at point in the main (non-side) window."
+    (let* ((link (get-text-property (point) 'obsidian--file))
+           (pos  (get-text-property (point) 'obsidian--position)))
+      (cond ((s-contains-p ":" link)
+             (browse-url link))
+            ((s-starts-with-p "#" link)
+             (message "Doing nothing with relative link %s" link))
+            (t
+             (let ((target (seq-find
+                            (lambda (w)
+                              (and (not (window-parameter w 'window-side))
+                                   (not (eq w (selected-window)))))
+                            (window-list))))
+               (when target (select-window target))
+               (find-file link)
+               (goto-char pos))))))
+  (advice-add 'obsidian-follow-backlink-at-point :override
+              #'my/obsidian-follow-backlink-at-point))
 
 ;;; ----------------------------------------------------------------------
 ;;; markdown-mode
