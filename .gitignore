@@ -18,6 +18,7 @@ anything-c-adaptive-history
 bm-repository
 bookmarks
 company-statistics-cache.el
+elgrep-data.el
 custom.el
 el-get-backup-*/
 el-get/
