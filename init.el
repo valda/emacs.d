@@ -1249,13 +1249,16 @@ Search directory: project root if available, else `default-directory'."
   :ensure t
   :mode (("\\.md\\'" . gfm-mode)
          ("\\.markdown\\'" . gfm-mode))
+  :hook (markdown-mode . visual-line-mode)
   :custom
-  (add-hook 'markdown-mode-hook #'visual-line-mode)
   (markdown-fontify-code-blocks-natively t)
   (markdown-fontify-headings-face-dynamically t)
   (markdown-indent-on-enter 'indent-and-new-item)
   (markdown-header-scaling t)
-  (markdown-header-scaling-values '(1.6 1.4 1.2 1.1 1.05 1.0)))
+  (markdown-header-scaling-values '(1.6 1.4 1.2 1.1 1.05 1.0))
+  :config
+  (markdown-update-header-faces markdown-header-scaling
+                                markdown-header-scaling-values))
 
 ;;; ----------------------------------------------------------------------
 ;;; valign - テーブルをピクセル単位で揃えて表示する
