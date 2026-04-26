@@ -1158,11 +1158,13 @@ Search directory: project root if available, else `default-directory'."
               ("C-c C-o" . obsidian-follow-link-at-point)
               ("C-c C-b" . obsidian-backlink-jump)
               ("C-c C-l" . obsidian-insert-wikilink)
-              ("C-'"     . obsidian-toggle-backlinks-panel))
+              ("C-'"     . obsidian-toggle-backlinks-panel)
+              ([mouse-8] . obsidian-jump-back))
   :bind (("C-c n f" . obsidian-jump)
          ("C-c n i" . obsidian-insert-wikilink)
          ("C-c n c" . obsidian-capture)
          ("C-c n d" . obsidian-daily-note)
+         ("C-c n h" . my/obsidian-open-index)
          ("C-c n s" . my/obsidian-consult-ripgrep))
   :config
   (global-obsidian-mode t)
@@ -1172,6 +1174,11 @@ Search directory: project root if available, else `default-directory'."
     "`obsidian-directory' を対象に `consult-ripgrep' を起動する。"
     (interactive)
     (consult-ripgrep obsidian-directory))
+
+  (defun my/obsidian-open-index ()
+    "`obsidian-directory' 直下の index.md を開く。"
+    (interactive)
+    (find-file (expand-file-name "index.md" obsidian-directory)))
 
   ;; markdown-mode はリンク領域に markdown-mode-mouse-map を貼っており、
   ;; テキストプロパティ経由のキーマップは minor-mode-map より優先されるため、
