@@ -18,10 +18,13 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 ;;; ----------------------------------------------------------------------
 ;;; 基本設定
 ;;; ----------------------------------------------------------------------
 (setq inhibit-startup-message t
+      initial-major-mode 'text-mode
       scroll-conservatively 1
       next-line-add-newlines nil
       kill-whole-line t
@@ -648,6 +651,38 @@
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  (defvar my/consult-pinned-file-roots
+    '(("Hermes skills" . "~/.hermes/skills/")
+      ("dotfiles" . "~/dotfiles/"))
+    "Directory roots whose files are shown in `consult-buffer'.")
+
+  (defun my/consult-pinned-file-candidates ()
+    "Return files under `my/consult-pinned-file-roots' for `consult-buffer'."
+    (cl-loop for (label . root) in my/consult-pinned-file-roots
+             for dir = (file-name-as-directory (expand-file-name root))
+             when (file-directory-p dir)
+             append
+             (mapcar (lambda (file)
+                       (cons (format "%s/%s" label (file-relative-name file dir))
+                             file))
+                     (directory-files-recursively
+                      dir "." nil
+                      (lambda (subdir)
+                        (not (member (file-name-nondirectory
+                                      (directory-file-name subdir))
+                                     '(".git"))))))))
+
+  (defvar my/consult-source-pinned-file
+    `(:name     "Pinned File"
+      :narrow   ?d
+      :category file
+      :face     consult-file
+      :action   ,#'find-file
+      :items    ,#'my/consult-pinned-file-candidates)
+    "Pinned file source for `consult-buffer'.")
+
+  (add-to-list 'consult-buffer-sources 'my/consult-source-pinned-file t)
 
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
@@ -2414,7 +2449,6 @@ Search directory: project root if available, else `default-directory'."
   :bind (("\C-c t g" . google-translate-at-point-autodetect)
          ("\C-c t G" . google-translate-smooth-translate))
   :config
-  (require 'cl-lib)
   (defun google-translate-at-point-autodetect (&optional override-p)
     "選択リージョンを整形し、内容に応じて翻訳方向を自動判定して翻訳する。"
     (interactive "P")
