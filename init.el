@@ -407,6 +407,7 @@
   (doom-modeline-buffer-file-name-style 'auto)
   (doom-modeline-percent-position nil)
   (doom-modeline-buffer-encoding 'nondefault)
+  (doom-modeline-project-name nil)
   (doom-modeline-workspace-name nil)
   :custom-face
   (doom-modeline-highlight ((t (:foreground "GhostWhite" :background "chocolate4" :inherit mode-line-buffer-id))))
@@ -654,6 +655,7 @@
 
   (defvar my/consult-pinned-file-roots
     '(("Hermes skills" . "~/.hermes/skills/")
+      ("Agents skills" . "~/.agents/skills/")
       ("dotfiles" . "~/dotfiles/"))
     "Directory roots whose files are shown in `consult-buffer'.")
 
@@ -1741,44 +1743,49 @@ Search directory: project root if available, else `default-directory'."
                 ("\\.[Hh][Pp][Pp]\\'" . c++-mode))
               auto-mode-alist))
 ;;; ----------------------------------------------------------------------
-;;; (enhanced-)ruby-mode
+;;; ruby-mode / ruby-ts-mode
 ;;; ----------------------------------------------------------------------
+(use-package ruby-mode
+  :mode (("\\.rb\\'" . ruby-ts-mode)
+         ("\\.rake\\'" . ruby-ts-mode)
+         ("\\.gemspec\\'" . ruby-ts-mode)
+         ("\\.ru\\'" . ruby-ts-mode)
+         ("\\.prawn\\'" . ruby-ts-mode)
+         ("\\.jbuilder\\'" . ruby-ts-mode)
+         ("\\.xremap\\'" . ruby-ts-mode)
+         ("\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'" . ruby-ts-mode)
+         ("config\\.ru\\'" . ruby-ts-mode))
+  :config
+  (defun my/ruby-mode-setup ()
+    (inf-ruby-minor-mode t)
+    (electric-indent-mode t)
+    (electric-layout-mode t)
+    (rubocop-mode t)
+    (modify-syntax-entry ?: ".")
+    (modify-syntax-entry ?@ "w")
+    (modify-syntax-entry ?$ "w")
+    (modify-syntax-entry ?? "w")
+    (modify-syntax-entry ?! "w")
+    (modify-syntax-entry ?= "w"))
+  (add-hook 'ruby-mode-hook #'my/ruby-mode-setup)
+  (add-hook 'ruby-ts-mode-hook #'my/ruby-mode-setup))
+
+;; `enh-ruby-mode' は Emacs 30 で face 初期化が `ruby-lsp' 起動を阻害したため、
+;; Ruby ファイルの自動関連付けには使わない。必要なら手動で M-x enh-ruby-mode する。
 (use-package enh-ruby-mode
   :ensure t
-  :interpreter ("ruby")
-  :mode ("\\.rb\\'"
-         "\\.rake\\'"
-         "\\.gemspec\\'"
-         "\\.ru\\'"
-         "\\.prawn\\'"
-         "\\.jbuilder\\'"
-         "\\.xremap\\'"
-         "\\(Rake\\|Cap\\|Gem\\|Guard\\)file\\'"
-         "config\\.ru\\'")
+  :defer t
   :custom
   (enh-ruby-add-encoding-comment-on-save nil)
   (enh-ruby-deep-indent-paren nil)
-  (enh-ruby-deep-indent-construct nil)
-  :config
-  (add-hook 'enh-ruby-mode-hook
-            (lambda ()
-              (inf-ruby-minor-mode t)
-              (electric-indent-mode t)
-              (electric-layout-mode t)
-              (rubocop-mode t)
-              (modify-syntax-entry ?: ".")
-              (modify-syntax-entry ?@ "w")
-              (modify-syntax-entry ?$ "w")
-              (modify-syntax-entry ?? "w")
-              (modify-syntax-entry ?! "w")
-              (modify-syntax-entry ?= "w"))))
+  (enh-ruby-deep-indent-construct nil))
 
 (use-package inf-ruby
   :ensure t)
 
 (use-package ruby-end
   :ensure t
-  :hook (enh-ruby-mode . ruby-end-mode)
+  :hook ((ruby-mode ruby-ts-mode) . ruby-end-mode)
   :diminish ruby-end-mode)
 
 (use-package rubocop
