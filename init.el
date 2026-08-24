@@ -143,15 +143,15 @@
 ;;; ----------------------------------------------------------------------
 ;;; elpaca
 ;;; ----------------------------------------------------------------------
-(defvar elpaca-installer-version 0.11)
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
                               :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
        (default-directory repo))
@@ -640,8 +640,8 @@
    consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
+   consult-source-bookmark consult-source-file-register
+   consult-source-recent-file consult-source-project-recent-file
    ;; :preview-key (kbd "M-.")
    :preview-key '(:debounce 0.4 any))
 
@@ -2230,6 +2230,7 @@ Search directory: project root if available, else `default-directory'."
   :hook (emacs-startup . global-flycheck-mode)
   :diminish flycheck-mode
   :custom
+  (flycheck-global-modes '(not text-mode))
   (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-gcc-language-standard "c++11")
   (flycheck-clang-language-standard "c++11")
@@ -2260,6 +2261,10 @@ Search directory: project root if available, else `default-directory'."
 ;;; ----------------------------------------------------------------------
 ;;; copilot
 ;;; ----------------------------------------------------------------------
+(use-package track-changes
+  :ensure t
+  :defer t)
+
 (use-package copilot
   :ensure (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :bind (:map copilot-completion-map
@@ -2732,6 +2737,7 @@ Search directory: project root if available, else `default-directory'."
                              register-alist)))
 
 (use-package session
+  :ensure t
   :defer t
   :custom
   (session-save-file-coding-system 'no-conversion)
