@@ -687,6 +687,62 @@
 
   (add-to-list 'consult-buffer-sources 'my/consult-source-pinned-file t)
 
+  (defun my/claude-live-sessions ()
+    "Return (SESSION-ID . NAME) for running Claude Code sessions."
+    (cl-loop for file in (file-expand-wildcards
+                          (expand-file-name "~/.claude/sessions/*.json"))
+             for info = (ignore-errors
+                          (with-temp-buffer
+                            (insert-file-contents file)
+                            (json-parse-buffer :object-type 'alist)))
+             for pid = (alist-get 'pid info)
+             ;; 異常終了で残ったファイルや PID 再利用を除外する
+             when (and pid
+                       (equal (alist-get 'comm (process-attributes pid))
+                              "claude"))
+             collect (cons (alist-get 'sessionId info)
+                           (or (alist-get 'name info)
+                               (substring (alist-get 'sessionId info) 0 8)))))
+
+  (defun my/consult-claude-scratchpad-candidates ()
+    "Return text artifact files in live Claude Code scratchpads, newest first."
+    (let ((root (expand-file-name (format "claude-%d" (user-uid))
+                                  temporary-file-directory)))
+      (cl-loop
+       for (file . (name . pad)) in
+       (sort
+        (cl-loop for (id . name) in (my/claude-live-sessions)
+                 append
+                 (cl-loop for pad in (file-expand-wildcards
+                                      (expand-file-name
+                                       (format "*/%s/scratchpad" id) root))
+                          append
+                          (mapcar (lambda (file) (cons file (cons name pad)))
+                                  (directory-files-recursively
+                                   pad (rx "." (or "md" "html" "htm" "txt" "csv" "tsv" "json" "jsonl"
+                                               "patch" "diff" "sql" "org" "yaml" "yml")
+                                          eos)
+                                   nil
+                                   (lambda (subdir)
+                                     (not (member (file-name-nondirectory
+                                                   (directory-file-name subdir))
+                                                  '(".git" "node_modules" ".venv"))))))))
+        (lambda (a b) (file-newer-than-file-p (car a) (car b))))
+       collect (cons (format "%s/%s" name
+                             (file-relative-name file pad))
+                     file))))
+
+  (defvar my/consult-source-claude-scratchpad
+    `(:name     "Claude Scratchpad"
+      :narrow   ?a
+      :category file
+      :face     consult-file
+      :action   ,#'find-file
+      :items    ,#'my/consult-claude-scratchpad-candidates)
+    "Claude Code scratchpad source for `consult-buffer'.")
+
+  (add-to-list 'consult-buffer-sources 'my/consult-source-claude-scratchpad t)
+
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
   ;; There are multiple reasonable alternatives to chose from.
