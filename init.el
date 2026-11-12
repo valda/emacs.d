@@ -280,16 +280,14 @@
      ([muhenkan] . isearch-toggle-input-method)
      ([zenkaku-hankaku] . isearch-toggle-input-method))
 
-    (defadvice mozc-handle-event (around intercept-keys (event))
-      "Intercept keys muhenkan and zenkaku-hankaku, before passing keys to mozc-server (which the function mozc-handle-event does), to properly disable mozc-mode."
-      (if (member event (list 'zenkaku-hankaku 'muhenkan))
+    (defun my/mozc-intercept-keys (orig-fun event)
+      "無変換・全角半角キーでは Mozc に送信せず入力メソッドを解除する。"
+      (if (memq event '(zenkaku-hankaku muhenkan))
           (progn
             (mozc-clean-up-session)
             (toggle-input-method))
-        (progn
-          ;;(message "%s" event) ;debug
-          ad-do-it)))
-    (ad-activate 'mozc-handle-event))
+        (funcall orig-fun event)))
+    (advice-add 'mozc-handle-event :around #'my/mozc-intercept-keys))
 
   (use-package mozc-im
     :ensure t
@@ -503,7 +501,7 @@
 ;;; which-key
 ;;; ----------------------------------------------------------------------
 (use-package which-key
-  :ensure t
+  :ensure nil                         ; Emacs 30 内蔵版
   :diminish which-key-mode
   :custom
   (which-key-idle-delay 1.0)
@@ -600,6 +598,9 @@
          ("C-c i" . consult-imenu)
          ("M-y" . consult-yank-pop)
          ("M-g" . consult-goto-line)
+         ;; moccur の代替
+         ("M-o" . consult-line)
+         ("C-c C-x C-o" . consult-line-multi)
          ;; M-s bindings (search-map)
          ("M-s d" . consult-find)
          ("M-s D" . consult-locate)
@@ -769,6 +770,7 @@ Search directory: project root if available, else `default-directory'."
 
 (use-package company
   :ensure t
+  :defer t
   :init
   (add-to-list 'completion-at-point-functions (cape-company-to-capf #'company-gtags))
   (advice-add 'company-mode :override (lambda (&optional _) (message "🔇 company-mode suppressed"))))
@@ -1044,6 +1046,10 @@ Search directory: project root if available, else `default-directory'."
   (bind-key "r" 'wdired-change-to-wdired-mode dired-mode-map)
   (bind-key "C-c o" 'my/dired-open-file dired-mode-map)
   (bind-key "W" 'my/dired-copy-file-path-relative dired-mode-map)
+  (bind-key "O" (lambda ()
+                  (interactive)
+                  (consult-ripgrep default-directory))
+            dired-mode-map)
   (advice-add 'wdired-finish-edit
               :after (lambda ()
                        (deactivate-input-method)
@@ -1075,6 +1081,9 @@ Search directory: project root if available, else `default-directory'."
 (defvar my/syncthing-directory "~/Sync/") ; Syncthing で同期しているディレクトリ
 (use-package org
   :ensure t
+  ;; ノート・予定表を使うまで本体と Babel を読み込まない。
+  :defer t
+  :bind ("C-c a" . org-agenda)
   :custom
   (org-directory (expand-file-name "org" my/syncthing-directory))
   (org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -1104,8 +1113,7 @@ Search directory: project root if available, else `default-directory'."
   :config
   (add-hook 'org-mode-hook #'visual-line-mode)
   (add-hook 'org-mode-hook #'org-display-inline-images)
-  (bind-keys ("\C-c a" . org-agenda)
-             :map org-mode-map
+  (bind-keys :map org-mode-map
              ([S-C-up]   . nil)
              ([S-C-down] . nil)
              ("C-c ,"    . nil)
@@ -1347,31 +1355,6 @@ Search directory: project root if available, else `default-directory'."
   (add-hook 'calendar-move-hook 'my/japanese-holiday-show))
 
 ;;; ----------------------------------------------------------------------
-;;; moccur
-;;; ----------------------------------------------------------------------
-(use-package color-moccur
-  :ensure t
-  :bind (("M-o"         . occur-by-moccur)
-         ("C-c C-x C-o" . moccur))
-  :custom
-  (moccur-split-word t) ; スペース区切りでAND検索
-  (moccur-use-migemo t)
-  (*moccur-buffer-name-exclusion-list*
-   '(".+TAGS.+" "\.svn" "*Completions*" "*Messages*" " *migemo*"))
-  :config
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (bind-key "O" 'dired-do-moccur dired-mode-map))))
-
-(use-package moccur-edit
-  :ensure (:host github :repo "myuhe/moccur-edit.el")
-  :after color-moccur
-  :config
-  (defadvice moccur-edit-change-file
-      (after save-after-moccur-edit-buffer activate)
-    (save-buffer)))
-
-;;; ----------------------------------------------------------------------
 ;;; magit
 ;;; ----------------------------------------------------------------------
 (use-package llama :ensure t)
@@ -1585,7 +1568,7 @@ Search directory: project root if available, else `default-directory'."
 ;;; editorconfig
 ;;; ----------------------------------------------------------------------
 (use-package editorconfig
-  :ensure t
+  :ensure nil                         ; Emacs 30 内蔵版
   :diminish editorconfig-mode
   :config
   (editorconfig-mode 1))
@@ -1829,6 +1812,7 @@ Search directory: project root if available, else `default-directory'."
 ;;; ----------------------------------------------------------------------
 (use-package php-mode
   :ensure t
+  :defer t
   :config
   (defun my/php-mode-setup ()
     (php-enable-psr2-coding-style)
@@ -1959,6 +1943,7 @@ Search directory: project root if available, else `default-directory'."
 ;;; ----------------------------------------------------------------------
 (use-package typescript-mode
   :ensure t
+  :defer t
   :config
   (add-hook 'typescript-mode-hook
             (lambda ()
@@ -2319,21 +2304,6 @@ Search directory: project root if available, else `default-directory'."
   (wgrep-auto-save-buffer t))
 
 ;;; ----------------------------------------------------------------------
-;;; ag / wgrep-ag
-;;; ----------------------------------------------------------------------
-(use-package ag
-  :ensure t
-  :custom
-  (ag-highlight-search t)
-  (ag-reuse-window t)
-  (ag-reuse-buffers t))
-
-(use-package wgrep-ag
-  :ensure t
-  :hook (ag-mode . wgrep-ag-setup)
-  :bind (:map ag-mode-map ("r" . wgrep-change-to-wgrep-mode)))
-
-;;; ----------------------------------------------------------------------
 ;;; ripgrep
 ;;; ----------------------------------------------------------------------
 (use-package rg
@@ -2414,6 +2384,7 @@ Search directory: project root if available, else `default-directory'."
 (use-package vterm
   :unless (eq window-system 'w32)
   :ensure t
+  :defer t
   :custom
   (vterm-max-scrollback 10000)
   (vterm-buffer-name-string "vterm: %s")
@@ -2521,8 +2492,10 @@ Search directory: project root if available, else `default-directory'."
 
 (use-package gptel
   :ensure (gptel :type git :host github :repo "karthink/gptel")
+  :defer t
   :custom
-  (gptel-api-key (my/get-openai-api-key))
+  ;; API キーはリクエスト時に取得する（起動時の認証情報読み込みを避ける）。
+  (gptel-api-key #'my/get-openai-api-key)
   (gptel-model 'gpt-4.1-mini))
 
 ;;; ----------------------------------------------------------------------
@@ -2533,8 +2506,9 @@ Search directory: project root if available, else `default-directory'."
   :after org
   :custom
   (org-ai-default-chat-model "gpt-4.1-mini")
-  (org-ai-openai-api-token (my/get-openai-api-key))
-  :hook (org-mode . org-ai-mode))
+  :hook (org-mode . org-ai-mode)
+  :config
+  (setq org-ai-openai-api-token (my/get-openai-api-key)))
 
 ;;; ----------------------------------------------------------------------
 ;;; japanese-(hankaku|zenkaku)-region の俺俺変換テーブル
@@ -2758,8 +2732,10 @@ Search directory: project root if available, else `default-directory'."
 ;;; ----------------------------------------------------------------------
 ;;; kill-ring に同じ内容の文字列を複数入れない
 ;;; ----------------------------------------------------------------------
-(defadvice kill-new (before ys:no-kill-new-duplicates activate)
-  (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
+(defun my/kill-new-remove-duplicates (string &rest _)
+  "STRING と同じ内容を kill-ring 全体から除く。"
+  (setq kill-ring (delete string kill-ring)))
+(advice-add 'kill-new :before #'my/kill-new-remove-duplicates)
 
 ;;; ----------------------------------------------------------------------
 ;;; persistent-scratch
